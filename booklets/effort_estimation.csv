@@ -1,0 +1,25 @@
+Tipo,User Story,Descrizione,Complessità,Peso,Function Points
+EI,4,Inserimento nuovo ricercatore,Media,4,4
+EI,2,Aggiunta materiali,Media,4,4
+EI,3,Impostazione soglie materiali,Media,4,4
+EI,9,Login researcher,Bassa,3,3
+EI,11,Aggiornamento stock,Media,4,4
+EI,12,Inserimento richiesta materiali,Media,4,4
+EI,13,Report danni,Media,4,4
+EO,6,Notifiche a lab manager,Media,5,5
+EO,8,Dashboard notifiche lab manager,Media,5,5
+EO,5,Report periodici lab manager,Media,5,5
+EQ,10,Lista materiali per reparto,Media,4,4
+EQ,11,Tracciamento status richieste,Media,4,4
+ILF,Materiali,Materiali e stock,Media,10,10
+ILF,Ricercatori,Informazioni ricercatori e login,Media,10,10
+ILF,Reparti,Reparti e assegnazioni,Bassa,7,7
+ILF,Richieste,Richieste materiali,Media,10,10
+ILF,Notifiche,Notifiche,Bassa,7,7
+EIF,Broker,Broker notifiche,Bassa,5,5
+TOT,-,Totale FP,-,-,98
+FP_EI,,-,,-,27
+FP_EO,,-,,-,15
+FP_EQ,,-,,-,8
+FP_ILF,,-,,-,44
+FP_EIF,,-,,-,5
