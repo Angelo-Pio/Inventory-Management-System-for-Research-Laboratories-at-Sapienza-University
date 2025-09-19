@@ -25,7 +25,7 @@ It will also be flexible and adaptable to other contexts or departments in the f
 1. As a lab manager, I want to create and edit material categories so that I can organize inventory items logically and make them easier to manage.
 2. As a lab manager, I want to add new materials (with details such as name, category, and stock level) so that all resources used in the lab are tracked in the system.
 3. As a lab manager, I want to set reorder thresholds for each material so that I receive alerts when stock levels fall below the defined minimum.
-4. As a lab manager, I want to assign specific materials to individual researchers or research groups so that responsibilities and access rights are clearly defined.
+4. As a lab manager, I want to assign materials to departments so that responsibilities and access rights are clearly defined.
 5. As a lab manager, I want to view and download periodic reports of material usage so that I can plan procurement and manage the laboratory budget more efficiently.
 6. As a lab manager, I want to receive notifications about material requests or reported damaged equipment so that I can take prompt action and avoid disruptions to research activities.
 7. As a researcher, I want to view a real-time list of available materials assigned to my department so that I know exactly what resources I can use for my projects.
@@ -33,10 +33,13 @@ It will also be flexible and adaptable to other contexts or departments in the f
 9. As a researcher, I want to submit requests for materials that are low or unavailable so that the lab manager can reorder them in time.
 10. As a researcher, I want to report damaged or malfunctioning equipment through the system so that the issue is documented and addressed promptly.
 11. As a researcher, I want to track the status of my material requests so that I know when new supplies or replacements will arrive.
-12. As a laboratory member, I want the system to provide real-time stock updates so that everyone can make decisions based on accurate, up-to-date information.
-13. As a laboratory member, I want the system interface to be intuitive and easy to use so that I can manage my tasks without requiring extensive training.
-14. As an administrator, I want the system to be configurable and adaptable to other contexts or departments so that it can be scaled or reused across the university.
+12. As a laboratory member, I want the system interface to be intuitive and easy to use so that I can manage my tasks without requiring extensive training.
+13. As an administrator, I want the system to be configurable and adaptable to other contexts or departments so that it can be scaled or reused across the university.
+14. As a user I want to login the system so I can access my dashboard.
 
+
+one lab manager per lab 
+one lab per department
 ---
 
 # CONTAINERS
@@ -44,10 +47,10 @@ It will also be flexible and adaptable to other contexts or departments in the f
 ## CONTAINER_NAME: Database
 
 ### DESCRIPTION
-Manages material stock and user accounts. Responsible for storing all persistent data related to materials, categories, users, permissions, and logs.
+Manages material stock and user accounts. Responsible for storing all persistent data related to materials, categories, users, permissions.
 
 ### USER STORIES
-Covers all stories where data persistence is required (1–14).
+Covers all stories where data persistence is required (1–13).
 
 ### PORTS
 5432:5432
@@ -60,6 +63,7 @@ None (internal PostgreSQL database).
 
 ### TECHNOLOGICAL SPECIFICATION
 - PostgreSQL database.
+- PgAdmin interface
 
 ### MICROSERVICE
 
@@ -79,7 +83,7 @@ React frontend application responsible for providing the interface to the users 
 
 ### USER STORIES
 Supports all UI-level interactions:
-- 1–14 (view/add/edit materials, submit requests, track stock, view reports).
+- 1–13 (view/add/edit materials, submit requests, track stock, view reports).
 
 ### PORTS
 3000:3000
@@ -89,6 +93,7 @@ Does not store data permanently. Relies on backend for persistence.
 
 ### EXTERNAL SERVICES CONNECTIONS
 Communicates with backend container through REST API.
+Subscribes to broker mqtt to receive notifications
 
 ### TECHNOLOGICAL SPECIFICATION
 - React
@@ -104,6 +109,11 @@ Communicates with backend container through REST API.
   - ReactJS
   - REST calls to backend
 
+-ENDPOINTS:
+
+/admin/dashboard
+/researcher/{id}/dashboard
+
 ---
 
 ## CONTAINER_NAME: Back End
@@ -113,7 +123,7 @@ Java Spring application to handle the business logic. It interacts with the appl
 Responsible for implementing rules, workflows, and notifications.
 
 ### USER STORIES
-Implements all business logic for user stories 1–14.
+Implements all business logic for user stories 1–13.
 
 ### PORTS
 8080:8080
@@ -123,7 +133,7 @@ Does not persist data itself but interacts with the database container.
 
 ### EXTERNAL SERVICES CONNECTIONS
 - Connects to PostgreSQL database container.
-- Publishes and subscribes to RabbitMQ broker container for notifications.
+- Publishes to RabbitMQ broker container for notifications.
 
 ### TECHNOLOGICAL SPECIFICATION
 - Java Spring Boot
@@ -144,7 +154,7 @@ Does not persist data itself but interacts with the database container.
 
 | HTTP METHOD | URL | Description | User Stories |
 | ----------- | --- | ----------- | ------------ |
-| GET | /materials | Retrieve all materials | 2,7 |
+| GET | /materials | Retrieve all materials | 2,7 | 
 | POST | /materials | Add new material | 2 |
 | PUT | /materials/{id} | Update material details (stock, category, thresholds) | 1,2,3,8 |
 | DELETE | /materials/{id} | Delete a material | 2 |
@@ -155,6 +165,8 @@ Does not persist data itself but interacts with the database container.
 | GET | /requests | List all requests for lab manager | 6 |
 | GET | /requests/{id} | View status of a request | 11 |
 | POST | /reports | Report damaged equipment | 10 |
+
+
 
 ---
 
