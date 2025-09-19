@@ -1,4 +1,4 @@
-# SYSTEM DESCRIPTION
+****# SYSTEM DESCRIPTION
 
 The project aims to develop an **inventory management system for the research laboratories at Sapienza University of Rome**. This system is designed to improve the management and control of resources used in research projects, ensuring greater operational efficiency, reducing waste, and providing continuous support to scientific activities.
 
