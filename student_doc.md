@@ -38,8 +38,7 @@ It will also be flexible and adaptable to other contexts or departments in the f
 14. As a user I want to login the system so I can access my dashboard.
 
 
-one lab manager per lab 
-one lab per department
+
 ---
 
 # CONTAINERS
@@ -109,10 +108,14 @@ Subscribes to broker mqtt to receive notifications
   - ReactJS
   - REST calls to backend
 
--ENDPOINTS:
+AUTH ENDPOINTS:
 
-/admin/dashboard
-/researcher/{id}/dashboard
+/login Login in the system input: (email,password) 
+/logout Logout from the system 
+
+BROKER ENDPOINTS:
+
+/{department_id}/notifications subscribe to this topic in order to retrieve these notifications about requests etc.
 
 ---
 
@@ -152,19 +155,63 @@ Does not persist data itself but interacts with the database container.
   - RabbitMQ integration
 - ENDPOINTS:
 
-| HTTP METHOD | URL | Description | User Stories |
-| ----------- | --- | ----------- | ------------ |
-| GET | /materials | Retrieve all materials | 2,7 | 
-| POST | /materials | Add new material | 2 |
-| PUT | /materials/{id} | Update material details (stock, category, thresholds) | 1,2,3,8 |
-| DELETE | /materials/{id} | Delete a material | 2 |
-| GET | /categories | Retrieve material categories | 1 |
-| POST | /categories | Add new category | 1 |
-| PUT | /categories/{id} | Edit category | 1 |
-| POST | /requests | Submit a new material request | 9 |
-| GET | /requests | List all requests for lab manager | 6 |
-| GET | /requests/{id} | View status of a request | 11 |
-| POST | /reports | Report damaged equipment | 10 |
+ADMIN ONLY endpoints: 
+
+/admin/user
+POST Create new user (researcher or lab manager) input: (User data, role, department)
+GET Get all users 
+DELETE Delete user input(user id)
+UPDATE Update user information input: (user id)
+
+/admin/department 
+POST Create new department input: (Department data)
+UPDATE Modify department data input: (department id)
+
+LAB MANAGER Endpoints:
+
+/management/{department_id}/material
+POST: Add new material to department input: (material data)
+GET: Get all material of a department
+UPDATE: Modify quantiy of material by increasing or decreasing its vlaue  input: (increase/decrease)
+DELETE: Remove material from department
+
+/management/material/category
+POST: Create new material category input: (category name)
+GET: Get all material categories
+UPDATE: Edit material category's information
+DELETE: Delete material category input: (category id)
+
+/management/{department_id}/researcher
+POST: Add new researcher to department
+DELETE: Remove researcher from department
+
+/report/{department_id}
+GET: Get monthly material usage report input: (month, year)
+
+/requests
+GET: Retrieve all material requests
+POST: Mark request as done input: (request_id)
+
+LAB RESEARCHER ENDPOINTS:
+ 
+/material/
+GET: Get all materials of researcher's department input: (researcher_id)
+
+/material/{material_id}
+GET: Get material info
+POST: Decrease material quantity input: (value of decrease)
+
+/material/{material_id}
+POST: Issue a material request input: material request
+
+/material/{material_id}/issue
+POST: Set material status as damaged and issue a ticket for replacement
+
+/researcher/requests
+GET: Get all requests opened by researcher input: (researcher_id)
+
+Queue: {department_id}/notifications periodically publish to this queue if you find requests not already completed, repeat once a day 
+
 
 
 

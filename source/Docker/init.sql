@@ -31,18 +31,33 @@ CREATE TABLE research_material (
     id SERIAL PRIMARY KEY,
     name VARCHAR(150) NOT NULL,
     quantity INT NOT NULL DEFAULT 0,
-    category VARCHAR(100),
+    category VARCHAR(100) NOT NULL REFERENCES category(id),
     status VARCHAR(20) CHECK (status IN ('None', 'Damaged')) DEFAULT 'None',
     department_id INT NOT NULL REFERENCES department(id) ON DELETE CASCADE
+);
+
+CREATE TABLE category (
+    id SERIAL PRIMARY KEY
+    title VARCHAR(150) NOT NULL
 );
 
 -- 5. Material Logs Table
 CREATE TABLE material_logs (
     id SERIAL PRIMARY KEY,
-    material_id INT NOT NULL REFERENCES research_material(id) ON DELETE CASCADE,
     timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    quantity_used INT DEFAULT 0,
-    quantity_added INT DEFAULT 0,
+    material_id INT NOT NULL REFERENCES research_material(id) ON DELETE CASCADE,
     department_id INT NOT NULL REFERENCES department(id) ON DELETE CASCADE,
+    used INT DEFAULT 0,
+    added INT DEFAULT 0,
     status VARCHAR(20) CHECK (status IN ('None', 'Damaged')) DEFAULT 'None'
 );
+
+CREATE TABLE material_request (
+    id SERIAL PRIMARY KEY,
+    material_id INT NOT NULL REFERENCES research_material(id) ON DELETE CASCADE,
+    researcher_id INT NOT NULL REFERENCES lab_user(id) ON DELETE CASCADE,
+    material_condition VARCHAR(100) CHECK (material_condition IN ('None', 'Damaged')) DEFAULT 'None',
+    requested_quantity INT DEFAULT 0,
+    request_status BOOLEAN DEFAULT False
+);
+
