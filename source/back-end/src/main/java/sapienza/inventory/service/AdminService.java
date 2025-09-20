@@ -12,7 +12,6 @@ import sapienza.inventory.model.LabUser;
 import sapienza.inventory.repository.DepartmentRepository;
 import sapienza.inventory.repository.LabUserRepository;
 
-import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -71,7 +70,20 @@ public class AdminService {
     }
 
     public Boolean createDepartment(DepartmentDto department) {
-        departmentRepository(appMapper.toDepartment(department));
+        departmentRepository.save(appMapper.toDepartment(department));
+        return true;
+    }
+
+    public Boolean updateDepartment(Long department_id) {
+        Department department = departmentRepository.findById(department_id)getId())
+                .orElseThrow(() -> new EntityNotFoundException("Department not found"));
+
+
+        department.setName(departmentdto.getName());
+        department.setDetails(departmentdto.getDetails());
+
+        departmentRepository.save(department);
+
         return true;
     }
 }

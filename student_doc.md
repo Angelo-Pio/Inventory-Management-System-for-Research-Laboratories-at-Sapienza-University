@@ -168,7 +168,6 @@ GET Get all users
 
 /admin/department 
 POST Create new department input: (Department data)
-UPDATE Modify department data input: (department id)
 
 LAB MANAGER Endpoints:
 

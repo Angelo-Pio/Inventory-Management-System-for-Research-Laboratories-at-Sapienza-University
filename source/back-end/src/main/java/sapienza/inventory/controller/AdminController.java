@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sapienza.inventory.dto.DepartmentDto;
 import sapienza.inventory.dto.LabUserDto;
+import sapienza.inventory.model.Department;
 import sapienza.inventory.service.AdminService;
 
 import java.util.List;
@@ -65,9 +66,5 @@ public class AdminController {
         return adminService.createDepartment(department);
     }
 
-    // Update department data
-    @PutMapping("/department/{id}")
-    public Boolean updateDepartment(@PathVariable Long id, @RequestBody UpdateDepartmentRequest request) {
-        return adminService.updateDepartment(id, request);
-    }
+
 }
