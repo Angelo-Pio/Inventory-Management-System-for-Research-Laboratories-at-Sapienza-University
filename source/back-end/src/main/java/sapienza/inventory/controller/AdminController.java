@@ -3,11 +3,8 @@ package sapienza.inventory.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import sapienza.inventory.dto.LabUserDto;
 import sapienza.inventory.service.AdminService;
-import sapienza.inventory.dto.CreateDepartmentRequest;
-import sapienza.inventory.dto.CreateUserRequest;
-import sapienza.inventory.dto.UpdateDepartmentRequest;
-import sapienza.inventory.dto.UpdateUserRequest;
 
 @RestController
 @RequestMapping("/admin")
@@ -20,8 +17,8 @@ public class AdminController {
 
     // Create new user (researcher or lab manager)
     @PostMapping("/user")
-    public ResponseEntity<?> createUser(@RequestBody CreateUserRequest request) {
-        return ResponseEntity.ok(adminService.createUser(request));
+    public ResponseEntity<?> createUser(@RequestBody LabUserDto labuser) {
+        return ResponseEntity.ok(adminService.createUser(labuser));
     }
 
     // Get all users

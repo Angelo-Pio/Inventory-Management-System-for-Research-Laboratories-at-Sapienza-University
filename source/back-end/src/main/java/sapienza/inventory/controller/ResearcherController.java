@@ -3,8 +3,6 @@ package sapienza.inventory.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sapienza.inventory.service.ResearcherService;
-import sapienza.inventory.dto.MaterialRequestDto;
-import sapienza.inventory.dto.UseMaterialRequest;
 
 @RestController
 @RequestMapping
