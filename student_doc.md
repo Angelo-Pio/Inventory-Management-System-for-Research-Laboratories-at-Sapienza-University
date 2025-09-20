@@ -159,9 +159,12 @@ ADMIN ONLY endpoints:
 
 /admin/user
 POST Create new user (researcher or lab manager) input: (User data, role, department)
-GET Get all users 
+GET Get user info
 DELETE Delete user input(user id)
 UPDATE Update user information input: (user id)
+
+/admin/users
+GET Get all users
 
 /admin/department 
 POST Create new department input: (Department data)

@@ -18,7 +18,7 @@ public class Department {
     private String details;
 
     @OneToMany(mappedBy = "department")
-    private List<UserRole> userRoles;
+    private List<LabUser> labUsers;
 
     @OneToMany(mappedBy = "department")
     private List<ResearchMaterial> researchMaterials;

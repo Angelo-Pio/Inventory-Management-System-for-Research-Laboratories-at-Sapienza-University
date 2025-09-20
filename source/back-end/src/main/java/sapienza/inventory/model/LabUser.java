@@ -1,10 +1,15 @@
 package sapienza.inventory.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "lab_user")
 public class LabUser {
 
@@ -24,9 +29,11 @@ public class LabUser {
     @Column(nullable = false, length = 255)
     private String password;
 
-    // One-to-one to UserRole
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private UserRole userRole;
+    @Column(nullable = false, length = 20)
+    private String role;
+
+    @ManyToOne( cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Department department;
 
     // e.g. requests by researcher
     @OneToMany(mappedBy = "researcher")

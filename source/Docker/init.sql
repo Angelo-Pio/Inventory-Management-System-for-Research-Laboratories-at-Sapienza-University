@@ -4,7 +4,13 @@ CREATE TABLE lab_user (
     name VARCHAR(100) NOT NULL,
     surname VARCHAR(100) NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL CHECK (role IN ('researcher','lab_manager','admin')),
+    department_id INT REFERENCES department(id) ON DELETE CASCADE,
+    CONSTRAINT department_required CHECK (
+        (role = 'admin' AND department_id IS NULL)
+        OR (role IN ('researcher','lab_manager') AND department_id IS NOT NULL)
+    )
 );
 
 -- 2. Department Table
@@ -12,18 +18,6 @@ CREATE TABLE department (
     id SERIAL PRIMARY KEY,
     name VARCHAR(150) NOT NULL,
     details TEXT
-);
-
--- 3. UserRole Table
--- One-to-one with Lab User; defines the role and (if applicable) department
-CREATE TABLE user_role (
-    user_id INT PRIMARY KEY REFERENCES lab_user(id) ON DELETE CASCADE,
-    role VARCHAR(20) NOT NULL CHECK (role IN ('researcher','lab_manager','admin')),
-    department_id INT REFERENCES department(id) ON DELETE CASCADE,
-    CONSTRAINT department_required CHECK (
-        (role = 'admin' AND department_id IS NULL)
-        OR (role IN ('researcher','lab_manager') AND department_id IS NOT NULL)
-    )
 );
 
 -- 4. Research Material Table
