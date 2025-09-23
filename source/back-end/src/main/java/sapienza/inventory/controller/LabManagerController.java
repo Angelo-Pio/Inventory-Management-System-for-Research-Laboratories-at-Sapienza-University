@@ -1,11 +1,14 @@
 package sapienza.inventory.controller;
 
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sapienza.inventory.service.LabManagerService;
 import sapienza.inventory.dto.*;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -45,13 +48,13 @@ public class LabManagerController {
     }
 
     // Categories
-    /*@PostMapping("/material/category")
-    public Boolean createCategory(@RequestBody CreateCategoryRequest request) {
+    @PostMapping("/material/category")
+    public Boolean createCategory(@RequestBody CategoryDto request) {
         return service.createCategory(request);
-    }*/
+    }
 
     @GetMapping("/material/category")
-    public Boolean getAllCategories() {
+    public List<CategoryDto> getAllCategories() {
         return service.getAllCategories();
     }
 
@@ -68,16 +71,27 @@ public class LabManagerController {
 
     // Monthly report
     @GetMapping("/report/{departmentId}")
-    public ResponseEntity<Resource> getMonthlyReport(
+    public ResponseEntity<Resource> getReport(
             @PathVariable Long departmentId,
             @RequestParam LocalDateTime startDate,
             @RequestParam LocalDateTime endDate) {
-        return service.getMonthlyReport(departmentId, startDate, endDate);
+
+        Resource report = service.getReport(departmentId, startDate, endDate);
+
+        try {
+            return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"report.csv\"")
+                .contentLength(report.contentLength())
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .body(report);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // Requests from all researchers of the department
     @GetMapping("/{departmentId}/requests")
-    public Boolean getAllRequests(@PathVariable Long departmentId) {
+    public List<MaterialRequestDto> getAllRequests(@PathVariable Long departmentId) {
         return service.getAllRequests(departmentId);
     }
 

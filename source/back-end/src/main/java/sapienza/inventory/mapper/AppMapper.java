@@ -2,12 +2,8 @@ package sapienza.inventory.mapper;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
-import sapienza.inventory.dto.DepartmentDto;
-import sapienza.inventory.dto.LabUserDto;
-import sapienza.inventory.dto.MaterialDto;
-import sapienza.inventory.model.Department;
-import sapienza.inventory.model.LabUser;
-import sapienza.inventory.model.ResearchMaterial;
+import sapienza.inventory.dto.*;
+import sapienza.inventory.model.*;
 
 @Component
 public class AppMapper {
@@ -43,6 +39,22 @@ public class AppMapper {
         MaterialDto ret = mapper.map(researchMaterial, MaterialDto.class);
         ret.setCategory(researchMaterial.getCategory().getTitle());
         return ret;
+    }
+
+    public Category toCategory(CategoryDto categoryDto) {
+        return mapper.map(categoryDto, Category.class);
+    }
+
+    public CategoryDto toCategoryDto(Category category) {
+        return mapper.map(category, CategoryDto.class);
+    }
+
+    public MaterialRequestDto toMaterialRequestDto(MaterialRequest materialRequest) {
+
+        MaterialRequestDto requestDto = mapper.map(materialRequest, MaterialRequestDto.class);
+        requestDto.setMaterial_id(materialRequest.getMaterial().getId());
+        requestDto.setResearcher_id(materialRequest.getResearcher().getId());
+        return requestDto;
     }
 
 

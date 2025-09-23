@@ -1,9 +1,14 @@
 package sapienza.inventory.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "material_logs")
 public class MaterialLogs {
 
@@ -14,6 +19,15 @@ public class MaterialLogs {
     @Column(nullable = false)
     private LocalDateTime timestamp = LocalDateTime.now();
 
+    @Column()
+    private Integer used = 0;
+
+    @Column()
+    private Integer added = 0;
+
+    @Column(length = 20)
+    private String status = "None";
+
     @ManyToOne
     @JoinColumn(name = "material_id", nullable = false)
     private ResearchMaterial material;
@@ -22,11 +36,11 @@ public class MaterialLogs {
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;
 
-    private Integer used = 0;
-    private Integer added = 0;
+    @ManyToOne
+    @JoinColumn(name = "user_id",nullable = false)
+    private LabUser labUser;
 
-    @Column(length = 20)
-    private String status = "None";
+
 
     // getters and setters
 }

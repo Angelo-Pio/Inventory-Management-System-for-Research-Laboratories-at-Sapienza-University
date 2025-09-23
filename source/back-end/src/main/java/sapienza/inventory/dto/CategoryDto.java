@@ -11,6 +11,5 @@ public class CategoryDto {
 
     private Long id;
     private String title;
-    private List<ResearchMaterial> researchMaterials;
 
 }

@@ -35,9 +35,12 @@ public class LabUser {
     @ManyToOne( cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Department department;
 
-    // e.g. requests by researcher
     @OneToMany(mappedBy = "researcher")
     private List<MaterialRequest> materialRequests;
+
+    @OneToMany(mappedBy = "labUser")
+    private List<MaterialLogs> materialLogs;
+
 
     // getters and setters
 }

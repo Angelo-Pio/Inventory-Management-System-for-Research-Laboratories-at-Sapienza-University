@@ -1,8 +1,14 @@
 package sapienza.inventory.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "material_request")
 public class MaterialRequest {
 
@@ -18,13 +24,17 @@ public class MaterialRequest {
     @JoinColumn(name = "researcher_id", nullable = false)
     private LabUser researcher;
 
-    @Column(name = "material_condition", length = 100)
-    private String materialCondition = "None";
+    @Column(name = "material_status", length = 100)
+    private String materialStatus = "None"; // Damaged
 
-    private Integer requestedQuantity = 0;
+    @Column(name = "quantity")
+    private Integer quantity = 0;
+
+    @Column(name="timestamp")
+    private LocalDateTime timestamp ;
 
     @Column(name = "request_status")
-    private Boolean requestStatus = false;
+    private String requestStatus = "Pending";
 
-    // getters and setters
+
 }
