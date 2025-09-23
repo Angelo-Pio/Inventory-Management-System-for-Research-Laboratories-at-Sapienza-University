@@ -12,7 +12,7 @@ public class ResearcherController {
     public ResearcherController(ResearcherService service) {
         this.service = service;
     }
-
+/*
     // All materials of researcher's department
     @GetMapping("/material")
     public ResponseEntity<?> getMaterialsByResearcher(@RequestParam Long researcherId) {
@@ -49,5 +49,5 @@ public class ResearcherController {
     @GetMapping("/researcher/requests")
     public ResponseEntity<?> getResearcherRequests(@RequestParam Long researcherId) {
         return ResponseEntity.ok(service.getResearcherRequests(researcherId));
-    }
+    }*/
 }

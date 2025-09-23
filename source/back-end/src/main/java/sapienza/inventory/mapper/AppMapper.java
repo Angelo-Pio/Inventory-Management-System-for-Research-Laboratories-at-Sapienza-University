@@ -1,17 +1,25 @@
 package sapienza.inventory.mapper;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import sapienza.inventory.dto.*;
 import sapienza.inventory.model.*;
+import sapienza.inventory.repository.DepartmentRepository;
+
+import java.util.Optional;
 
 @Component
 public class AppMapper {
 
     private final ModelMapper mapper;
 
-    public AppMapper(ModelMapper mapper) {
+    @Autowired
+    private DepartmentRepository departmentRepository;
+
+    public AppMapper(ModelMapper mapper, DepartmentRepository departmentRepository) {
         this.mapper = mapper;
+
     }
 
     // LabUser -> LabUserDto
@@ -23,7 +31,14 @@ public class AppMapper {
     }
 
     public LabUser toLabUser(LabUserDto labuserdto) {
-        return mapper.map(labuserdto, LabUser.class);
+        LabUser labUser = mapper.map(labuserdto, LabUser.class);
+        Optional<Department> department = departmentRepository.findById(labuserdto.getDepartmentId());
+        if (department.isPresent()) {
+            labUser.setDepartment(department.get());
+        }else {
+            throw new RuntimeException("Department does not exists");
+        }
+        return labUser;
     }
 
     public Department toDepartment(DepartmentDto department) {

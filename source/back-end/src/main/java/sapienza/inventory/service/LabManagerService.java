@@ -169,7 +169,7 @@ public class LabManagerService {
         Integer tot_damaged = 0;
 
 
-        List<MaterialLogs> logs = materialLogsRepository.findByDepartmentIdAndStartDateAfterAndStartDateBefore(departmentId,startDate,endDate);
+        List<MaterialLogs> logs = materialLogsRepository.findByDepartmentIdAndStartDateAfterAndEndDateBefore(departmentId,startDate,endDate);
 
         String format = "%s,%s,%d,%s";
         for (MaterialLogs log : logs) {

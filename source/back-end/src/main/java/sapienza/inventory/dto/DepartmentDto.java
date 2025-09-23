@@ -12,7 +12,6 @@ public class DepartmentDto {
     private String name;
     private String details;
     private List<ResearchMaterialDto> researchMaterials;
-    private List<MaterialLogsDto> materialLogs;
 
     // getters and setters
 }

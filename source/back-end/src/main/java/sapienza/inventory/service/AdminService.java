@@ -29,12 +29,14 @@ public class AdminService {
     private AppMapper appMapper;
 
     public Boolean createUser(LabUserDto labuserdto) {
-        labUserRepository.save(appMapper.toLabUser(labuserdto));
+
+        LabUser labUser = appMapper.toLabUser(labuserdto);
+        labUserRepository.save(labUser);
         return true;
     }
 
     public List<LabUserDto> getAllUsers() {
-        List<LabUser> users =  labUserRepository.findAllOrderByNameAsc();
+        List<LabUser> users =  labUserRepository.findAllByOrderByNameAsc();
         List<LabUserDto> labUserDtos = new ArrayList<>();
         for (LabUser labUser : users) {
             labUserDtos.add(appMapper.toLabUserDto(labUser));
