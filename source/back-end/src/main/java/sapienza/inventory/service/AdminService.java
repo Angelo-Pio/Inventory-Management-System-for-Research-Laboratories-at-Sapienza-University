@@ -74,16 +74,5 @@ public class AdminService {
         return true;
     }
 
-    public Boolean updateDepartment(Long department_id) {
-        Department department = departmentRepository.findById(department_id)getId())
-                .orElseThrow(() -> new EntityNotFoundException("Department not found"));
 
-
-        department.setName(departmentdto.getName());
-        department.setDetails(departmentdto.getDetails());
-
-        departmentRepository.save(department);
-
-        return true;
-    }
 }

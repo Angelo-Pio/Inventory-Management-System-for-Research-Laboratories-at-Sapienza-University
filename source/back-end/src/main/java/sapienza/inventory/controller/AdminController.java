@@ -34,7 +34,7 @@ public class AdminController {
     }
 
     // Delete user
-    @DeleteMapping("/user")
+    @GetMapping("/user")
     public LabUserDto getUser(@RequestParam(name = "user_id") Long user_id) {
 
         Optional<LabUserDto> user = adminService.getUser(user_id);

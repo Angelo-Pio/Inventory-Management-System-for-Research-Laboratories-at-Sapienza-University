@@ -1,9 +1,13 @@
 package sapienza.inventory.controller;
 
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sapienza.inventory.service.LabManagerService;
 import sapienza.inventory.dto.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/management")
@@ -16,79 +20,69 @@ public class LabManagerController {
 
     // Material in a department
     @PostMapping("/{departmentId}/material")
-    public ResponseEntity<?> addMaterial(@PathVariable Long departmentId, @RequestBody CreateMaterialRequest request) {
-        return ResponseEntity.ok(service.addMaterial(departmentId, request));
+    public Boolean addMaterial(@PathVariable Long departmentId, @RequestBody MaterialDto materialDto) {
+        return service.addMaterial(departmentId, materialDto);
     }
 
     @GetMapping("/{departmentId}/material")
-    public ResponseEntity<?> getAllMaterials(@PathVariable Long departmentId) {
-        return ResponseEntity.ok(service.getMaterials(departmentId));
+    public List<MaterialDto> getAllMaterials(@PathVariable Long departmentId) {
+        return service.getMaterials(departmentId);
     }
 
-    @PutMapping("/{departmentId}/material/{materialId}")
-    public ResponseEntity<?> updateMaterialQuantity(
+    // quantity can be a negative value to sum to the stock
+    @PutMapping("/{departmentId}/material")
+    public Boolean updateMaterialQuantity(
             @PathVariable Long departmentId,
-            @PathVariable Long materialId,
-            @RequestBody UpdateMaterialQuantityRequest request) {
-        return ResponseEntity.ok(service.updateMaterialQuantity(departmentId, materialId, request));
+            @RequestParam Long materialId,
+            @RequestParam Integer quantity) {
+        return service.updateMaterialQuantity(departmentId, materialId, quantity);
     }
 
-    @DeleteMapping("/{departmentId}/material/{materialId}")
-    public ResponseEntity<?> deleteMaterial(@PathVariable Long departmentId, @PathVariable Long materialId) {
-        service.deleteMaterial(departmentId, materialId);
-        return ResponseEntity.ok().build();
+    @DeleteMapping("/{departmentId}/material")
+    public Boolean deleteMaterial(@PathVariable Long departmentId, @RequestParam Long materialId) {
+
+        return service.deleteMaterial(departmentId, materialId);
     }
 
     // Categories
-    @PostMapping("/material/category")
-    public ResponseEntity<?> createCategory(@RequestBody CreateCategoryRequest request) {
-        return ResponseEntity.ok(service.createCategory(request));
-    }
+    /*@PostMapping("/material/category")
+    public Boolean createCategory(@RequestBody CreateCategoryRequest request) {
+        return service.createCategory(request);
+    }*/
 
     @GetMapping("/material/category")
-    public ResponseEntity<?> getAllCategories() {
-        return ResponseEntity.ok(service.getAllCategories());
-    }
-
-    @PutMapping("/material/category/{categoryId}")
-    public ResponseEntity<?> updateCategory(@PathVariable Long categoryId, @RequestBody UpdateCategoryRequest request) {
-        return ResponseEntity.ok(service.updateCategory(categoryId, request));
-    }
-
-    @DeleteMapping("/material/category/{categoryId}")
-    public ResponseEntity<?> deleteCategory(@PathVariable Long categoryId) {
-        service.deleteCategory(categoryId);
-        return ResponseEntity.ok().build();
+    public Boolean getAllCategories() {
+        return service.getAllCategories();
     }
 
     // Researcher in department
     @PostMapping("/{departmentId}/researcher")
-    public ResponseEntity<?> addResearcher(@PathVariable Long departmentId, @RequestBody AddResearcherRequest request) {
-        return ResponseEntity.ok(service.addResearcherToDepartment(departmentId, request));
+    public Boolean addResearcher(@PathVariable Long departmentId, @RequestBody LabUserDto labUserDto) {
+        return service.addResearcherToDepartment(departmentId, labUserDto);
     }
 
-    @DeleteMapping("/{departmentId}/researcher/{researcherId}")
-    public ResponseEntity<?> removeResearcher(@PathVariable Long departmentId, @PathVariable Long researcherId) {
-        service.removeResearcherFromDepartment(departmentId, researcherId);
-        return ResponseEntity.ok().build();
+    @DeleteMapping("/{departmentId}/researcher")
+    public Boolean removeResearcher(@PathVariable Long departmentId, @RequestParam Long researcherId) {
+        return service.removeResearcherFromDepartment(departmentId, researcherId);
     }
 
     // Monthly report
     @GetMapping("/report/{departmentId}")
-    public ResponseEntity<?> getMonthlyReport(@PathVariable Long departmentId,
-                                              @RequestParam int month,
-                                              @RequestParam int year) {
-        return ResponseEntity.ok(service.getMonthlyReport(departmentId, month, year));
+    public ResponseEntity<Resource> getMonthlyReport(
+            @PathVariable Long departmentId,
+            @RequestParam LocalDateTime startDate,
+            @RequestParam LocalDateTime endDate) {
+        return service.getMonthlyReport(departmentId, startDate, endDate);
     }
 
-    // Requests
-    @GetMapping("/requests")
-    public ResponseEntity<?> getAllRequests() {
-        return ResponseEntity.ok(service.getAllRequests());
+    // Requests from all researchers of the department
+    @GetMapping("/{departmentId}/requests")
+    public Boolean getAllRequests(@PathVariable Long departmentId) {
+        return service.getAllRequests(departmentId);
     }
 
     @PostMapping("/requests/{requestId}/done")
-    public ResponseEntity<?> markRequestAsDone(@PathVariable Long requestId) {
-        return ResponseEntity.ok(service.markRequestAsDone(requestId));
+    public Boolean markRequestAsDone(@PathVariable Long requestId) {
+        return service.markRequestAsDone(requestId);
     }
 }
