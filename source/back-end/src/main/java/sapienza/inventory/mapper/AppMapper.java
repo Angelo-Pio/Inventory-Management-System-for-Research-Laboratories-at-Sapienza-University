@@ -46,13 +46,13 @@ public class AppMapper {
 
     }
 
-    public ResearchMaterial toResearchMaterial(MaterialDto materialDto) {
-        return mapper.map(materialDto, ResearchMaterial.class);
+    public ResearchMaterial toResearchMaterial(ResearchMaterialDto researchMaterialDto) {
+        return mapper.map(researchMaterialDto, ResearchMaterial.class);
     }
 
-    public MaterialDto toResearchMaterialDto(ResearchMaterial researchMaterial) {
-        MaterialDto ret = mapper.map(researchMaterial, MaterialDto.class);
-        ret.setCategory(researchMaterial.getCategory().getTitle());
+    public ResearchMaterialDto toResearchMaterialDto(ResearchMaterial researchMaterial) {
+        ResearchMaterialDto ret = mapper.map(researchMaterial, ResearchMaterialDto.class);
+        ret.setCategory(this.toCategoryDto(researchMaterial.getCategory()));
         return ret;
     }
 
@@ -70,6 +70,10 @@ public class AppMapper {
         requestDto.setMaterial_id(materialRequest.getMaterial().getId());
         requestDto.setResearcher_id(materialRequest.getResearcher().getId());
         return requestDto;
+    }
+
+    public DepartmentDto toDepartmentDto(Department department) {
+        return mapper.map(department, DepartmentDto.class);
     }
 
 

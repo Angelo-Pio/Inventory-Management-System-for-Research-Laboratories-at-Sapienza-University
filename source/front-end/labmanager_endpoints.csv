@@ -1,0 +1,14 @@
+rest method|endpoint|request body|request param|result
+POST|http://localhost:8080/management/{departmentId}/material|{"name":"Microscope","quantity":5,"category":{"title":"Optical Instruments"}}|departmentId=1|true
+GET|http://localhost:8080/management/{departmentId}/material|*|departmentId=1|[{"id":10,"name":"Microscope","quantity":5,"category":{"id":2,"title":"Optical Instruments"},"status":"Available","department":null}]
+PUT|http://localhost:8080/management/{departmentId}/material|*|departmentId=1&materialId=10&quantity=-2|true
+DELETE|http://localhost:8080/management/{departmentId}/material|*|departmentId=1&materialId=10|true
+POST|http://localhost:8080/management/material/category|{"title":"Glassware"}|*|true
+GET|http://localhost:8080/management/material/category|*|*|[{"id":7,"title":"Glassware"}]
+POST|http://localhost:8080/management/{departmentId}/researcher|{"name":"John","surname":"Doe","email":"john@example.com","password":"secret","role":"researcher","departmentId":1}|departmentId=1|true
+DELETE|http://localhost:8080/management/{departmentId}/researcher|*|departmentId=1&researcherId=12|true
+DELETE|http://localhost:8080/management/{departmentId}/researchers|*|departmentId=1|[{"id":12,"name":"John","surname":"Doe","email":"john@example.com","role":"researcher","departmentId":1}]
+GET|http://localhost:8080/management/researcher|*|researcherId=12|{"id":12,"name":"John","surname":"Doe","email":"john@example.com","role":"researcher","departmentId":1}
+GET|http://localhost:8080/management/report/{departmentId}|*|departmentId=1&startDate=2025-09-01T00:00:00&endDate=2025-09-30T23:59:59|CSV file
+GET|http://localhost:8080/management/{departmentId}/requests|*|departmentId=1|[{"material_id":123,"researcher_id":45,"materialStatus":"None","quantity":5,"timestamp":"2025-09-23T12:30:00","requestStatus":"Pending"}]
+POST|http://localhost:8080/management/requests/{requestId}/done|*|requestId=100|true

@@ -1,0 +1,9 @@
+rest method|endpoint|request body|request param|result
+POST|http://localhost:8080/admin/user|{"name":"Mario","surname":"Rossi","email":"mario@example.com","password":"secret","role":"researcher","departmentId":1}|*|true
+GET|http://localhost:8080/admin/users|*|*|[{"id":1,"name":"Mario","surname":"Rossi","email":"mario@example.com","role":"researcher","departmentId":1}]
+GET|http://localhost:8080/admin/user|*|user_id=1|{"id":1,"name":"Mario","surname":"Rossi","email":"mario@example.com","role":"researcher","departmentId":1}
+DELETE|http://localhost:8080/admin/user|*|user_id=1|true
+PUT|http://localhost:8080/admin/user|{"id":1,"name":"Mario","surname":"Rossi","email":"mario@example.com","password":"newpass","role":"researcher","departmentId":1}|*|true
+POST|http://localhost:8080/admin/department|{"name":"Physics Lab","details":"Main lab for physics research","researchMaterials":[]}|*|true
+GET|http://localhost:8080/admin/departments|*|*|[{"id":1,"name":"Physics Lab","details":"Main lab for physics research","researchMaterials":[]}]
+GET|http://localhost:8080/admin/department|*|department_id=1|{"id":1,"name":"Physics Lab","details":"Main lab for physics research","researchMaterials":[]}

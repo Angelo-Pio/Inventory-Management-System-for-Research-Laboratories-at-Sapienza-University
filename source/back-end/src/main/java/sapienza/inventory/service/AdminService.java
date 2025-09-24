@@ -55,10 +55,10 @@ public class AdminService {
     }
 
     @Transactional
-    public Boolean updateUser(Long userId, LabUserDto dto, Long department_id) {
-         LabUser user = labUserRepository.findById(userId)
+    public Boolean updateUser(LabUserDto dto) {
+         LabUser user = labUserRepository.findById(dto.getId())
                 .orElseThrow(() -> new EntityNotFoundException("LabUser not found"));
-        Department department = departmentRepository.findById(department_id).orElseThrow(() -> new EntityNotFoundException("Department does not exists"));
+        Department department = departmentRepository.findById(dto.getDepartmentId()).orElseThrow(() -> new EntityNotFoundException("Department does not exists"));
 
         user.setName(dto.getName());
         user.setSurname(dto.getSurname());
@@ -77,4 +77,22 @@ public class AdminService {
     }
 
 
+    public List<DepartmentDto> getAllDepartments() {
+        List<Department> departments = departmentRepository.findAll();
+        List<DepartmentDto> departmentDtos = new ArrayList<>();
+        for (Department department : departments) {
+            departmentDtos.add(appMapper.toDepartmentDto(department));
+        }
+        return departmentDtos;
+    }
+
+    public DepartmentDto getDepartment(Long departmentId) {
+        Optional<Department> department = departmentRepository.findById(departmentId);
+        if (department.isPresent()) {
+            return appMapper.toDepartmentDto(department.get());
+        }else{
+            throw new EntityNotFoundException("Department does not exists");
+        }
+
+    }
 }

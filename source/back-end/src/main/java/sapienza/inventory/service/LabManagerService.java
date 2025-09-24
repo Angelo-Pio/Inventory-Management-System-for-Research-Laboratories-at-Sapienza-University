@@ -1,12 +1,13 @@
 package sapienza.inventory.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import sapienza.inventory.dto.CategoryDto;
 import sapienza.inventory.dto.LabUserDto;
-import sapienza.inventory.dto.MaterialDto;
 import sapienza.inventory.dto.MaterialRequestDto;
+import sapienza.inventory.dto.ResearchMaterialDto;
 import sapienza.inventory.mapper.AppMapper;
 import sapienza.inventory.model.*;
 import sapienza.inventory.repository.*;
@@ -39,15 +40,15 @@ public class LabManagerService {
     @Autowired
     AppMapper appMapper;
 
-    public Boolean addMaterial(Long departmentId, MaterialDto materialDto) {
+    public Boolean addMaterial(Long departmentId, ResearchMaterialDto materialDto) {
 
-        Optional<Category> category = categoryRepository.findByTitle(materialDto.getCategory());
+        Optional<Category> category = categoryRepository.findByTitle(materialDto.getCategory().getTitle());
         if (category.isEmpty()) {
             Category cat = new Category();
-            cat.setTitle(materialDto.getCategory());
+            cat.setTitle(materialDto.getCategory().getTitle());
             categoryRepository.save(cat);
         }
-        category = categoryRepository.findByTitle(materialDto.getCategory());
+        category = categoryRepository.findByTitle(materialDto.getCategory().getTitle());
 
         Optional<Department> department = departmentRepository.findById(departmentId);
         if (department.isPresent()) {
@@ -62,7 +63,7 @@ public class LabManagerService {
         return true;
     }
 
-    public List<MaterialDto> getMaterials(Long departmentId) {
+    public List<ResearchMaterialDto> getMaterials(Long departmentId) {
 
         Optional<Department> department = departmentRepository.findById(departmentId);
 
@@ -70,7 +71,7 @@ public class LabManagerService {
             return null;
         } else {
             List<ResearchMaterial> researchMaterialList = department.get().getResearchMaterials();
-            List<MaterialDto> materialDtoList = new LinkedList<>();
+            List<ResearchMaterialDto> materialDtoList = new LinkedList<>();
             for (ResearchMaterial researchMaterial : researchMaterialList) {
                 materialDtoList.add(appMapper.toResearchMaterialDto(researchMaterial));
             }
@@ -221,5 +222,31 @@ public class LabManagerService {
 
         materialRequestRepository.findById(requestId).ifPresent(materialRequest -> {materialRequest.setRequestStatus("Processed");});
         return true;
+    }
+
+    public List<LabUserDto> getAllResearchersOfADepartment(Long departmentId) {
+        Optional<Department> department = departmentRepository.findById(departmentId);
+        if (department.isPresent()) {
+            List<LabUser> labUsers = department.get().getLabUsers();
+            List<LabUserDto> labUserDtoList = new LinkedList<>();
+            for (LabUser labUser : labUsers) {
+                if(labUser.getRole().equals("researcher")) {
+                    labUserDtoList.add(appMapper.toLabUserDto(labUser));
+                }
+            }
+            return labUserDtoList;
+        }else{
+            throw new EntityNotFoundException("Department with id " + departmentId + " not found");
+        }
+
+    }
+
+    public LabUserDto getResearcherInfo(Long researcherId) {
+        Optional<LabUser> labUser = labUserRepository.findById(researcherId);
+        if (labUser.isPresent()) {
+            return appMapper.toLabUserDto(labUser.get());
+        }else {
+            throw new EntityNotFoundException("LabUser with id " + researcherId + " not found");
+        }
     }
 }

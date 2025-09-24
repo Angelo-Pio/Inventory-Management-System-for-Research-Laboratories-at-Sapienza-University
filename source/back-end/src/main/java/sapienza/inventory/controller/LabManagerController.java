@@ -21,14 +21,15 @@ public class LabManagerController {
         this.service = service;
     }
 
+
     // Material in a department
     @PostMapping("/{departmentId}/material")
-    public Boolean addMaterial(@PathVariable Long departmentId, @RequestBody MaterialDto materialDto) {
+    public Boolean addMaterial(@PathVariable Long departmentId, @RequestBody ResearchMaterialDto materialDto) {
         return service.addMaterial(departmentId, materialDto);
     }
 
     @GetMapping("/{departmentId}/material")
-    public List<MaterialDto> getAllMaterials(@PathVariable Long departmentId) {
+    public List<ResearchMaterialDto> getAllMaterials(@PathVariable Long departmentId) {
         return service.getMaterials(departmentId);
     }
 
@@ -68,6 +69,18 @@ public class LabManagerController {
     public Boolean removeResearcher(@PathVariable Long departmentId, @RequestParam Long researcherId) {
         return service.removeResearcherFromDepartment(departmentId, researcherId);
     }
+
+    @DeleteMapping("/{departmentId}/researchers")
+    public List<LabUserDto> getAllResearchersOfADepartment(@PathVariable Long departmentId) {
+        return service.getAllResearchersOfADepartment(departmentId);
+    }
+
+    @GetMapping("/researcher")
+    public LabUserDto getResearcher(@RequestParam Long researcherId) {
+        return service.getResearcherInfo(researcherId);
+    }
+
+
 
     // Monthly report
     @GetMapping("/report/{departmentId}")

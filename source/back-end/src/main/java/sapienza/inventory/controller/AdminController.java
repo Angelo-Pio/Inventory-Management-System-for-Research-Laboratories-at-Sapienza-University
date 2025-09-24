@@ -54,16 +54,25 @@ public class AdminController {
     // Update user info
     @PutMapping("/user")
     public Boolean updateUser(
-            @RequestParam(name = "user_id") Long user_id,
-            @RequestBody LabUserDto labuser,
-            @RequestParam Long department_id) {
-        return adminService.updateUser(user_id, labuser, department_id);
+            @RequestBody LabUserDto labuser
+           ) {
+        return adminService.updateUser(labuser);
     }
 
     // Create new department
     @PostMapping("/department")
     public Boolean createDepartment(@RequestBody DepartmentDto department) {
         return adminService.createDepartment(department);
+    }
+
+    @GetMapping("/departments")
+    public List<DepartmentDto> getAllDepartments() {
+        return adminService.getAllDepartments();
+    }
+
+    @GetMapping("/department")
+    public DepartmentDto getDepartment(@RequestParam(name = "department_id") Long department_id) {
+        return  adminService.getDepartment(department_id);
     }
 
 

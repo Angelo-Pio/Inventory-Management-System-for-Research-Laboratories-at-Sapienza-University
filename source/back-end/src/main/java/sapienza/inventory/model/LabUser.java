@@ -32,7 +32,7 @@ public class LabUser {
     @Column(nullable = false, length = 20)
     private String role;
 
-    @ManyToOne( cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Department department;
 
     @OneToMany(mappedBy = "researcher")
