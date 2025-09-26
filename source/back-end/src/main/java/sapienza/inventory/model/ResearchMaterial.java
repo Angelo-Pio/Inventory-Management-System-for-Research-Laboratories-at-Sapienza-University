@@ -39,5 +39,4 @@ public class ResearchMaterial {
     @OneToMany(mappedBy = "material")
     private List<MaterialRequest> requests;
 
-    // getters and setters
 }

@@ -1,8 +1,11 @@
 package sapienza.inventory.controller;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import sapienza.inventory.dto.MaterialRequestDto;
+import sapienza.inventory.dto.ResearchMaterialDto;
 import sapienza.inventory.service.ResearcherService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping
@@ -12,42 +15,37 @@ public class ResearcherController {
     public ResearcherController(ResearcherService service) {
         this.service = service;
     }
-/*
-    // All materials of researcher's department
-    @GetMapping("/material")
-    public ResponseEntity<?> getMaterialsByResearcher(@RequestParam Long researcherId) {
-        return ResponseEntity.ok(service.getMaterialsByResearcher(researcherId));
-    }
 
-    // Material info
-    @GetMapping("/material/{materialId}")
-    public ResponseEntity<?> getMaterialInfo(@PathVariable Long materialId) {
-        return ResponseEntity.ok(service.getMaterialInfo(materialId));
+    // All materials of researcher's department
+    @GetMapping("/materials")
+    public List<ResearchMaterialDto> getMaterialsByResearcher(@RequestParam Long researcherId) {
+        return service.getMaterialsByResearcher(researcherId);
     }
 
     // Decrease material quantity
     @PostMapping("/material/{materialId}/use")
-    public ResponseEntity<?> useMaterial(@PathVariable Long materialId,
-                                         @RequestBody UseMaterialRequest request) {
-        return ResponseEntity.ok(service.useMaterial(materialId, request));
+    public Boolean useMaterial(
+            @PathVariable Long materialId,
+            @RequestParam Integer quantity_used) {
+        return service.useMaterial(materialId, quantity_used);
     }
 
     // Issue a material request
     @PostMapping("/material/{materialId}/request")
-    public ResponseEntity<?> requestMaterial(@PathVariable Long materialId,
-                                             @RequestBody MaterialRequestDto request) {
-        return ResponseEntity.ok(service.requestMaterial(materialId, request));
+    public Boolean requestMaterial(
+            @RequestBody MaterialRequestDto request) {
+        return service.requestMaterial(request);
     }
 
     // Mark material as damaged and issue ticket
     @PostMapping("/material/{materialId}/issue")
-    public ResponseEntity<?> markDamagedAndIssue(@PathVariable Long materialId) {
-        return ResponseEntity.ok(service.markDamagedAndIssue(materialId));
+    public Boolean markDamagedAndIssue(@PathVariable Long materialId, @RequestParam Long labUserId) {
+        return service.markDamagedAndIssue(materialId, labUserId);
     }
 
     // All requests opened by researcher
     @GetMapping("/researcher/requests")
-    public ResponseEntity<?> getResearcherRequests(@RequestParam Long researcherId) {
-        return ResponseEntity.ok(service.getResearcherRequests(researcherId));
-    }*/
+    public List<MaterialRequestDto> getResearcherRequests(@RequestParam Long researcherId) {
+        return service.getResearcherRequests(researcherId);
+    }
 }

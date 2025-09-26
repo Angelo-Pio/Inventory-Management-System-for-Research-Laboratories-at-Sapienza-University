@@ -30,11 +30,15 @@ public class MaterialRequest {
     @Column(name = "quantity")
     private Integer quantity = 0;
 
-    @Column(name="timestamp")
-    private LocalDateTime timestamp ;
+    @Column(name="created_at")
+    private LocalDateTime created_at ;
+
+    @Column(name = "processed_at")
+    private LocalDateTime processed_at ;
 
     @Column(name = "request_status")
     private String requestStatus = "Pending";
+
 
 
 }

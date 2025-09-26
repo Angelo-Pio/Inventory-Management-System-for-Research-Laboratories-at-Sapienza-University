@@ -15,11 +15,13 @@ public class MaterialRequestDto {
 
     private Long researcher_id;
 
+    private LocalDateTime created_at ;
+
+    private LocalDateTime processed_at ;
+
     private String materialStatus = "None";
 
     private Integer quantity = 0;
-
-    private LocalDateTime timestamp ;
 
     private String requestStatus = "Pending";
 

@@ -1,11 +1,13 @@
 package sapienza.inventory.mapper;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import sapienza.inventory.dto.*;
 import sapienza.inventory.model.*;
 import sapienza.inventory.repository.DepartmentRepository;
+import sapienza.inventory.repository.ResearchMaterialRepository;
 
 import java.util.Optional;
 
@@ -16,6 +18,9 @@ public class AppMapper {
 
     @Autowired
     private DepartmentRepository departmentRepository;
+
+    @Autowired
+    private ResearchMaterialRepository researchMaterialRepository;
 
     public AppMapper(ModelMapper mapper, DepartmentRepository departmentRepository) {
         this.mapper = mapper;
@@ -74,6 +79,18 @@ public class AppMapper {
 
     public DepartmentDto toDepartmentDto(Department department) {
         return mapper.map(department, DepartmentDto.class);
+    }
+
+    public MaterialRequest toMaterialRequest(MaterialRequestDto request) {
+        MaterialRequest materialRequest = mapper.map(request, MaterialRequest.class);
+
+        ResearchMaterial researchMaterial = researchMaterialRepository.findById(request.getMaterial_id()).orElseThrow(EntityNotFoundException::new);
+
+        materialRequest.setMaterial(researchMaterial);
+        return materialRequest;
+
+
+
     }
 
 

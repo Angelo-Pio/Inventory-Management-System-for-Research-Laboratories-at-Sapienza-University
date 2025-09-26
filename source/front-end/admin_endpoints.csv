@@ -7,3 +7,4 @@ PUT|http://localhost:8080/admin/user|{"id":1,"name":"Mario","surname":"Rossi","e
 POST|http://localhost:8080/admin/department|{"name":"Physics Lab","details":"Main lab for physics research","researchMaterials":[]}|*|true
 GET|http://localhost:8080/admin/departments|*|*|[{"id":1,"name":"Physics Lab","details":"Main lab for physics research","researchMaterials":[]}]
 GET|http://localhost:8080/admin/department|*|department_id=1|{"id":1,"name":"Physics Lab","details":"Main lab for physics research","researchMaterials":[]}
+
