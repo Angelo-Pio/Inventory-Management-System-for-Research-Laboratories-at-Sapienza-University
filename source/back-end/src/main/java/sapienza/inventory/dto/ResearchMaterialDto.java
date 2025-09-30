@@ -14,7 +14,7 @@ public class ResearchMaterialDto {
     private int quantity = 0;
     private CategoryDto category;
     private String status = "None";
-    private Department department;
+    private Long department_id;
 
     // getters and setters
 }

@@ -53,6 +53,7 @@ public class ResearcherService {
         }else{
             throw new EntityNotFoundException("Research material not found");
         }
+        return  true;
     }
 
     public List<ResearchMaterialDto> getMaterialsByResearcher(Long researcherId) {

@@ -16,7 +16,7 @@ public class ResearchMaterial {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 150)
+    @Column(nullable = false, unique = true, length = 150)
     private String name;
 
     @Column(nullable = false)

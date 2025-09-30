@@ -1,7 +1,6 @@
 package sapienza.inventory.service;
 
 import jakarta.persistence.EntityNotFoundException;
-import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -85,7 +84,7 @@ public class LabManagerService {
 
     }
 
-    public Boolean updateMaterialQuantity(Long departmentId, Long materialId, Integer quantity) {
+    public Boolean updateMaterialQuantity(Long departmentId, Long materialId, Integer quantity, Long userId) {
         Optional<Department> department = departmentRepository.findById(departmentId);
         if (department.isPresent()) {
             for (ResearchMaterial researchMaterial : department.get().getResearchMaterials()) {
@@ -101,7 +100,7 @@ public class LabManagerService {
                         researchMaterial.setQuantity(researchMaterialQuantity + quantity);
                     }
                     researchMaterialRepository.save(researchMaterial);
-                    logAux.logLabManagerUpdateQuantity(researchMaterial,quantity);
+                    logAux.logLabManagerUpdateQuantity(researchMaterial,quantity,userId);
                     return true;
                 }
 
@@ -116,7 +115,7 @@ public class LabManagerService {
             List<ResearchMaterial> researchMaterialList = department.get().getResearchMaterials();
             for (ResearchMaterial researchMaterial : researchMaterialList) {
                 if (researchMaterial.getId().equals(materialId)) {
-                    researchMaterialList.remove(researchMaterial);
+                    researchMaterialRepository.delete(researchMaterial);
                     return true;
                 }
 

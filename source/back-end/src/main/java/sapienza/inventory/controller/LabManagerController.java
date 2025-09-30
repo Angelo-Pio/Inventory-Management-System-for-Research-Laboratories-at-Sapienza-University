@@ -38,8 +38,9 @@ public class LabManagerController {
     public Boolean updateMaterialQuantity(
             @PathVariable Long departmentId,
             @RequestParam Long materialId,
+            @RequestParam Long userId,
             @RequestParam Integer quantity) {
-        return service.updateMaterialQuantity(departmentId, materialId, quantity);
+        return service.updateMaterialQuantity(departmentId, materialId, quantity, userId);
     }
 
     @DeleteMapping("/{departmentId}/material")
@@ -70,7 +71,7 @@ public class LabManagerController {
         return service.removeResearcherFromDepartment(departmentId, researcherId);
     }
 
-    @DeleteMapping("/{departmentId}/researchers")
+    @GetMapping("/{departmentId}/researchers")
     public List<LabUserDto> getAllResearchersOfADepartment(@PathVariable Long departmentId) {
         return service.getAllResearchersOfADepartment(departmentId);
     }

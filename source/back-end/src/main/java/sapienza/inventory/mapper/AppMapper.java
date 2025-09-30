@@ -58,6 +58,7 @@ public class AppMapper {
     public ResearchMaterialDto toResearchMaterialDto(ResearchMaterial researchMaterial) {
         ResearchMaterialDto ret = mapper.map(researchMaterial, ResearchMaterialDto.class);
         ret.setCategory(this.toCategoryDto(researchMaterial.getCategory()));
+        ret.setDepartment_id(researchMaterial.getDepartment().getId());
         return ret;
     }
 
