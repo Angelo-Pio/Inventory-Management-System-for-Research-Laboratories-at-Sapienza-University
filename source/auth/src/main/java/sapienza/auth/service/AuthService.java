@@ -7,12 +7,14 @@ import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RestController;
 import sapienza.auth.model.AuthUser;
 import sapienza.auth.repository.AuthUserRepository;
 
 import java.util.Optional;
 
-@Component
+@Service
 public class AuthService {
 
 
