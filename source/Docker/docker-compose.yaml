@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   db:
     container_name: database-service
@@ -8,7 +10,7 @@ services:
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PW}
-      - POSTGRES_DB=${POSTGRES_DB} #optional (specify default database instead of $POSTGRES_DB)
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - "5432:5432"
     restart: always
@@ -25,18 +27,23 @@ services:
 
   back-end:
     build:
-        context: .
-        dockerfile: Dockerfile.back
+      context: .
+      dockerfile: Dockerfile.back
     container_name: back_end-service
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/inventory_system
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB}
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PW}
+      - SPRING_RABBITMQ_HOST=${RABBITMQ_HOST}
+      - SPRING_RABBITMQ_PORT=${RABBITMQ_PORT}
+      - SPRING_RABBITMQ_USERNAME=${RABBITMQ_USER}
+      - SPRING_RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
     ports:
       - "9001:8080"
     restart: always
     depends_on:
       - db
+      - broker
 
   authentication:
     build:
@@ -44,7 +51,7 @@ services:
       dockerfile: Dockerfile.auth
     container_name: authentication-service
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/inventory_system
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB}
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PW}
     ports:
@@ -53,5 +60,13 @@ services:
     depends_on:
       - db
 
+  broker:
+    container_name: rabbitmq-service
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"    # RabbitMQ protocol
+      - "15672:15672"  # Management UI
+    restart: always
+
 volumes:
-  db_data : 
+  db_data:
