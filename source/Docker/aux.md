@@ -1,0 +1,1 @@
+./mvnw package && java -jar target/service.jar
