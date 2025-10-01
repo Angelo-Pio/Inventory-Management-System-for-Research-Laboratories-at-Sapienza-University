@@ -3,12 +3,9 @@ package sapienza.auth.service;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RestController;
 import sapienza.auth.model.AuthUser;
 import sapienza.auth.repository.AuthUserRepository;
 
@@ -16,7 +13,6 @@ import java.util.Optional;
 
 @Service
 public class AuthService {
-
 
     @Autowired
     private AuthUserRepository authUserRepository;
