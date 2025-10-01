@@ -1,1 +1,14 @@
 .idea
+# Windows
+desktop.ini
+*.lnk
+*:[Zz]one.Identifier
+
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+
+# Java / Maven
+target/
