@@ -58,7 +58,6 @@ public class NotificationRoutine {
         }
     }
 
-    //TODO send to different queues depending on department id
     private void checkPendingRequests() {
         List<MaterialRequest> requests = materialRequestRepository.findPendingRequests();
         for (MaterialRequest r : requests) {
@@ -82,7 +81,8 @@ public class NotificationRoutine {
     private void sendMessage(Map<String, Object> payload, Long id) {
         try {
             String msg = objectMapper.writeValueAsString(payload);
-            rabbitTemplate.convertAndSend(QUEUE_NAME, msg);
+            String queueName = id + "/" + QUEUE_NAME ;
+            rabbitTemplate.convertAndSend(queueName, msg);
         } catch (JsonProcessingException e) {
             logger.error("Failed to serialize notification payload", e);
         } catch (Exception e) {

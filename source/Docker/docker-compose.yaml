@@ -66,7 +66,13 @@ services:
     ports:
       - "5672:5672"    # RabbitMQ protocol
       - "15672:15672"  # Management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     restart: always
+
 
   # front-end:
   #   build:
@@ -104,3 +110,4 @@ services:
 
 volumes:
   db_data:
+  rabbitmq_data:
