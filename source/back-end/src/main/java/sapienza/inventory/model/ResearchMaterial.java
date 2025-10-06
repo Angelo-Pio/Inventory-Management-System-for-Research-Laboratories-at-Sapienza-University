@@ -22,6 +22,9 @@ public class ResearchMaterial {
     @Column(nullable = false)
     private int quantity = 0;
 
+    @Column(nullable = false)
+    private Integer threshold = 2;
+
     @ManyToOne
     @JoinColumn(name = "category", nullable = false) // column is 'category' in your SQL
     private Category category;
