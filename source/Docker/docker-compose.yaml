@@ -6,7 +6,6 @@ services:
     image: postgres:latest
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PW}
@@ -43,7 +42,6 @@ services:
     restart: always
     depends_on:
       - db
-      - broker
 
   authentication:
     build:
@@ -59,6 +57,7 @@ services:
     restart: always
     depends_on:
       - db
+      - back-end
 
   broker:
     container_name: rabbitmq-service
@@ -72,6 +71,9 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     restart: always
+    depends_on:
+      - db
+      - back-end
 
 
   # front-end:

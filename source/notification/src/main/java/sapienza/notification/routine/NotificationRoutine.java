@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -26,13 +28,16 @@ public class NotificationRoutine {
     private final MaterialRequestRepository materialRequestRepository;
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final AmqpAdmin amqpAdmin;
 
     public NotificationRoutine(ResearchMaterialRepository researchMaterialRepository,
                                MaterialRequestRepository materialRequestRepository,
-                               RabbitTemplate rabbitTemplate) {
+                               RabbitTemplate rabbitTemplate,
+                               AmqpAdmin amqpAdmin) {
         this.researchMaterialRepository = researchMaterialRepository;
         this.materialRequestRepository = materialRequestRepository;
         this.rabbitTemplate = rabbitTemplate;
+        this.amqpAdmin = amqpAdmin;
     }
 
     // runs every 30 seconds
@@ -82,6 +87,16 @@ public class NotificationRoutine {
         try {
             String msg = objectMapper.writeValueAsString(payload);
             String queueName = id + "/" + QUEUE_NAME ;
+            // ensure queue exists (declare if missing) so consumers can bind later
+            try {
+                if (amqpAdmin.getQueueProperties(queueName) == null) {
+                    amqpAdmin.declareQueue(new Queue(queueName, true));
+                    logger.info("Declared queue {}", queueName);
+                }
+            } catch (Exception e) {
+                // log but continue to attempt sending; declaration failures shouldn't stop the routine
+                logger.warn("Could not declare queue {}: {}", queueName, e.getMessage());
+            }
             rabbitTemplate.convertAndSend(queueName, msg);
         } catch (JsonProcessingException e) {
             logger.error("Failed to serialize notification payload", e);

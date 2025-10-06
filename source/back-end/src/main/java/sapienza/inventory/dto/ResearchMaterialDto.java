@@ -15,7 +15,7 @@ public class ResearchMaterialDto {
     private CategoryDto category;
     private String status = "None";
     private Long department_id;
-    private Integer threshold = 2;
+    private Integer threshold ;
 
     // getters and setters
 }

@@ -23,7 +23,7 @@ public class ResearchMaterial {
     private int quantity = 0;
 
     @Column(nullable = false)
-    private Integer threshold = 2;
+    private Integer threshold = 1;
 
     @ManyToOne
     @JoinColumn(name = "category", nullable = false) // column is 'category' in your SQL
