@@ -29,12 +29,12 @@ public class AuthService {
 
                 // Set cookie with role/id
                 Cookie roleCookie = new Cookie("role", user.getRole());
-                roleCookie.setHttpOnly(true);   // prevents JS access
+                roleCookie.setHttpOnly(false);   // prevents JS access
                 roleCookie.setPath("/");        // available across app
                 response.addCookie(roleCookie);
 
                 Cookie idCookie = new Cookie("userId", user.getId().toString());
-                idCookie.setHttpOnly(true);
+                idCookie.setHttpOnly(false);
                 idCookie.setPath("/");
                 response.addCookie(idCookie);
 

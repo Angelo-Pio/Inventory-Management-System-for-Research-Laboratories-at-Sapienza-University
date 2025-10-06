@@ -1,7 +1,7 @@
 package sapienza.notification.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import sapienza.inventory.model.Category;
+import sapienza.notification.model.Category;
 
 import java.util.Optional;
 

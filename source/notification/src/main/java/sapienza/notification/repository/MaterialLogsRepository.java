@@ -3,7 +3,7 @@ package sapienza.notification.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import sapienza.inventory.model.MaterialLogs;
+import sapienza.notification.model.MaterialLogs;
 
 import java.time.LocalDateTime;
 import java.util.List;
