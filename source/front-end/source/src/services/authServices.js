@@ -61,9 +61,9 @@ export const checkAuth = async () => {
 
 // Get user role from cookies
 export const getUserRole = () => {
-  const cookies = document.cookie.split(';');
-  const roleCookie = cookies.find(cookie => cookie.trim().startsWith('role='));
-  return roleCookie ? roleCookie.split('=')[1] : null;
+  console.log(document.cookie)
+  // const roleCookie = cookies.find(cookie => cookie.trim().startsWith('role='));
+  // return roleCookie ? roleCookie.split('=')[1] : null;
 };
 
 // Get user ID from cookies
