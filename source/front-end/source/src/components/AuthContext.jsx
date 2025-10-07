@@ -5,7 +5,7 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [role, setRole] = useState(null);
+  const [user, setUser] = useState({ id: null, name: null, surname: null, email: null , role: null, departmentId: null });
   const [loading, setLoading] = useState(true);
 
   // Run on mount to check if user already has a valid session (cookie-based)
@@ -13,14 +13,17 @@ export function AuthProvider({ children }) {
     const verifyAuth = async () => {
       const isAuth = await checkAuth();
       setIsAuthenticated(isAuth);
-      if (isAuth) setRole(getUserRole());
+      if (isAuth) {
+        const role = getUserRole();
+        setUser(prev => ({ ...prev, role }));
+      }
       setLoading(false);
     };
     verifyAuth();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, role, setRole, loading }}>
+    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, user, setUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

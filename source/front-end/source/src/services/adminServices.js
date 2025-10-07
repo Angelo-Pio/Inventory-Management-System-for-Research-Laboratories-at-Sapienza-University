@@ -12,6 +12,10 @@ export const getAllUsers = async () => {
   return await apiCall('/admin/users');
 };
 
+export const getUserById = async (userId) => {
+  return await apiCall(`/admin/user?user_id=${userId}`);
+};
+
 export const updateUser = async (userData) => {
   return await apiCall('/admin/user', {
     method: 'PUT',

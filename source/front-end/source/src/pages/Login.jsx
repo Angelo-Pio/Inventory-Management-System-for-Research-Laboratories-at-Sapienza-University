@@ -6,7 +6,7 @@ import logo from '../assets/logo.png';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { setIsAuthenticated, setRole } = useAuth(); // 👈 Access global auth context
+  const { setIsAuthenticated, setUser } = useAuth();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -69,17 +69,15 @@ const Login = () => {
       const result = await authLogin(formData.email, formData.password);
 
       if (result.success) {
-        console.log('Login successful:', result.message);
 
         // Get user info from cookies
         const userRole = getUserRole();
         const userId = getUserId();
 
-        console.log('Authenticated user:', { userId, userRole });
 
         // Update global auth state
         setIsAuthenticated(true);
-        setRole(userRole);
+        setUser({ id: userId, email: formData.email, role: userRole });
 
         // Redirect based on role
         switch (userRole) {
@@ -93,13 +91,12 @@ const Login = () => {
             navigate('/researcher-dashboard');
             break;
           default:
-            navigate('/unauthorized');
+            navigate('/labmanager-dashboard');
         }
       } else {
         setError(result.error || 'Invalid credentials. Please try again.');
       }
     } catch (err) {
-      console.error('Login error:', err);
       setError('A network or server error occurred.');
     } finally {
       setLoading(false);

@@ -1,3 +1,4 @@
+// Prefer Vite's VITE_ prefix, but fall back to REACT_APP_ for backwards compatibility
 const AUTH_BASE_URL = import.meta.env.REACT_APP_AUTH_URL || 'http://localhost:9002';
 
 // Login function
@@ -47,11 +48,12 @@ export const logout = async () => {
 // Check if user is authenticated (optional utility function)
 export const checkAuth = async () => {
   try {
+    console.debug('[authServices] checkAuth ->', AUTH_BASE_URL + '/check-auth');
     const response = await fetch(`${AUTH_BASE_URL}/check-auth`, {
       method: 'GET',
       credentials: 'include'
     });
-    
+    console.debug('[authServices] checkAuth response status:', response.status);
     return response.ok;
   } catch (error) {
     console.error('Auth check error:', error);

@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.REACT_APP_BACKEND_URL 
+const API_BASE_URL = import.meta.env.REACT_APP_BACKEND_URL || 'http://localhost:9001';
 
 export const apiCall = async (endpoint, options = {}) => {
   try {
