@@ -49,7 +49,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PW}
     ports:
-      - "9002:8081"
+      - "9002:8080"
     restart: always
     depends_on:
       - db
