@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login as authLogin, getUserRole, getUserId } from '../services/authServices';
-import logo from '../assets/logo.png'; 
+import { useAuth } from '../components/AuthContext'; 
+import logo from '../assets/logo.png';
 
-const Login = ({ onLogin }) => {
+const Login = () => {
   const navigate = useNavigate();
+  const { setIsAuthenticated, setRole } = useAuth(); // 👈 Access global auth context
+
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -24,10 +27,7 @@ const Login = ({ onLogin }) => {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
     if (error) setError('');
-    
-    // Clear field-specific errors
     if (name === 'email') {
       setEmailError(false);
       setEmailErrorMessage('');
@@ -46,68 +46,61 @@ const Login = ({ onLogin }) => {
       setEmailError(true);
       setEmailErrorMessage('Please enter a valid email address.');
       isValid = false;
-    } else {
-      setEmailError(false);
-      setEmailErrorMessage('');
     }
 
     if (!formData.password || formData.password.length < 6) {
       setPasswordError(true);
       setPasswordErrorMessage('Password must be at least 6 characters long.');
       isValid = false;
-    } else {
-      setPasswordError(false);
-      setPasswordErrorMessage('');
     }
 
     return isValid;
   };
 
-  // Handle form submission
+  // Handle login form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validate inputs first
-    if (!validateInputs()) {
-      return;
-    }
-    
+    if (!validateInputs()) return;
+
     setLoading(true);
     setError('');
 
     try {
-      // Use the authService login function
       const result = await authLogin(formData.email, formData.password);
 
       if (result.success) {
-        // Login successful - cookies are automatically set by the auth service
         console.log('Login successful:', result.message);
-        
+
         // Get user info from cookies
         const userRole = getUserRole();
         const userId = getUserId();
-        
-        const user = {
-          id: userId,
-          role: userRole,
-          email: formData.email
-        };
-        
-        console.log('User logged in:', user);
-        
-        // Update parent component state
-        onLogin(user);
-        
-        // Navigate to dashboard (will be redirected based on role)
-        navigate('/dashboard');
-        
+
+        console.log('Authenticated user:', { userId, userRole });
+
+        // Update global auth state
+        setIsAuthenticated(true);
+        setRole(userRole);
+
+        // Redirect based on role
+        switch (userRole) {
+          case 'admin':
+            navigate('/admin-dashboard');
+            break;
+          case 'labmanager':
+            navigate('/labmanager-dashboard');
+            break;
+          case 'researcher':
+            navigate('/researcher-dashboard');
+            break;
+          default:
+            navigate('/unauthorized');
+        }
       } else {
-        // Login failed
-        setError(result.error || 'Login failed');
+        setError(result.error || 'Invalid credentials. Please try again.');
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      setError('An unexpected error occurred');
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('A network or server error occurred.');
     } finally {
       setLoading(false);
     }
@@ -117,9 +110,9 @@ const Login = ({ onLogin }) => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4 relative">
       <div className="max-w-md w-full space-y-8">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg px-8 pb-8">
-          {/* Header with Logo */}
-          <div className="">
-            <img src={logo} alt="" className='h-24 mx-auto' />
+          {/* Header */}
+          <div>
+            <img src={logo} alt="Logo" className="h-24 mx-auto" />
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Sign In
             </h1>
@@ -127,7 +120,7 @@ const Login = ({ onLogin }) => {
 
           {/* Login Form */}
           <form className="space-y-6" onSubmit={handleSubmit} noValidate>
-            {/* Email Field */}
+            {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email
@@ -136,8 +129,6 @@ const Login = ({ onLogin }) => {
                 id="email"
                 name="email"
                 type="email"
-                autoComplete="email"
-                autoFocus
                 required
                 className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors ${
                   emailError 
@@ -154,7 +145,7 @@ const Login = ({ onLogin }) => {
               )}
             </div>
 
-            {/* Password Field */}
+            {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Password
@@ -163,8 +154,7 @@ const Login = ({ onLogin }) => {
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors ${
                     passwordError 
@@ -198,7 +188,7 @@ const Login = ({ onLogin }) => {
               )}
             </div>
 
-            {/* General Error Message */}
+            {/* General Error */}
             {error && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-md">
                 <div className="flex">
