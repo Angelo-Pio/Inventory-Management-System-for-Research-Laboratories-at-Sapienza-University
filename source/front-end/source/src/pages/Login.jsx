@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login as authLogin, getUserRole, getUserId } from '../services/authServices';
+import { login as authLogin, getUserId } from '../services/authServices';
+import { getUserById, getDepartmentById } from '../services/adminServices';
 import { useAuth } from '../components/AuthContext'; 
 import logo from '../assets/logo.png';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { setIsAuthenticated, setUser } = useAuth();
+  const { setIsAuthenticated, setUser, setDepartment } = useAuth();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -70,17 +71,25 @@ const Login = () => {
 
       if (result.success) {
 
-        // Get user info from cookies
-        const userRole = getUserRole();
+        // Get userId info from cookies
         const userId = getUserId();
 
-
         // Update global auth state
-        setIsAuthenticated(true);
-        setUser({ id: userId, email: formData.email, role: userRole });
+        const userData = await getUserById(userId);
+        
+        if (userData.data) {
+          setUser({ id: userId, email: formData.email, role: userData.data.role, name: userData.data.name, surname: userData.data.surname, departmentId: userData.data.departmentId });
+          setIsAuthenticated(true);
+        }
+
+        // Get department info
+        const departmentData = await getDepartmentById(userData.data.departmentId);
+        if (departmentData.data) {
+          setDepartment({ id: departmentData.data.id, name: departmentData.data.name });
+        }
 
         // Redirect based on role
-        switch (userRole) {
+        switch (userData.data.role) {
           case 'admin':
             navigate('/admin-dashboard');
             break;

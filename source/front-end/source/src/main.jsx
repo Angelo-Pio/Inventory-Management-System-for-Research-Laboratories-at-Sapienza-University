@@ -5,7 +5,13 @@ import { AuthProvider } from "./components/AuthContext";
 import "./index.css";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
-import LabManagerDashboard from "./pages/LabManagerDashboard";
+
+import LabManagerDashboard from "./lab-manager pages/LabManagerDashboard";
+import LabManagerHome from "./lab-manager pages/LabManagerHome";
+import InventoryPage from "./lab-manager pages/InventoryPage";
+import EmployeesPage from "./lab-manager pages/EmployeesPage";
+import AlertsPage from "./lab-manager pages/AlertsPage";
+
 import ResearcherDashboard from "./pages/ResearcherDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -26,7 +32,14 @@ const router = createBrowserRouter([
         allowedRoles={["labmanager"]}
       />
     ),
+    children: [
+      { index: true, element: <LabManagerHome /> },          // /labmanager-dashboard
+    { path: "inventory", element: <InventoryPage /> },    // /labmanager-dashboard/inventory
+    { path: "employees", element: <EmployeesPage /> },    // /labmanager-dashboard/employees
+    { path: "alerts", element: <AlertsPage /> },      // /labmanager-dashboard/alerts
+  ]
   },
+  
   {
     path: "/researcher-dashboard",
     element: (

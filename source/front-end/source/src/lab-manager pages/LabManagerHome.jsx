@@ -1,10 +1,10 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import StatCard from "./StatCard";
+import StatCard from "../components/StatCard";
 import { Button, Divider } from "@mui/material";
 import Stack from "@mui/material/Stack";
-import CustomDatePicker from "./CustomDataPicker";
-import PieChartCard from "./PieChartCard";
+import CustomDatePicker from "../components/CustomDataPicker";
+import PieChartCard from "../components/PieChartCard";
 
 const pieData = [
   { id: 0, value: 10, label: "PC" },
@@ -46,9 +46,10 @@ const data = [
   },
 ];
 
-export default function MainGrid() {
+export default function LabManagerHome() {
   return (
-    <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" } }}>
+    <div className="flex flex-col items-center space-y-6 px-6 pb-10 mt-8 md:mt-0">
+      <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" } }}>
       {/* cards */}
       <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
         Overview
@@ -129,5 +130,7 @@ export default function MainGrid() {
         <PageViewsBarChart /> */}
       </Box>
     </Box>
+            </div>
+          
   );
 }

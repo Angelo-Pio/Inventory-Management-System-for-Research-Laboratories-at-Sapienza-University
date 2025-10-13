@@ -1,4 +1,6 @@
 
+import { useAuth } from './AuthContext';
+
 import { styled } from '@mui/material/styles';
 import Avatar from '@mui/material/Avatar';
 import MuiDrawer, { drawerClasses } from '@mui/material/Drawer';
@@ -7,7 +9,7 @@ import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Logo from './Logo';
-import MenuContent from './MenuContent';
+import MenuContentLabManager from '../lab-manager pages/MenuContentLabManager';
 
 const drawerWidth = 240;
 
@@ -22,7 +24,10 @@ const Drawer = styled(MuiDrawer)({
   },
 });
 
-export default function SideMenu({ user }) {
+export default function SideMenu() {
+
+    const { user, department } = useAuth();
+
   return (
     <Drawer
       variant="permanent"
@@ -48,7 +53,7 @@ export default function SideMenu({ user }) {
           textAlign: 'center',
         }}
       >
-        Computer Science
+        {department.name}
       </Box>
       <Divider />
 
@@ -69,7 +74,10 @@ export default function SideMenu({ user }) {
       >
         {user.role === 'admin' ? 'Admin' : user.role === 'labmanager' ? 'Lab Manager' : 'Researcher'}
       </Box>
-        <MenuContent />
+      {
+        user.role === 'admin' ? {/* Admin Menu - to be implemented */} : user.role === 'labmanager' ? <MenuContentLabManager /> : {/* Researcher Menu - to be implemented */} 
+      }
+        
       </Box>
 
       <Stack

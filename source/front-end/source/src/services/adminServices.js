@@ -41,6 +41,10 @@ export const getAllDepartments = async () => {
   return await apiCall('/admin/departments');
 };
 
+export const getDepartmentById = async (departmentId) => {
+  return await apiCall(`/admin/department?department_id=${departmentId}`);
+}
+
 export const deleteDepartment = async (departmentId) => {
   return await apiCall(`/admin/department?department_id=${departmentId}`, {
     method: 'DELETE',
