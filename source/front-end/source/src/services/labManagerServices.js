@@ -1,4 +1,4 @@
-import { apiCall, downloadFile } from './api';
+import { apiCall } from './api';
 
 // Material management
 export const addMaterial = async (departmentId, materialData) => {
@@ -24,12 +24,13 @@ export const getDepartmentMaterials = async (departmentId) => {
  *
  * returns: { items: [...], itemCount: number }
  */
-export async function getMany({ departmentId, paginationModel = { page: 0, pageSize: 25 }, filterModel = { items: [] }, sortModel = [] }) {
+export async function getMany({ departmentId, paginationModel = { page: 0, pageSize: 10 }, filterModel = { items: [] } }) {
   if (departmentId == null) throw new Error('departmentId is required');
-
+  
   // fetch all materials for the department
   const materials = await getDepartmentMaterials(departmentId);
-  let filtered = Array.isArray(materials) ? [...materials] : [];
+  let filtered = Array.isArray(materials.data) ? [...materials.data] : [];
+  console.log(filtered);
 
   // helper to read nested fields like "category.title"
   const readField = (obj, fieldPath) => {
@@ -40,10 +41,13 @@ export async function getMany({ departmentId, paginationModel = { page: 0, pageS
   // Apply item filters (operators: contains, equals, startsWith, endsWith, >, <, >=, <=)
   if (filterModel?.items?.length) {
     filterModel.items.forEach(({ field, operator, value }) => {
+      console.log(filterModel.items);
+      
       if (!field || value == null) return;
 
       filtered = filtered.filter((item) => {
         const itemValue = readField(item, field);
+        
         // normalise for string comparisons
         const aStr = itemValue != null ? String(itemValue).toLowerCase() : '';
         const bStr = String(value).toLowerCase();
@@ -87,25 +91,7 @@ export async function getMany({ departmentId, paginationModel = { page: 0, pageS
     );
   }
 
-  // Apply sorting (multi-field)
-  if (Array.isArray(sortModel) && sortModel.length) {
-    filtered.sort((a, b) => {
-      for (const { field, sort } of sortModel) {
-        const va = readField(a, field);
-        const vb = readField(b, field);
-
-        if (va == null && vb == null) continue;
-        if (va == null) return sort === 'asc' ? -1 : 1;
-        if (vb == null) return sort === 'asc' ? 1 : -1;
-
-        if (va < vb) return sort === 'asc' ? -1 : 1;
-        if (va > vb) return sort === 'asc' ? 1 : -1;
-        // equal => continue to next sort field
-      }
-      return 0;
-    });
-  }
-
+ 
   // Pagination
   const page = paginationModel?.page ?? 0;
   const pageSize = paginationModel?.pageSize ?? filtered.length;
@@ -199,6 +185,34 @@ export const downloadReport = async (departmentId, startDate, endDate) => {
   }
 };
 
+export function validate(employee) {
+  let issues = [];
+
+  if (!employee.name) {
+    issues = [...issues, { message: 'Name is required', path: ['name'] }];
+  }
+
+  if (employee.age == null) {
+    issues = [...issues, { message: 'Age is required', path: ['age'] }];
+  } else if (employee.age < 18) {
+    issues = [...issues, { message: 'Age must be at least 18', path: ['age'] }];
+  }
+
+  if (!employee.joinDate) {
+    issues = [...issues, { message: 'Join date is required', path: ['joinDate'] }];
+  }
+
+  if (!employee.role) {
+    issues = [...issues, { message: 'Role is required', path: ['role'] }];
+  } else if (!['Market', 'Finance', 'Development'].includes(employee.role)) {
+    issues = [
+      ...issues,
+      { message: 'Role must be "Market", "Finance" or "Development"', path: ['role'] },
+    ];
+  }
+
+  return { issues };
+}
 
 
 // export const addMaterial = async (departmentId, materialData) => {
