@@ -9,7 +9,8 @@ import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Logo from './Logo';
-import MenuContentLabManager from '../lab-manager pages/MenuContentLabManager';
+import MenuContentLabManager from './MenuContentLabManager';
+import MenuContentAdmin from './MenuContentAdmin'
 
 const drawerWidth = 240;
 
@@ -74,7 +75,7 @@ export default function SideMenu() {
         {user.role === 'admin' ? 'Admin' : user.role === 'labmanager' ? 'Lab Manager' : 'Researcher'}
       </Box>
       {
-        user.role === 'admin' ? {/* Admin Menu - to be implemented */} : user.role === 'labmanager' ? <MenuContentLabManager /> : {/* Researcher Menu - to be implemented */} 
+        user.role === 'admin' ? <MenuContentAdmin /> : user.role === 'labmanager' ? <MenuContentLabManager /> : {/* Researcher Menu - to be implemented */} 
       }
         
       </Box>

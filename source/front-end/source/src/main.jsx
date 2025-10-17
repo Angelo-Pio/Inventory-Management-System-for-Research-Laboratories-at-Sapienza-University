@@ -7,9 +7,13 @@ import {
 } from "react-router-dom";
 import { AuthProvider } from "./components/AuthContext";
 import "./index.css";
-import Login from "./pages/Login";
-import AdminDashboard from "./pages/AdminDashboard";
 import DialogsProvider from "./hooks/DialogsProvider";
+
+import Login from "./pages/Login";
+
+import AdminDashboard from "./admin pages/AdminDashboard";
+import DepartmentPage from "./admin pages/DepartmentPage";
+import DepartmentCreate from "./components/DepartmentCreate"
 
 import LabManagerDashboard from "./lab-manager pages/LabManagerDashboard";
 import LabManagerHome from "./lab-manager pages/LabManagerHome";
@@ -30,6 +34,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute element={<AdminDashboard />} allowedRoles={["admin"]} />
     ),
+    children:[
+       {index: true, element: <EmployeesPage />},
+       { path: "new", element: <UserCreate/> },
+       { path: "departments", children:[
+        {index:true,  element: <DepartmentPage/> },
+        {path:"new", element:<DepartmentCreate/>}
+       ]}
+    ]
   },
   {
     path: "/labmanager-dashboard",

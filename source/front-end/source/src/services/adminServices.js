@@ -51,7 +51,7 @@ export const deleteDepartment = async (departmentId) => {
   });
 };
 
-//Filter function
+//FilterUser function
 export async function getFilteredUsers({ departmentId, paginationModel = { page: 0, pageSize: 10 }, filterModel = { items: [] } }) {
   if (departmentId == null) throw new Error('departmentId is required');
   const users = await getAllUsers()
@@ -126,8 +126,83 @@ export async function getFilteredUsers({ departmentId, paginationModel = { page:
 }
 
 
+
+//FilterDepartment function
+export async function getFilteredDepartment({ departmentId, paginationModel = { page: 0, pageSize: 10 }, filterModel = { items: [] } }) {
+  if (departmentId == null) throw new Error('departmentId is required');
+  const users = await getAllDepartments()
+  
+  let filtered = Array.isArray(users.data) ? [...users.data] : [];
+  console.log(filtered);
+  
+  // Helper to read nested fields if needed
+  const readField = (obj, path) => {
+    return path.split('.').reduce((acc, key) => (acc ? acc[key] : undefined), obj);
+  };
+
+  // Apply column filters
+  if (filterModel?.items?.length) {
+    filterModel.items.forEach(({ field, operator, value }) => {
+      if (!field || value == null) return;
+
+      filtered = filtered.filter((user) => {
+        const itemValue = readField(user, field);
+        const aStr = itemValue != null ? String(itemValue).toLowerCase() : '';
+        const bStr = String(value).toLowerCase();
+
+        switch (operator) {
+          case 'contains':
+            return aStr.includes(bStr);
+          case 'equals':
+            return itemValue === value || String(itemValue) === String(value);
+          case 'startsWith':
+            return aStr.startsWith(bStr);
+          case 'endsWith':
+            return aStr.endsWith(bStr);
+          case '>':
+            return Number(itemValue) > Number(value);
+          case '<':
+            return Number(itemValue) < Number(value);
+          case '>=':
+            return Number(itemValue) >= Number(value);
+          case '<=':
+            return Number(itemValue) <= Number(value);
+          default:
+            return true;
+        }
+      });
+    });
+  }
+
+  // ✅ Apply quick search filter (name, surname, email, role)
+  if (filterModel?.quickFilterValues?.length) {
+    const qvs = filterModel.quickFilterValues.map((q) => String(q).toLowerCase());
+    filtered = filtered.filter((user) =>
+      qvs.every((q) =>
+        [
+          String(user.name || '').toLowerCase(),
+         
+        ].some((fieldValue) => fieldValue.includes(q))
+      )
+    );
+  }
+
+  // ✅ Apply pagination
+  const page = paginationModel?.page ?? 0;
+  const pageSize = paginationModel?.pageSize ?? filtered.length;
+  const start = page * pageSize;
+  const end = start + pageSize;
+  const paginated = filtered.slice(start, end);
+
+  return {
+    items: paginated,
+    itemCount: filtered.length,
+  };
+}
+
+
 //Validate Form
-export function validate(user) {
+export function validate(user,role) {
   let issues = [];
 
 
@@ -147,6 +222,12 @@ export function validate(user) {
      issues = [...issues, { message: 'Password is required', path: ['password'] }];
   }
   
+  if(role == 'admin'){
+    if(!user.role){
+     issues = [...issues, { message: 'role is required', path: ['role'] }];
+  }
+  
+  }
 
   return { issues };
 }
