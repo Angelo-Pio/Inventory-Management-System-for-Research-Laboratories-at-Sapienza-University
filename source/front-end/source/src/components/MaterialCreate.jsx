@@ -2,12 +2,12 @@ import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
   addMaterial,
-  validate as validateEmployee,
+  validate as validateMaterial,
   getAllCategories,
   createCategory,
 } from "../services/labManagerServices";
 import { useAuth } from "./AuthContext";
-import EmployeeForm from "./EmployeeForm";
+import MaterialForm from "./MaterialForm";
 import PageContainer from "./PageContainer";
 
 export default function GridCreate() {
@@ -53,7 +53,7 @@ export default function GridCreate() {
   const handleFormFieldChange = useCallback(
     (name, value) => {
       const validateField = async (values) => {
-        const { issues } = validateEmployee(values, categories);
+        const { issues } = validateMaterial(values, categories);
         setFormErrors({
           ...formErrors,
           [name]: issues?.find((issue) => issue.path?.[0] === name)?.message,
@@ -73,7 +73,7 @@ export default function GridCreate() {
   }, [setFormValues]);
 
   const handleFormSubmit = useCallback(async () => {
-    const { issues } = validateEmployee(formValues, categories);
+    const { issues } = validateMaterial(formValues, categories);
 
     if (issues && issues.length > 0) {
       setFormErrors(
@@ -118,7 +118,7 @@ export default function GridCreate() {
 
   return (
     <PageContainer title="New Material">
-      <EmployeeForm
+      <MaterialForm
         formState={formState}
         onFieldChange={handleFormFieldChange}
         onSubmit={handleFormSubmit}

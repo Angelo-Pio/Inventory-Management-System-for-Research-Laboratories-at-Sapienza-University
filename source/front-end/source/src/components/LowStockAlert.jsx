@@ -14,7 +14,6 @@ import {
   ...formInputCustomizations,
 };
 
-import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -27,20 +26,17 @@ import {
   Toolbar,
   QuickFilter,
   QuickFilterControl,
-  QuickFilterTrigger,
-  QuickFilterClear,
 } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { useDialogs } from '../hooks/useDialogs';
 // import useNotifications from '../hooks/useNotifications/useNotifications';
 import {
-  deleteMaterial,
-  getMany,
-} from '../services/labManagerServices';
+  deleteUser,
+  getFilteredUsers,
+} from '../services/adminServices';
 import PageContainer from '../components/PageContainer';
 
 
@@ -57,7 +53,7 @@ function QuickSearchToolbar() {
 }
 
 
-export default function InventoryPage(props) {
+export default function EmployeesPage(props) {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -132,12 +128,12 @@ export default function InventoryPage(props) {
     setError(null);
     setIsLoading(true);
     try {
-      const listData = await getMany({
+      const listData = await getFilteredUsers({
         departmentId: user.departmentId,
         paginationModel,
         filterModel,
       });
-      console.log(listData);
+      // console.log(listData);
       
       setRowsState({
         rows: listData.items,
@@ -159,12 +155,7 @@ export default function InventoryPage(props) {
     }
   }, [isLoading, loadData]);
 
-  const handleRowClick = useCallback(
-    ({ row }) => {
-      navigate(`inventory/${row.id}`);
-    },
-    [navigate],
-  );
+
 
   const handleCreateClick = useCallback(() => {
     navigate('new');
@@ -173,13 +164,13 @@ export default function InventoryPage(props) {
   
 
   const handleRowDelete = useCallback(
-    (material) => async () => {
-      console.log(material);
+    (user) => async () => {
+      console.log(user);
       
       const confirmed = await dialogs.confirm(
-        `Do you wish to delete ${material.name}?`,
+        `Do you wish to delete ${user.name}?`,
         {
-          title: `Delete material?`,
+          title: `Delete User?`,
           severity: 'error',
           okText: 'Delete',
           cancelText: 'Cancel',
@@ -189,7 +180,7 @@ export default function InventoryPage(props) {
       if (confirmed) {
         setIsLoading(true);
         try {
-          await deleteMaterial(user.departmentId,material.id);
+          await deleteUser(user.id);
           loadData();
         } catch (deleteError) {
         }
@@ -209,9 +200,9 @@ export default function InventoryPage(props) {
   const columns = useMemo(
     () => [
       { field: 'name', headerName: 'Name', width: 180, sortable: false, disableColumnMenu: true },
-      { field: 'threshold', headerName: 'Threshold', type: 'number', width:100,sortable: false, disableColumnMenu: true },
-      { field: 'quantity', headerName: 'Quantity', type: 'number', width: 100,sortable: false, disableColumnMenu: true},
-      { field: 'category', headerName: 'Category', width:180,sortable: false, disableColumnMenu: true, valueGetter:(params) => params?.title ?? ''  },
+      { field: 'surname', headerName: 'Surname', width:180,sortable: false, disableColumnMenu: true },
+      { field: 'email', headerName: 'Email', width: 200,sortable: false, disableColumnMenu: true},
+      { field: 'role', headerName: 'Role', width:180,sortable: false, disableColumnMenu: true},
       {
         field: 'actions',
         type: 'actions',
@@ -231,7 +222,7 @@ export default function InventoryPage(props) {
     [ handleRowDelete],
   );
 
-  const pageTitle = 'Inventory';
+  const pageTitle = 'Employees';
 
 
   return (
@@ -268,7 +259,6 @@ export default function InventoryPage(props) {
             filterModel={filterModel}
             onFilterModelChange={handleFilterModelChange}
             disableRowSelectionOnClick
-            onRowClick={handleRowClick}
             loading={isLoading}
             initialState={initialState}
             slots={{ toolbar: QuickSearchToolbar }}
@@ -281,9 +271,7 @@ export default function InventoryPage(props) {
               [`& .${gridClasses.columnHeader}:focus-within, & .${gridClasses.cell}:focus-within`]: {
                 outline: 'none',
               },
-              [`& .${gridClasses.row}:hover`]: {
-                cursor: 'pointer',
-              },
+            
             }}
             slotProps={{
               loadingOverlay: {

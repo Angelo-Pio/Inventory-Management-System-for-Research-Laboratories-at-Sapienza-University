@@ -14,10 +14,10 @@ import DialogsProvider from "./hooks/DialogsProvider";
 import LabManagerDashboard from "./lab-manager pages/LabManagerDashboard";
 import LabManagerHome from "./lab-manager pages/LabManagerHome";
 import InventoryPage from "./lab-manager pages/InventoryPage";
-import EmployeesPage from "./lab-manager pages/EmployeesPage";
+import EmployeesPage from "./lab-manager pages/UserPage";
 import AlertsPage from "./lab-manager pages/AlertsPage";
-import GridShow from "./components/GridShow";
-import GridCreate from "./components/GridCreate";
+import MaterialCreate from "./components/MaterialCreate";
+import UserCreate from "./components/UserCreate"
 
 import ResearcherDashboard from "./pages/ResearcherDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -45,12 +45,13 @@ const router = createBrowserRouter([
         path: "inventory",
         children: [
           { index: true, element: <InventoryPage /> },
-          // { path: ":materialId", element: <GridShow /> },
-          { path: "new", element: <GridCreate /> },
+          { path: "new", element: <MaterialCreate /> },
         ],
       },
       { path: "employees", children:[
         {index:true,element: <EmployeesPage /> },
+          { path: "new", element: <UserCreate/> },
+
         
       ]  },
       { path: "alerts", element: <AlertsPage /> },

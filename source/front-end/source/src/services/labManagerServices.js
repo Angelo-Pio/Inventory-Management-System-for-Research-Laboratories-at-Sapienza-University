@@ -74,8 +74,8 @@ export async function getMany({ departmentId, paginationModel = { page: 0, pageS
       qvs.every((q) =>
         [
           String(item.name || '').toLowerCase(),
-          String(item.status || '').toLowerCase(),
-          String(readField(item, 'category.title') || '').toLowerCase(),
+          //filter only by name (not category)
+          // String(readField(item, 'category.title') || '').toLowerCase(),
         ].some((v) => v.includes(q))
       )
     );
@@ -95,29 +95,6 @@ export async function getMany({ departmentId, paginationModel = { page: 0, pageS
   };
 }
 
-/**
- * getOne: fetches materials for department and finds a single material by id.
- */
-export async function getOne(departmentId, materialId) {
-  if (departmentId == null) throw new Error('departmentId is required');
-  if (materialId == null) throw new Error('materialId is required');
-
-  const materials = await getDepartmentMaterials(departmentId);
-  const found = Array.isArray(materials) ? materials.find((m) => String(m.id) === String(materialId)) : null;
-
-  if (!found) {
-    throw new Error('Material not found');
-  }
-  return found;
-}
-
-export const updateMaterial = async (departmentId, materialData) => {
-  // this keeps the original semantics you already had (JSON body)
-  return await apiCall(`/management/${departmentId}/material`, {
-    method: 'PUT',
-    body: JSON.stringify(materialData),
-  });
-};
 
 /**
  * updateMaterialQuantity: calls the backend PUT endpoint when you want to update only quantity via query params
@@ -130,51 +107,16 @@ export const updateMaterialQuantity = async (departmentId, { materialId, userId,
   });
 };
 
+
+//Delete Material
 export const deleteMaterial = async (departmentId, materialId) => {
-  // keep your existing query param name - if backend expects material_id or materialId, make sure it matches
-  // here we pass material_id as in your snippet; change to 'materialId' if needed
   return await apiCall(`/management/${departmentId}/material?materialId=${encodeURIComponent(materialId)}`, {
     method: 'DELETE',
   });
 };
 
-export const getMaterialByBarcode = async (departmentId, barcode) => {
-  return await apiCall(`/management/${departmentId}/material/barcode?barcode=${encodeURIComponent(barcode)}`);
-};
 
-export const searchMaterials = async (departmentId, searchTerm) => {
-  return await apiCall(`/management/${departmentId}/material/search?q=${encodeURIComponent(searchTerm)}`);
-};
-
-// Report generation (kept as-is; consider using apiCall wrapper if desired)
-export const downloadReport = async (departmentId, startDate, endDate) => {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/management/report/${departmentId}?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`,
-      { credentials: 'include' }
-    );
-    
-    if (response.ok) {
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `report_${departmentId}_${startDate}_${endDate}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      return { success: true };
-    } else {
-      const errorText = await response.text();
-      return { success: false, error: errorText || 'Report generation failed' };
-    }
-  } catch (error) {
-    console.error('Report download error:', error);
-    return { success: false, error: 'Network error occurred' };
-  }
-};
-
+//Validate Form
 export function validate(material, categories=[]) {
   let issues = [];
  
@@ -226,13 +168,40 @@ export const getAllCategories = async () => {
   return await apiCall(`/management/material/category`);
 };
 
+
+// Report generation (kept as-is; consider using apiCall wrapper if desired)
+export const downloadReport = async (departmentId, startDate, endDate) => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/management/report/${departmentId}?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`,
+      { credentials: 'include' }
+    );
+    
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `report_${departmentId}_${startDate}_${endDate}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      return { success: true };
+    } else {
+      const errorText = await response.text();
+      return { success: false, error: errorText || 'Report generation failed' };
+    }
+  } catch (error) {
+    console.error('Report download error:', error);
+    return { success: false, error: 'Network error occurred' };
+  }
+};
+
 const labManagerService = {
   addMaterial,
   getDepartmentMaterials,
-  updateMaterial,
   deleteMaterial,
-  getMaterialByBarcode,
-  searchMaterials,
   downloadReport,
 };
 
