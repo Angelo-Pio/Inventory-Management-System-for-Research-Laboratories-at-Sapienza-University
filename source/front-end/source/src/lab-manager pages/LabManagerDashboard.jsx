@@ -1,22 +1,16 @@
-import { getUserById } from "../services/adminServices";
-import { useAuth } from "../components/AuthContext";
-
 import { CssBaseline, alpha, Box } from "@mui/material";
-import MainGrid from "./LabManagerHome";
+
 import SideMenu from "../components/SideMenu";
 import AppTheme from "../themes/AppTheme";
 import {
   chartsCustomizations,
-  // dataGridCustomizations,
   datePickersCustomizations,
   treeViewCustomizations,
 } from "../themes/customization";
-import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 
 const xThemeComponents = {
   ...chartsCustomizations,
-  // ...dataGridCustomizations,
   ...datePickersCustomizations,
   ...treeViewCustomizations,
 };

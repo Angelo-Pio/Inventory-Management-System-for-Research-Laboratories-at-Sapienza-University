@@ -2,6 +2,9 @@ import { apiCall } from './api';
 
 // Material management
 export const addMaterial = async (departmentId, materialData) => {
+
+  console.log(JSON.stringify(materialData));
+  
   return await apiCall(`/management/${departmentId}/material`, {
     method: 'POST',
     body: JSON.stringify(materialData),
@@ -12,25 +15,13 @@ export const getDepartmentMaterials = async (departmentId) => {
   return await apiCall(`/management/${departmentId}/material`);
 };
 
-/**
- * getMany: fetch all materials for a department and then apply
- * client-side filtering, sorting and pagination similar to the employees example.
- *
- * @param {Object} args
- *  - departmentId: number
- *  - paginationModel: { page: number, pageSize: number }
- *  - filterModel: { items: [ { field, operator, value } ], quickFilterValues: [] }
- *  - sortModel: [ { field, sort } ]
- *
- * returns: { items: [...], itemCount: number }
- */
+
 export async function getMany({ departmentId, paginationModel = { page: 0, pageSize: 10 }, filterModel = { items: [] } }) {
   if (departmentId == null) throw new Error('departmentId is required');
   
   // fetch all materials for the department
   const materials = await getDepartmentMaterials(departmentId);
   let filtered = Array.isArray(materials.data) ? [...materials.data] : [];
-  console.log(filtered);
 
   // helper to read nested fields like "category.title"
   const readField = (obj, fieldPath) => {
@@ -41,7 +32,6 @@ export async function getMany({ departmentId, paginationModel = { page: 0, pageS
   // Apply item filters (operators: contains, equals, startsWith, endsWith, >, <, >=, <=)
   if (filterModel?.items?.length) {
     filterModel.items.forEach(({ field, operator, value }) => {
-      console.log(filterModel.items);
       
       if (!field || value == null) return;
 
@@ -143,7 +133,7 @@ export const updateMaterialQuantity = async (departmentId, { materialId, userId,
 export const deleteMaterial = async (departmentId, materialId) => {
   // keep your existing query param name - if backend expects material_id or materialId, make sure it matches
   // here we pass material_id as in your snippet; change to 'materialId' if needed
-  return await apiCall(`/management/${departmentId}/material?material_id=${encodeURIComponent(materialId)}`, {
+  return await apiCall(`/management/${departmentId}/material?materialId=${encodeURIComponent(materialId)}`, {
     method: 'DELETE',
   });
 };
@@ -185,96 +175,56 @@ export const downloadReport = async (departmentId, startDate, endDate) => {
   }
 };
 
-export function validate(employee) {
+export function validate(material, categories=[]) {
   let issues = [];
+ 
+    
 
-  if (!employee.name) {
+  if (!material.name) {
     issues = [...issues, { message: 'Name is required', path: ['name'] }];
   }
 
-  if (employee.age == null) {
-    issues = [...issues, { message: 'Age is required', path: ['age'] }];
-  } else if (employee.age < 18) {
-    issues = [...issues, { message: 'Age must be at least 18', path: ['age'] }];
+  if(!material.quantity){
+     issues = [...issues, { message: 'Quantity is required', path: ['quantity'] }];
   }
 
-  if (!employee.joinDate) {
-    issues = [...issues, { message: 'Join date is required', path: ['joinDate'] }];
+  if(!material.threshold){
+     issues = [...issues, { message: 'Threshold is required', path: ['threshold'] }];
   }
 
-  if (!employee.role) {
-    issues = [...issues, { message: 'Role is required', path: ['role'] }];
-  } else if (!['Market', 'Finance', 'Development'].includes(employee.role)) {
-    issues = [
-      ...issues,
-      { message: 'Role must be "Market", "Finance" or "Development"', path: ['role'] },
-    ];
+
+  if (!material.newCategory && !material.category) {
+    issues = [...issues, { message: 'Category is required', path: ['category','newCategory'] }];
   }
+
+  if (
+  material.newCategory &&
+  categories.some(
+    (cat) => cat.title.trim().toLowerCase() === material.newCategory.trim().toLowerCase()
+  )
+) {
+  issues = [
+    ...issues,
+    { message: "Category already exists", path: ['newCategory'] }
+  ];
+}
+  
 
   return { issues };
 }
 
+// Create a new Category
+export const createCategory = async (categoryData) => {
+  return await apiCall(`/management/material/category`, {
+    method: 'POST',
+    body: JSON.stringify(categoryData),
+  });
+};
 
-// export const addMaterial = async (departmentId, materialData) => {
-//   return await apiCall(`/management/${departmentId}/material`, {
-//     method: 'POST',
-//     body: JSON.stringify(materialData),
-//   });
-// };
-
-// export const getDepartmentMaterials = async (departmentId) => {
-//   return await apiCall(`/management/${departmentId}/material`);
-// };
-
-// export const updateMaterial = async (departmentId, materialData) => {
-//   return await apiCall(`/management/${departmentId}/material`, {
-//     method: 'PUT',
-//     body: JSON.stringify(materialData),
-//   });
-// };
-
-// export const deleteMaterial = async (departmentId, materialId) => {
-//   return await apiCall(`/management/${departmentId}/material?material_id=${materialId}`, {
-//     method: 'DELETE',
-//   });
-// };
-
-// export const getMaterialByBarcode = async (departmentId, barcode) => {
-//   return await apiCall(`/management/${departmentId}/material/barcode?barcode=${barcode}`);
-// };
-
-// export const searchMaterials = async (departmentId, searchTerm) => {
-//   return await apiCall(`/management/${departmentId}/material/search?q=${encodeURIComponent(searchTerm)}`);
-// };
-
-// // Report generation
-// export const downloadReport = async (departmentId, startDate, endDate) => {
-//   try {
-//     const response = await fetch(
-//       `${API_BASE_URL}/management/report/${departmentId}?startDate=${startDate}&endDate=${endDate}`,
-//       { credentials: 'include' }
-//     );
-    
-//     if (response.ok) {
-//       const blob = await response.blob();
-//       const url = window.URL.createObjectURL(blob);
-//       const a = document.createElement('a');
-//       a.href = url;
-//       a.download = `report_${departmentId}_${startDate}_${endDate}.csv`;
-//       document.body.appendChild(a);
-//       a.click();
-//       document.body.removeChild(a);
-//       window.URL.revokeObjectURL(url);
-//       return { success: true };
-//     } else {
-//       const errorText = await response.text();
-//       return { success: false, error: errorText || 'Report generation failed' };
-//     }
-//   } catch (error) {
-//     console.error('Report download error:', error);
-//     return { success: false, error: 'Network error occurred' };
-//   }
-// };
+// Fetch all categories
+export const getAllCategories = async () => {
+  return await apiCall(`/management/material/category`);
+};
 
 const labManagerService = {
   addMaterial,

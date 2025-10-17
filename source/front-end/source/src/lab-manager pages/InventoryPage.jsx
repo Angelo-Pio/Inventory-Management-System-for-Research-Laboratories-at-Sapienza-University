@@ -50,7 +50,7 @@ function QuickSearchToolbar() {
   return (
     <Toolbar>
       <QuickFilter>
-        <QuickFilterControl debounceMs={300} placeholder="Search…" />
+        <QuickFilterControl placeholder="Search…" />
       </QuickFilter>
     </Toolbar>
   );
@@ -137,6 +137,8 @@ export default function InventoryPage(props) {
         paginationModel,
         filterModel,
       });
+      console.log(listData);
+      
       setRowsState({
         rows: listData.items,
         rowCount: listData.itemCount,
@@ -157,30 +159,22 @@ export default function InventoryPage(props) {
     }
   }, [isLoading, loadData]);
 
-  const handleRowClick = useCallback(
-    ({ row }) => {
-      navigate(`inventory/${row.id}`);
-    },
-    [navigate],
-  );
+
 
   const handleCreateClick = useCallback(() => {
     navigate('new');
   }, [navigate]);
 
-  const handleRowEdit = useCallback(
-    (employee) => () => {
-      navigate(`inventory/${employee.id}/edit`);
-    },
-    [navigate],
-  );
+  
 
   const handleRowDelete = useCallback(
-    (employee) => async () => {
+    (material) => async () => {
+      console.log(material);
+      
       const confirmed = await dialogs.confirm(
-        `Do you wish to delete ${employee.name}?`,
+        `Do you wish to delete ${material.name}?`,
         {
-          title: `Delete employee?`,
+          title: `Delete material?`,
           severity: 'error',
           okText: 'Delete',
           cancelText: 'Cancel',
@@ -190,20 +184,9 @@ export default function InventoryPage(props) {
       if (confirmed) {
         setIsLoading(true);
         try {
-          await deleteMaterial(Number(employee.id));
-          // notifications.show('Employee deleted successfully.', {
-          //   severity: 'success',
-          //   autoHideDuration: 3000,
-          // });
+          await deleteMaterial(user.departmentId,material.id);
           loadData();
         } catch (deleteError) {
-          // notifications.show(
-          //   `Failed to delete employee. Reason: ${(deleteError).message}`,
-          //   {
-          //     severity: 'error',
-          //     autoHideDuration: 3000,
-          //   },
-          // );
         }
         setIsLoading(false);
       }
@@ -230,12 +213,7 @@ export default function InventoryPage(props) {
         flex: 1,
         align: 'right',
         getActions: ({ row }) => [
-          <GridActionsCellItem
-            key="edit-item"
-            icon={<EditIcon />}
-            label="Edit"
-            onClick={handleRowEdit(row)}
-          />,
+          
           <GridActionsCellItem
             key="delete-item"
             icon={<DeleteIcon />}
@@ -245,7 +223,7 @@ export default function InventoryPage(props) {
         ],
       },
     ],
-    [handleRowEdit, handleRowDelete],
+    [ handleRowDelete],
   );
 
   const pageTitle = 'Inventory';
@@ -285,7 +263,6 @@ export default function InventoryPage(props) {
             filterModel={filterModel}
             onFilterModelChange={handleFilterModelChange}
             disableRowSelectionOnClick
-            onRowClick={handleRowClick}
             loading={isLoading}
             initialState={initialState}
             slots={{ toolbar: QuickSearchToolbar }}
@@ -298,9 +275,7 @@ export default function InventoryPage(props) {
               [`& .${gridClasses.columnHeader}:focus-within, & .${gridClasses.cell}:focus-within`]: {
                 outline: 'none',
               },
-              [`& .${gridClasses.row}:hover`]: {
-                cursor: 'pointer',
-              },
+            
             }}
             slotProps={{
               loadingOverlay: {

@@ -1,48 +1,59 @@
-import * as React from 'react';
-import { useNavigate } from 'react-router';
-// import useNotifications from '../hooks/useNotifications/useNotifications';
+import { useState, useCallback, useEffect } from "react";
+import { useNavigate } from "react-router";
 import {
   addMaterial,
   validate as validateEmployee,
-} from '../services/labManagerServices';
-import EmployeeForm from './EmployeeForm';
-import PageContainer from './PageContainer';
-
-const INITIAL_FORM_VALUES = {
-  role: 'Market',
-  isFullTime: true,
-};
+  getAllCategories,
+  createCategory,
+} from "../services/labManagerServices";
+import { useAuth } from "./AuthContext";
+import EmployeeForm from "./EmployeeForm";
+import PageContainer from "./PageContainer";
 
 export default function GridCreate() {
   const navigate = useNavigate();
-  // const notifications = useNotifications();
-
-  const [formState, setFormState] = React.useState(() => ({
-    values: INITIAL_FORM_VALUES,
+  const { user } = useAuth();
+  const [formState, setFormState] = useState(() => ({
+    values: {},
     errors: {},
   }));
 
+  const [categories, setCategories] = useState([]);
   const formValues = formState.values;
   const formErrors = formState.errors;
 
-  const setFormValues = React.useCallback((newFormValues) => {
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getAllCategories();
+
+        setCategories(data.data);
+      } catch (err) {
+        console.error("Failed to load categories", err);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  const setFormValues = useCallback((newFormValues) => {
     setFormState((previousState) => ({
       ...previousState,
       values: newFormValues,
     }));
   }, []);
 
-  const setFormErrors = React.useCallback((newFormErrors) => {
+  const setFormErrors = useCallback((newFormErrors) => {
     setFormState((previousState) => ({
       ...previousState,
       errors: newFormErrors,
     }));
   }, []);
 
-  const handleFormFieldChange = React.useCallback(
+  const handleFormFieldChange = useCallback(
     (name, value) => {
       const validateField = async (values) => {
-        const { issues } = validateEmployee(values);
+        const { issues } = validateEmployee(values, categories);
         setFormErrors({
           ...formErrors,
           [name]: issues?.find((issue) => issue.path?.[0] === name)?.message,
@@ -57,51 +68,63 @@ export default function GridCreate() {
     [formValues, formErrors, setFormErrors, setFormValues]
   );
 
-  const handleFormReset = React.useCallback(() => {
+  const handleFormReset = useCallback(() => {
     setFormValues(INITIAL_FORM_VALUES);
   }, [setFormValues]);
 
-  const handleFormSubmit = React.useCallback(async () => {
-    const { issues } = validateEmployee(formValues);
+  const handleFormSubmit = useCallback(async () => {
+    const { issues } = validateEmployee(formValues, categories);
+
     if (issues && issues.length > 0) {
       setFormErrors(
-        Object.fromEntries(issues.map((issue) => [issue.path?.[0], issue.message]))
+        Object.fromEntries(
+          issues.map((issue) => [issue.path?.[0], issue.message])
+        )
       );
       return;
     }
     setFormErrors({});
 
     try {
-      await addMaterial(formValues);
-      // notifications.show('Employee created successfully.', {
-      //   severity: 'success',
-      //   autoHideDuration: 3000,
-      // });
+      let payload = {};
+      if (formValues.category) {
+        payload = {
+          ...formValues,
+          category: { title: formValues.category },
+        };
+      }
+      if (formValues.newCategory) {
+        payload = {
+          ...formValues,
+          category: { title: formValues.newCategory },
+        };
+      }
+      const payloadNewCategory = { title: formValues.newCategory };
 
-      navigate('/employees');
+
+      await addMaterial(user.departmentId, payload);
+      if (formValues.newCategory)
+        await createCategory(payloadNewCategory);
+
+      const parentPath = location.pathname.substring(
+        0,
+        location.pathname.lastIndexOf("/")
+      );
+      navigate(parentPath || "/");
     } catch (createError) {
-      // notifications.show(
-      //   `Failed to create employee. Reason: ${createError.message}`,
-      //   {
-      //     severity: 'error',
-      //     autoHideDuration: 3000,
-      //   }
-      // );
       throw createError;
     }
   }, [formValues, navigate, setFormErrors]);
 
   return (
-    <PageContainer
-      title="New Employee"
-      breadcrumbs={[{ title: 'Employees', path: '/employees' }, { title: 'New' }]}
-    >
+    <PageContainer title="New Material">
       <EmployeeForm
         formState={formState}
         onFieldChange={handleFormFieldChange}
         onSubmit={handleFormSubmit}
         onReset={handleFormReset}
-        submitButtonLabel="Create"
+        submitButtonLabel="Save"
+        categories={categories}
       />
     </PageContainer>
   );

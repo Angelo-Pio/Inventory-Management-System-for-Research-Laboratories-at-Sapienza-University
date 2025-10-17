@@ -1,23 +1,22 @@
-import * as React from 'react';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
-import FormControl from '@mui/material/FormControl';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormGroup from '@mui/material/FormGroup';
-import FormHelperText from '@mui/material/FormHelperText';
-import Grid from '@mui/material/Grid';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
-import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { useNavigate } from 'react-router';
-import dayjs from 'dayjs';
+import { useState, useCallback, useEffect } from "react";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
+import FormControl from "@mui/material/FormControl";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormGroup from "@mui/material/FormGroup";
+import FormHelperText from "@mui/material/FormHelperText";
+import Grid from "@mui/material/Grid";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useNavigate } from "react-router";
+
+import { getAllCategories } from "../services/labManagerServices";
+import { lineHeight } from "@mui/system";
 
 export default function EmployeeForm(props) {
   const {
@@ -27,16 +26,20 @@ export default function EmployeeForm(props) {
     onReset,
     submitButtonLabel,
     backButtonPath,
+    categories
   } = props;
 
-  const formValues = formState.values || {};
-  const formErrors = formState.errors || {};
+  const formValues =formState.values;
+  const formErrors = formState.errors;
 
   const navigate = useNavigate();
 
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isNewCategory, setIsNewCategory] = useState(false);
 
-  const handleSubmit = React.useCallback(
+;
+
+  const handleSubmit = useCallback(
     async (event) => {
       event.preventDefault();
 
@@ -47,56 +50,47 @@ export default function EmployeeForm(props) {
         setIsSubmitting(false);
       }
     },
-    [formValues, onSubmit],
+    [formValues, onSubmit]
   );
 
-  const handleTextFieldChange = React.useCallback(
+  const handleTextFieldChange = useCallback(
     (event) => {
       onFieldChange(event.target.name, event.target.value);
     },
-    [onFieldChange],
+    [onFieldChange]
   );
 
-  const handleNumberFieldChange = React.useCallback(
+  const handleNumberFieldChange = useCallback(
     (event) => {
       onFieldChange(event.target.name, Number(event.target.value));
     },
-    [onFieldChange],
+    [onFieldChange]
   );
 
-  const handleCheckboxFieldChange = React.useCallback(
-    (event, checked) => {
-      onFieldChange(event.target.name, checked);
-    },
-    [onFieldChange],
-  );
-
-  const handleDateFieldChange = React.useCallback(
-    (fieldName) => (value) => {
-      if (value?.isValid && value.isValid()) {
-        onFieldChange(fieldName, value.toISOString?.() ?? null);
-      } else if (formValues[fieldName]) {
-        onFieldChange(fieldName, null);
-      }
-    },
-    [formValues, onFieldChange],
-  );
-
-  const handleSelectFieldChange = React.useCallback(
+  const handleCategoryFieldChange = useCallback(
     (event) => {
       onFieldChange(event.target.name, event.target.value);
     },
-    [onFieldChange],
+    [onFieldChange]
   );
 
-  const handleReset = React.useCallback(() => {
+
+  const handleSelectFieldChange = useCallback(
+    (event) => {
+      onFieldChange(event.target.name, event.target.value);
+    },
+    [onFieldChange]
+  );
+
+  const handleReset = useCallback(() => {
     if (onReset) {
       onReset(formValues);
     }
   }, [formValues, onReset]);
 
-  const handleBack = React.useCallback(() => {
-    navigate(backButtonPath ?? '/employees');
+  const handleBack = useCallback(() => {
+     const parentPath = location.pathname.substring(0, location.pathname.lastIndexOf("/"));
+  navigate(parentPath || "/"); 
   }, [navigate, backButtonPath]);
 
   return (
@@ -106,88 +100,112 @@ export default function EmployeeForm(props) {
       noValidate
       autoComplete="off"
       onReset={handleReset}
-      sx={{ width: '100%' }}
+      sx={{ width: "100%" }}
     >
       <FormGroup>
-        <Grid container spacing={2} sx={{ mb: 2, width: '100%' }}>
-          <Grid item xs={12} sm={6} sx={{ display: 'flex' }}>
-            <TextField
-              value={formValues.name ?? ''}
-              onChange={handleTextFieldChange}
-              name="name"
-              label="Name"
-              error={!!formErrors.name}
-              helperText={formErrors.name ?? ' '}
-              fullWidth
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} sx={{ display: 'flex' }}>
-            <TextField
-              type="number"
-              value={formValues.age ?? ''}
-              onChange={handleNumberFieldChange}
-              name="age"
-              label="Age"
-              error={!!formErrors.age}
-              helperText={formErrors.age ?? ' '}
-              fullWidth
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} sx={{ display: 'flex' }}>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                value={formValues.joinDate ? dayjs(formValues.joinDate) : null}
-                onChange={handleDateFieldChange('joinDate')}
-                name="joinDate"
-                label="Join date"
-                slotProps={{
-                  textField: {
-                    error: !!formErrors.joinDate,
-                    helperText: formErrors.joinDate ?? ' ',
-                    fullWidth: true,
-                  },
-                }}
-              />
-            </LocalizationProvider>
-          </Grid>
-          <Grid item xs={12} sm={6} sx={{ display: 'flex' }}>
-            <FormControl error={!!formErrors.role} fullWidth>
-              <InputLabel id="employee-role-label">Department</InputLabel>
-              <Select
-                value={formValues.role ?? ''}
+        <TextField
+          value={formValues.name ?? ""}
+          onChange={handleTextFieldChange}
+          name="name"
+          label="Material name"
+          error={!!formErrors.name}
+          helperText={formErrors.name ?? " "}
+          fullWidth
+          variant="standard"
+        />
+        <TextField label="Description" variant="standard" fullWidth multiline />
+        <Stack
+          direction="row"
+          spacing={2}
+          justifyContent="space-between"
+          sx={{ marginY: 5 }}
+        >
+          <TextField
+            type="number"
+            variant="standard"
+            value={formValues.threshold ?? ""}
+            onChange={handleNumberFieldChange}
+            name="threshold"
+            label="Threshold"
+            error={!!formErrors.threshold}
+            helperText={formErrors.threshold ?? " "}
+            fullWidth
+          />
+          <TextField
+            type="number"
+            variant="standard"
+            value={formValues.quantity ?? ""}
+            onChange={handleNumberFieldChange}
+            name="quantity"
+            label="Quantity"
+            error={!!formErrors.quantity}
+            helperText={formErrors.quantity ?? " "}
+            fullWidth
+          />
+        </Stack>
+        <Stack
+          direction="row"
+          spacing={10}
+          justifyContent="space-between"
+          sx={{ marginBottom: 5 }}
+        >
+          {!isNewCategory ? (
+            <>
+              <TextField
+                select
+                variant="standard"
+                value={formValues.category ?? ""}
                 onChange={handleSelectFieldChange}
-                labelId="employee-role-label"
-                name="role"
-                label="Department"
-                defaultValue=""
+                name="category"
+                label="Category"
+                error={!!formErrors.category}
+                helperText={formErrors.category ?? " "}
                 fullWidth
               >
-                <MenuItem value="Market">Market</MenuItem>
-                <MenuItem value="Finance">Finance</MenuItem>
-                <MenuItem value="Development">Development</MenuItem>
-              </Select>
-              <FormHelperText>{formErrors.role ?? ' '}</FormHelperText>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6} sx={{ display: 'flex' }}>
-            <FormControl>
-              <FormControlLabel
-                name="isFullTime"
-                control={
-                  <Checkbox
-                    size="large"
-                    checked={formValues.isFullTime ?? false}
-                    onChange={handleCheckboxFieldChange}
-                  />
-                }
-                label="Full-time"
+                {categories.map((cat) => (
+                  <MenuItem key={cat.id} value={cat.title}>
+                    {cat.title}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              <Button
+                variant="contained"
+                onClick={() => {
+                  onFieldChange("category", "");
+                  setIsNewCategory(true);
+                }}
+                sx={{ lineHeight: 1, whiteSpace: "nowrap" }}
+              >
+                New Category
+              </Button>
+            </>
+          ) : (
+            <>
+            
+              <TextField
+                variant="standard"
+                value={formValues.newCategory ?? ""}
+                onChange={handleCategoryFieldChange}
+                name="newCategory"
+                label="New Category"
+                error={!!formErrors.newCategory}
+                helperText={formErrors.newCategory ?? " "}
+                fullWidth
               />
-              <FormHelperText error={!!formErrors.isFullTime}>
-                {formErrors.isFullTime ?? ' '}
-              </FormHelperText>
-            </FormControl>
-          </Grid>
-        </Grid>
+
+              <Button
+                variant="contained"
+                onClick={() => {
+                  setIsNewCategory(false)
+                  onFieldChange("newCategory", "");}}
+                sx={{ lineHeight: 1, whiteSpace: "nowrap", paddingX: 3 }}
+              >
+                Select Existing Category
+              </Button>
+            </>
+          )}
+        </Stack>
       </FormGroup>
       <Stack direction="row" spacing={2} justifyContent="space-between">
         <Button

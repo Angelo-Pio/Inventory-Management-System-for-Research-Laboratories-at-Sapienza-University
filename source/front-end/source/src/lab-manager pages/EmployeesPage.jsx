@@ -1,7 +1,8 @@
 import CssBaseline from '@mui/material/CssBaseline';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useAuth } from '../components/AuthContext'; 
 
 
-import DialogsProvider from '../hooks/DialogsProvider';
 import AppTheme from '../themes/AppTheme';
 import {
   dataGridCustomizations,
@@ -23,6 +24,11 @@ import {
   DataGrid,
   GridActionsCellItem,
   gridClasses,
+  Toolbar,
+  QuickFilter,
+  QuickFilterControl,
+  QuickFilterTrigger,
+  QuickFilterClear,
 } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import RefreshIcon from '@mui/icons-material/Refresh';
@@ -38,10 +44,27 @@ import {
 import PageContainer from '../components/PageContainer';
 
 
-export default function EmployeesPage(props) {
-    const { pathname } = useLocation();
+const INITIAL_PAGE_SIZE = 10
+
+function QuickSearchToolbar() {
+  return (
+    <Toolbar>
+      <QuickFilter>
+        <QuickFilterControl placeholder="Search…" />
+      </QuickFilter>
+    </Toolbar>
+  );
+}
+
+
+export default function InventoryPage(props) {
+  const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const {user} = useAuth();
+
+  
+  
 
   const dialogs = useDialogs();
   // const notifications = useNotifications();
@@ -60,10 +83,7 @@ export default function EmployeesPage(props) {
       : { items: [] },
   );
 
-  //column to sort
-  const [sortModel, setSortModel] = useState(
-    searchParams.get('sort') ? JSON.parse(searchParams.get('sort') ?? '') : [],
-  );
+ 
 
   //row state and row count
   const [rowsState, setRowsState] = useState({
@@ -106,29 +126,19 @@ export default function EmployeesPage(props) {
     [navigate, pathname, searchParams],
   );
 
-  const handleSortModelChange = useCallback(
-    (model) => {
-      setSortModel(model);
-      if (model.length > 0) {
-        searchParams.set('sort', JSON.stringify(model));
-      } else {
-        searchParams.delete('sort');
-      }
-      const newSearchParamsString = searchParams.toString();
-      navigate(`${pathname}${newSearchParamsString ? '?' : ''}${newSearchParamsString}`);
-    },
-    [navigate, pathname, searchParams],
-  );
+
 
   const loadData = useCallback(async () => {
     setError(null);
     setIsLoading(true);
     try {
       const listData = await getMany({
+        departmentId: user.departmentId,
         paginationModel,
-        sortModel,
         filterModel,
       });
+      console.log(listData);
+      
       setRowsState({
         rows: listData.items,
         rowCount: listData.itemCount,
@@ -137,7 +147,7 @@ export default function EmployeesPage(props) {
       setError(listDataError);
     }
     setIsLoading(false);
-  }, [paginationModel, sortModel, filterModel]);
+  }, [paginationModel, filterModel]);
 
   useEffect(() => {
     loadData();
@@ -151,28 +161,25 @@ export default function EmployeesPage(props) {
 
   const handleRowClick = useCallback(
     ({ row }) => {
-      navigate(`/employees/${row.id}`);
+      navigate(`inventory/${row.id}`);
     },
     [navigate],
   );
 
   const handleCreateClick = useCallback(() => {
-    navigate('/employees/new');
+    navigate('new');
   }, [navigate]);
 
-  const handleRowEdit = useCallback(
-    (employee) => () => {
-      navigate(`/employees/${employee.id}/edit`);
-    },
-    [navigate],
-  );
+  
 
   const handleRowDelete = useCallback(
-    (employee) => async () => {
+    (material) => async () => {
+      console.log(material);
+      
       const confirmed = await dialogs.confirm(
-        `Do you wish to delete ${employee.name}?`,
+        `Do you wish to delete ${material.name}?`,
         {
-          title: `Delete employee?`,
+          title: `Delete material?`,
           severity: 'error',
           okText: 'Delete',
           cancelText: 'Cancel',
@@ -182,20 +189,9 @@ export default function EmployeesPage(props) {
       if (confirmed) {
         setIsLoading(true);
         try {
-          await deleteMaterial(Number(employee.id));
-          // notifications.show('Employee deleted successfully.', {
-          //   severity: 'success',
-          //   autoHideDuration: 3000,
-          // });
+          await deleteMaterial(user.departmentId,material.id);
           loadData();
         } catch (deleteError) {
-          // notifications.show(
-          //   `Failed to delete employee. Reason: ${(deleteError).message}`,
-          //   {
-          //     severity: 'error',
-          //     autoHideDuration: 3000,
-          //   },
-          // );
         }
         setIsLoading(false);
       }
@@ -212,36 +208,17 @@ export default function EmployeesPage(props) {
 
   const columns = useMemo(
     () => [
-      { field: 'id', headerName: 'ID' },
-      { field: 'name', headerName: 'Name', width: 140 },
-      { field: 'age', headerName: 'Age', type: 'number' },
-      {
-        field: 'joinDate',
-        headerName: 'Join date',
-        type: 'date',
-        valueGetter: (value) => value && new Date(value),
-        width: 140,
-      },
-      {
-        field: 'role',
-        headerName: 'Department',
-        type: 'singleSelect',
-        valueOptions: ['Market', 'Finance', 'Development'],
-        width: 160,
-      },
-      { field: 'isFullTime', headerName: 'Full-time', type: 'boolean' },
+      { field: 'name', headerName: 'Name', width: 180, sortable: false, disableColumnMenu: true },
+      { field: 'threshold', headerName: 'Threshold', type: 'number', width:100,sortable: false, disableColumnMenu: true },
+      { field: 'quantity', headerName: 'Quantity', type: 'number', width: 100,sortable: false, disableColumnMenu: true},
+      { field: 'category', headerName: 'Category', width:180,sortable: false, disableColumnMenu: true, valueGetter:(params) => params?.title ?? ''  },
       {
         field: 'actions',
         type: 'actions',
         flex: 1,
         align: 'right',
         getActions: ({ row }) => [
-          <GridActionsCellItem
-            key="edit-item"
-            icon={<EditIcon />}
-            label="Edit"
-            onClick={handleRowEdit(row)}
-          />,
+          
           <GridActionsCellItem
             key="delete-item"
             icon={<DeleteIcon />}
@@ -251,16 +228,15 @@ export default function EmployeesPage(props) {
         ],
       },
     ],
-    [handleRowEdit, handleRowDelete],
+    [ handleRowDelete],
   );
 
-  const pageTitle = 'Employees';
+  const pageTitle = 'Inventory';
 
 
   return (
     <AppTheme {...props} themeComponents={themeComponents}>
       <CssBaseline enableColorScheme />
-        <DialogsProvider>
           <PageContainer
       title={pageTitle}
       actions={
@@ -289,14 +265,13 @@ export default function EmployeesPage(props) {
             paginationMode="server"
             paginationModel={paginationModel}
             onPaginationModelChange={handlePaginationModelChange}
-            sortModel={sortModel}
-            onSortModelChange={handleSortModelChange}
             filterModel={filterModel}
             onFilterModelChange={handleFilterModelChange}
             disableRowSelectionOnClick
             onRowClick={handleRowClick}
             loading={isLoading}
             initialState={initialState}
+            slots={{ toolbar: QuickSearchToolbar }}
             showToolbar
             pageSizeOptions={[5, INITIAL_PAGE_SIZE, 25]}
             sx={{
@@ -322,7 +297,6 @@ export default function EmployeesPage(props) {
           />
           </Box>
     </PageContainer>
-        </DialogsProvider>
     </AppTheme>
   );
 }
