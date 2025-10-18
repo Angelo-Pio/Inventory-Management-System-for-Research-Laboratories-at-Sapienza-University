@@ -36,6 +36,7 @@ import { useDialogs } from '../hooks/useDialogs';
 import {
   deleteUser,
   getFilteredUsers,
+  getAllDepartments
 } from '../services/adminServices';
 import PageContainer from '../components/PageContainer';
 
@@ -59,7 +60,11 @@ export default function EmployeesPage(props) {
   const navigate = useNavigate();
   const {user} = useAuth();
 
-  
+    const [departments, setDepartments] = useState([]);
+
+  const getDepartmentName = (id) => {
+    return departments.find(dep => dep.id === id)?.name || "—";
+  };
   
 
   const dialogs = useDialogs();
@@ -104,7 +109,6 @@ export default function EmployeesPage(props) {
   const handleFilterModelChange = useCallback(
     (model) => {
       setFilterModel(model);
-      console.log("model", model);
       
       if (
         model.items.length > 0 ||
@@ -115,7 +119,6 @@ export default function EmployeesPage(props) {
         searchParams.delete('filter');
       }
       const newSearchParamsString = searchParams.toString();
-      console.log("parm:", newSearchParamsString);
       
       navigate(`${pathname}${newSearchParamsString ? '?' : ''}${newSearchParamsString}`);
     },
@@ -125,25 +128,35 @@ export default function EmployeesPage(props) {
 
 
   const loadData = useCallback(async () => {
-    setError(null);
-    setIsLoading(true);
-    try {
-      const listData = await getFilteredUsers({
+  setError(null);
+  setIsLoading(true);
+
+  try {
+    // ✅ Run both requests in parallel for best performance
+    const [departmentsRes, usersRes] = await Promise.all([
+      getAllDepartments(),
+      getFilteredUsers({
         departmentId: user.departmentId,
         paginationModel,
         filterModel,
-      });
-      // console.log(listData);
-      
-      setRowsState({
-        rows: listData.items,
-        rowCount: listData.itemCount,
-      });
-    } catch (listDataError) {
-      setError(listDataError);
-    }
-    setIsLoading(false);
-  }, [paginationModel, filterModel]);
+      })
+    ]);
+
+    // ✅ Set departments
+    setDepartments(departmentsRes.data);
+
+    // ✅ Set users
+    setRowsState({
+      rows: usersRes.items,
+      rowCount: usersRes.itemCount,
+    });
+  } catch (error) {
+    setError(error);
+  } finally {
+    setIsLoading(false); // ✅ Only stops loading after BOTH requests complete
+  }
+}, [paginationModel, filterModel, user.departmentId]);
+
 
   useEffect(() => {
     loadData();
@@ -197,30 +210,47 @@ export default function EmployeesPage(props) {
     [],
   );
 
-  const columns = useMemo(
-    () => [
-      { field: 'name', headerName: 'Name', width: 180, sortable: false, disableColumnMenu: true },
-      { field: 'surname', headerName: 'Surname', width:180,sortable: false, disableColumnMenu: true },
-      { field: 'email', headerName: 'Email', width: 200,sortable: false, disableColumnMenu: true},
-      { field: 'role', headerName: 'Role', width:180,sortable: false, disableColumnMenu: true},
-      {
-        field: 'actions',
-        type: 'actions',
-        flex: 1,
-        align: 'right',
-        getActions: ({ row }) => [
-          
-          <GridActionsCellItem
-            key="delete-item"
-            icon={<DeleteIcon />}
-            label="Delete"
-            onClick={handleRowDelete(row)}
-          />,
-        ],
-      },
+  const columns = useMemo(() => {
+  const baseColumns = [
+    { field: 'name', headerName: 'Name', width: 180, sortable: false, disableColumnMenu: true },
+    { field: 'surname', headerName: 'Surname', width:180, sortable: false, disableColumnMenu: true },
+    { field: 'email', headerName: 'Email', width: 200, sortable: false, disableColumnMenu: true },
+    { field: 'role', headerName: 'Role', width:180, sortable: false, disableColumnMenu: true },
+  ];
+
+  if (user.role === 'admin') {
+    baseColumns.push({
+      field: 'departmentId',
+      headerName: 'Department',
+      width: 180,
+      sortable: false,
+      disableColumnMenu: true,
+      valueGetter: (params) => {
+        console.log(params);
+        
+      return getDepartmentName(params);
+    }
+    });
+  }
+
+  // ✅ Always add actions
+  baseColumns.push({
+    field: 'actions',
+    type: 'actions',
+    flex: 1,
+    align: 'right',
+    getActions: ({ row }) => [
+      <GridActionsCellItem
+        key="delete-item"
+        icon={<DeleteIcon />}
+        label="Delete"
+        onClick={handleRowDelete(row)}
+      />,
     ],
-    [ handleRowDelete],
-  );
+  });
+
+  return baseColumns;
+}, [user.role, handleRowDelete, departments]);
 
   const pageTitle = 'Employees';
 

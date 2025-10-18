@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { createUser, validate as validateUser } from "../services/adminServices";
+import { createDepartment, validateDepartment } from "../services/adminServices";
 import { useAuth } from "./AuthContext";
-import UserForm from "./UserForm";
+import DepartmentForm from "./DepartmentForm";
 import PageContainer from "./PageContainer";
 
 export default function GridCreate() {
@@ -31,9 +31,9 @@ export default function GridCreate() {
   }, []);
 
   const handleFormFieldChange = useCallback(
-    (name, value, role = "") => {
+    (name, value) => {
       const validateField = async (values) => {
-        const { issues } = validateUser(values, role);
+        const { issues } = validateDepartment(values);
         setFormErrors({
           ...formErrors,
           [name]: issues?.find((issue) => issue.path?.[0] === name)?.message,
@@ -53,7 +53,7 @@ export default function GridCreate() {
   }, [setFormValues]);
 
   const handleFormSubmit = useCallback(async () => {
-    const { issues } = validateUser(formValues, user.role);
+    const { issues } = validateDepartment(formValues);
 
     if (issues && issues.length > 0) {
       setFormErrors(
@@ -68,12 +68,11 @@ export default function GridCreate() {
     try {
       const payload = {
           ...formValues,
-          role:"researcher",
-          departmentId:user.departmentId
+          researchMaterials:[]
         };
       console.log(payload);
       
-      await createUser(payload);
+      await createDepartment(payload);
       const parentPath = location.pathname.substring(
         0,
         location.pathname.lastIndexOf("/")
@@ -85,8 +84,8 @@ export default function GridCreate() {
   }, [formValues, navigate, setFormErrors]);
 
   return (
-    <PageContainer title="New User">
-      <UserForm
+    <PageContainer title="New Department">
+      <DepartmentForm
         formState={formState}
         onFieldChange={handleFormFieldChange}
         onSubmit={handleFormSubmit}

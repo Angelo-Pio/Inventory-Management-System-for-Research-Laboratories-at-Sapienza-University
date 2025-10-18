@@ -16,7 +16,6 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router";
 import { useAuth } from "./AuthContext";
 
-import { getAllCategories } from "../services/labManagerServices";
 import { lineHeight } from "@mui/system";
 
 export default function EmployeeForm(props) {
@@ -27,6 +26,7 @@ export default function EmployeeForm(props) {
     onReset,
     submitButtonLabel,
     backButtonPath,
+    departments
   } = props;
 
   const formValues = formState.values;
@@ -146,6 +146,12 @@ export default function EmployeeForm(props) {
             multiline
           />
         ) : (
+          <Stack
+          direction="row"
+          spacing={2}
+          justifyContent="space-between"
+          sx={{ marginY: 5 }}
+        >
           <TextField
             select
             variant="standard"
@@ -157,11 +163,30 @@ export default function EmployeeForm(props) {
             helperText={formErrors.role ?? " "}
             fullWidth
           >
-            <MenuItem value="admin">admin</MenuItem>
-            <MenuItem value="admin">lab manager</MenuItem>
-            <MenuItem value="admin">researcher</MenuItem>
+            {/* <MenuItem value="admin">admin</MenuItem> */}
+            <MenuItem value="labmanager">labmanager</MenuItem>
+            <MenuItem value="researcher">researcher</MenuItem>
 
           </TextField>
+          <TextField
+            select
+            variant="standard"
+            value={formValues.department ?? ""}
+            onChange={handleSelectFieldChange}
+            name="department"
+            label="Department"
+            error={!!formErrors.department}
+            helperText={formErrors.department ?? " "}
+            fullWidth
+          >
+            {departments.map((department) => (
+                  <MenuItem key={department.id} value={department.name}>
+                    {department.name}
+                  </MenuItem>
+                ))}
+
+          </TextField>
+          </Stack>
         )}
       </FormGroup>
       <Stack direction="row" spacing={2} justifyContent="space-between">

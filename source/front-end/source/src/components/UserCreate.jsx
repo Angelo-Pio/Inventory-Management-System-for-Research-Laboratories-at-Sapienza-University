@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { createUser, validate as validateUser } from "../services/adminServices";
+import { createUser, getAllDepartments, validateUser, getDepartmentIdByName } from "../services/adminServices";
 import { useAuth } from "./AuthContext";
 import UserForm from "./UserForm";
 import PageContainer from "./PageContainer";
@@ -13,8 +13,25 @@ export default function GridCreate() {
     errors: {},
   }));
 
+  const [departments, setDepartments] = useState([]);
   const formValues = formState.values;
   const formErrors = formState.errors;
+
+  useEffect(() => {
+      const fetchDepartments = async () => {
+        try {
+          const data = await getAllDepartments();
+  
+          setDepartments(data.data);
+        } catch (err) {
+          console.error("Failed to load departments", err);
+        }
+      };
+  
+      fetchDepartments();
+    }, []);
+
+    
 
   const setFormValues = useCallback((newFormValues) => {
     setFormState((previousState) => ({
@@ -66,12 +83,25 @@ export default function GridCreate() {
     setFormErrors({});
 
     try {
-      const payload = {
+      let payload = {}
+      if(user.role=='labmanager'){
+      payload = {
           ...formValues,
           role:"researcher",
           departmentId:user.departmentId
         };
       console.log(payload);
+      }
+      if (user.role=='admin') {
+        const departmentId = getDepartmentIdByName(departments,formValues.department)
+        payload = {
+          ...formValues,
+          departmentId:departmentId
+        };
+      }
+
+      console.log(payload);
+      
       
       await createUser(payload);
       const parentPath = location.pathname.substring(
@@ -92,6 +122,7 @@ export default function GridCreate() {
         onSubmit={handleFormSubmit}
         onReset={handleFormReset}
         submitButtonLabel="Save"
+        departments = {departments}
       />
     </PageContainer>
   );

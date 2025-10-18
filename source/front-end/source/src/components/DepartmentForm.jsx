@@ -88,7 +88,6 @@ export default function EmployeeForm(props) {
       sx={{ width: "100%" }}
     >
       <FormGroup>
-        <Stack direction="row" spacing={2} justifyContent="space-between">
           <TextField
             value={formValues.name ?? ""}
             onChange={handleTextFieldChange}
@@ -100,71 +99,21 @@ export default function EmployeeForm(props) {
             variant="standard"
           />
           <TextField
-            value={formValues.surname ?? ""}
+            value={formValues.details ?? ""}
             onChange={handleTextFieldChange}
-            name="surname"
-            label="Surname"
-            error={!!formErrors.surname}
-            helperText={formErrors.surname ?? " "}
-            fullWidth
-            variant="standard"
-          />
-        </Stack>
-        <Stack
-          direction="row"
-          spacing={2}
-          justifyContent="space-between"
-          sx={{ marginY: 5 }}
-        >
-          <TextField
-            value={formValues.email ?? ""}
-            onChange={handleTextFieldChange}
-            name="email"
-            label="Email"
-            error={!!formErrors.email}
-            helperText={formErrors.email ?? " "}
-            fullWidth
-            variant="standard"
-          />
-          <TextField
-            value={formValues.password ?? ""}
-            onChange={handleTextFieldChange}
-            name="password"
-            label="Password"
-            error={!!formErrors.password}
-            helperText={formErrors.password ?? " "}
-            fullWidth
-            variant="standard"
-          />
-        </Stack>
-        {user?.role === "labmanager" ? (
-          <TextField
-            sx={{ marginBottom: 5 }}
-            label="Curriculum"
-            variant="standard"
+            name="details"
+            label="Details"
+            error={!!formErrors.details}
+            helperText={formErrors.details ?? " "}
             fullWidth
             multiline
-          />
-        ) : (
-          <TextField
-            select
             variant="standard"
-            value={formValues.role ?? ""}
-            onChange={handleSelectFieldChange}
-            name="role"
-            label="Role"
-            error={!!formErrors.role}
-            helperText={formErrors.role ?? " "}
-            fullWidth
-          >
-            <MenuItem value="admin">admin</MenuItem>
-            <MenuItem value="admin">lab manager</MenuItem>
-            <MenuItem value="admin">researcher</MenuItem>
-
-          </TextField>
-        )}
+          />
+        
+          
+        
       </FormGroup>
-      <Stack direction="row" spacing={2} justifyContent="space-between">
+      <Stack direction="row" spacing={2} justifyContent="space-between" sx={{marginTop:5}}>
         <Button
           variant="contained"
           startIcon={<ArrowBackIcon />}

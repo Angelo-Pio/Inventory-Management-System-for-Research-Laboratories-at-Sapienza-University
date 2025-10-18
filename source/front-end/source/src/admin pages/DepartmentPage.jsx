@@ -35,6 +35,7 @@ import { useDialogs } from "../hooks/useDialogs";
 // import useNotifications from '../hooks/useNotifications/useNotifications';
 import {
   deleteDepartment,
+  getAllUsers,
   getFilteredDepartment,
 } from "../services/adminServices";
 import PageContainer from "../components/PageContainer";
@@ -56,9 +57,18 @@ export default function EmployeesPage(props) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  // const [users, setUsers] = useState([]);
 
   const dialogs = useDialogs();
   // const notifications = useNotifications();
+
+// const isDepartmentUsed = (departments, users) => {
+//   return departments.map(dep => ({
+//     ...dep,
+//     used: users.some(user => user.departmentId === dep.id) // ✅ true if any user has this department
+//   }));
+// };
+
 
   const [paginationModel, setPaginationModel] = useState({
     page: searchParams.get("page") ? Number(searchParams.get("page")) : 0, //get page number
@@ -123,16 +133,20 @@ export default function EmployeesPage(props) {
     setError(null);
     setIsLoading(true);
     try {
-      const listData = await getFilteredDepartment({
-        departmentId: user.departmentId,
-        paginationModel,
-        filterModel,
-      });
-      // console.log(listData);
+      const [departmentsRes, usersRes] = await Promise.all([
+        getFilteredDepartment({
+          departmentId: user.departmentId,
+          paginationModel,
+          filterModel,
+        }),
+        // getAllUsers(),
+      ]);
 
+      // ✅ Set departments
+      // setUsers(usersRes.data);
       setRowsState({
-        rows: listData.items,
-        rowCount: listData.itemCount,
+        rows: departmentsRes.items,
+        rowCount: departmentsRes.itemCount,
       });
     } catch (listDataError) {
       setError(listDataError);
@@ -154,31 +168,45 @@ export default function EmployeesPage(props) {
     navigate("new");
   }, [navigate]);
 
-  const handleRowDelete = useCallback(
-    (department) => async () => {
-      console.log(department);
+  // const handleRowDelete = useCallback(
+  //   (department) => async () => {
+  //     console.log(users);
+  //     const isUsed = users.some(user => user.departmentId === department.id);
 
-      const confirmed = await dialogs.confirm(
-        `Do you wish to delete ${department.name}?`,
-        {
-          title: `Delete Department?`,
-          severity: "error",
-          okText: "Delete",
-          cancelText: "Cancel",
-        }
-      );
+  //     if (isUsed) {
+  //       const alert = await dialogs.confirm(
+  //       `Can not delete ${department.name} because it contains some employees`,
+  //       {
+  //         title: `Delete Error`,
+  //         severity: "error",
+  //         cancelText: "",
+  //         okText:"Okay"
+  //       }
+  //     );
+  //     }
+  //     else{
+  //     const confirmed = await dialogs.confirm(
+  //       `Do you wish to delete ${department.name}?`,
+  //       {
+  //         title: `Delete Department?`,
+  //         severity: "error",
+  //         okText: "Delete",
+  //         cancelText: "Cancel",
+  //       }
+  //     );
 
-      if (confirmed) {
-        setIsLoading(true);
-        try {
-          await deleteDepartment(department.id);
-          loadData();
-        } catch (deleteError) {}
-        setIsLoading(false);
-      }
-    },
-    [dialogs, loadData]
-  );
+  //     if (confirmed) {
+  //       setIsLoading(true);
+  //       try {
+  //         await deleteDepartment(department.id);
+  //         loadData();
+  //       } catch (deleteError) {}
+  //       setIsLoading(false);
+  //     }
+  //   }
+  //   },
+  //   [dialogs, loadData,users]
+  // );
 
   const initialState = useMemo(
     () => ({
@@ -199,7 +227,7 @@ export default function EmployeesPage(props) {
       {
         field: "details",
         headerName: "Details",
-        width: 350,
+        width: 400,
         sortable: false,
         disableColumnMenu: true,
         renderCell: (params) => (
@@ -215,54 +243,51 @@ export default function EmployeesPage(props) {
         ),
       },
       {
-  field: "researchMaterials",
-  headerName: "Materials",
-  width: 180,
-  sortable: false,
-  disableColumnMenu: true,
-  renderCell: (params) => {
-    const materials = params.row.researchMaterials;
+        field: "researchMaterials",
+        headerName: "Materials",
+        width: 180,
+        sortable: false,
+        disableColumnMenu: true,
+        renderCell: (params) => {
+          const materials = params.row.researchMaterials;
 
-    if (!Array.isArray(materials) || materials.length === 0) return "—";
+          if (!Array.isArray(materials) || materials.length === 0) return "—";
 
-    return (
-      <div style={{ width: "100%", overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
-          <thead>
-            <tr>
-            </tr>
-          </thead>
-          <tbody>
-            {materials.map((item, index) => (
-              <tr key={index}>
-                <td style={{ borderBottom: "0.1px solid #eee", paddingTop: "1px" }}>{item.name}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  },
-},
-
+          return (
+            <div style={{ width: "100%", overflowX: "auto" }}>
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  fontSize: "14px",
+                }}
+              >
+                <thead>
+                  <tr></tr>
+                </thead>
+                <tbody>
+                  {materials.map((item, index) => (
+                    <tr key={index}>
+                      <td
+                        style={{
+                          borderBottom: "0.1px solid #eee",
+                          paddingTop: "1px",
+                        }}
+                      >
+                        {item.name}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        },
+      },
 
       
-      {
-        field: "actions",
-        type: "actions",
-        flex: 1,
-        align: "right",
-        getActions: ({ row }) => [
-          <GridActionsCellItem
-            key="delete-item"
-            icon={<DeleteIcon />}
-            label="Delete"
-            onClick={handleRowDelete(row)}
-          />,
-        ],
-      },
     ],
-    [handleRowDelete]
+    []
   );
 
   const pageTitle = "Departments";
@@ -300,7 +325,7 @@ export default function EmployeesPage(props) {
             rows={rowsState.rows}
             rowCount={rowsState.rowCount}
             columns={columns}
-              getRowHeight={() => 'auto'}
+            getRowHeight={() => "auto"}
             pagination
             sortingMode="server"
             filterMode="server"
@@ -323,7 +348,6 @@ export default function EmployeesPage(props) {
                 {
                   outline: "none",
                 },
-             
             }}
             slotProps={{
               loadingOverlay: {

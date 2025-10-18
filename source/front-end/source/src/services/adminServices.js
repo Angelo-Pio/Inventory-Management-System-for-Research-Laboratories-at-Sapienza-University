@@ -51,6 +51,11 @@ export const deleteDepartment = async (departmentId) => {
   });
 };
 
+export const getDepartmentIdByName = (departments, name) => {
+  const department = departments.find(dep => dep.name === name);
+  return department ? department.id : null; // Returns null if not found
+};
+
 //FilterUser function
 export async function getFilteredUsers({ departmentId, paginationModel = { page: 0, pageSize: 10 }, filterModel = { items: [] } }) {
   if (departmentId == null) throw new Error('departmentId is required');
@@ -130,9 +135,9 @@ export async function getFilteredUsers({ departmentId, paginationModel = { page:
 //FilterDepartment function
 export async function getFilteredDepartment({ departmentId, paginationModel = { page: 0, pageSize: 10 }, filterModel = { items: [] } }) {
   if (departmentId == null) throw new Error('departmentId is required');
-  const users = await getAllDepartments()
+  const departments = await getAllDepartments()
   
-  let filtered = Array.isArray(users.data) ? [...users.data] : [];
+  let filtered = Array.isArray(departments.data) ? [...departments.data] : [];
   console.log(filtered);
   
   // Helper to read nested fields if needed
@@ -201,8 +206,8 @@ export async function getFilteredDepartment({ departmentId, paginationModel = { 
 }
 
 
-//Validate Form
-export function validate(user,role) {
+//Validate User Form
+export function validateUser(user,role) {
   let issues = [];
 
 
@@ -224,7 +229,10 @@ export function validate(user,role) {
   
   if(role == 'admin'){
     if(!user.role){
-     issues = [...issues, { message: 'role is required', path: ['role'] }];
+     issues = [...issues, { message: 'Role is required', path: ['role'] }];
+  }
+  if(!user.department){
+     issues = [...issues, { message: 'Department is required', path: ['department'] }];
   }
   
   }
@@ -232,6 +240,22 @@ export function validate(user,role) {
   return { issues };
 }
 
+
+//Validate Department Form
+export function validateDepartment(department) {
+  let issues = [];
+
+
+  if (!department.name) {
+    issues = [...issues, { message: 'Name is required', path: ['name'] }];
+  }
+  
+  if (!department.details) {
+    issues = [...issues, { message: 'Details are required', path: ['details'] }];
+  }
+
+  return { issues };
+}
 
 
 const adminService = {
