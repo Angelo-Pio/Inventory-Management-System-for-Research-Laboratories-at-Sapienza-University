@@ -48,6 +48,7 @@ public class ResearcherService {
                 throw new ArithmeticException("Not enough material");
             }else {
                 researchMaterial.get().setQuantity(set_quantity - quantityUsed);
+                researchMaterialRepository.save(researchMaterial.get());
             }
 
         }else{
