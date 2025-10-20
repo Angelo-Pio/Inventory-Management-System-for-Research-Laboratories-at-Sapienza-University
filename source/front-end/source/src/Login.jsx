@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login as authLogin, getUserId } from '../services/authServices';
-import { getUserById, getDepartmentById } from '../services/adminServices';
-import { useAuth } from '../components/AuthContext'; 
-import logo from '../assets/logo.png';
+import { login as authLogin, getUserId } from './services/authServices';
+import { getUserById, getDepartmentById } from './services/adminServices';
+import { useAuth } from './components/AuthContext'; 
+import logo from './assets/logo.png';
 
 const Login = () => {
   const navigate = useNavigate();

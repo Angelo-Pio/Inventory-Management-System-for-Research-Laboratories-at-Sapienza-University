@@ -9,11 +9,11 @@ import { AuthProvider } from "./components/AuthContext";
 import "./index.css";
 import DialogsProvider from "./hooks/DialogsProvider";
 
-import Login from "./pages/Login";
+import Login from "./Login";
 
 import AdminDashboard from "./admin pages/AdminDashboard";
 import DepartmentPage from "./admin pages/DepartmentPage";
-import DepartmentCreate from "./components/DepartmentCreate"
+import DepartmentCreate from "./components/DepartmentCreate";
 
 import LabManagerDashboard from "./lab-manager pages/LabManagerDashboard";
 import LabManagerHome from "./lab-manager pages/LabManagerHome";
@@ -21,10 +21,12 @@ import InventoryPage from "./lab-manager pages/InventoryPage";
 import EmployeesPage from "./lab-manager pages/UserPage";
 import AlertsPage from "./lab-manager pages/AlertsPage";
 import MaterialCreate from "./components/MaterialCreate";
-import UserCreate from "./components/UserCreate"
+import UserCreate from "./components/UserCreate";
 
-import ResearcherDashboard from "./pages/ResearcherDashboard";
+import ResearcherDashboard from "./researcher pages/ResearcherDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ResearcherInventoryPage from "./researcher pages/ResearcherInventoryPage";
+
 
 const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" /> },
@@ -34,14 +36,17 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute element={<AdminDashboard />} allowedRoles={["admin"]} />
     ),
-    children:[
-       {index: true, element: <EmployeesPage />},
-       { path: "new", element: <UserCreate/> },
-       { path: "departments", children:[
-        {index:true,  element: <DepartmentPage/> },
-        {path:"new", element:<DepartmentCreate/>}
-       ]}
-    ]
+    children: [
+      { index: true, element: <EmployeesPage /> },
+      { path: "new", element: <UserCreate /> },
+      {
+        path: "departments",
+        children: [
+          { index: true, element: <DepartmentPage /> },
+          { path: "new", element: <DepartmentCreate /> },
+        ],
+      },
+    ],
   },
   {
     path: "/labmanager-dashboard",
@@ -60,12 +65,13 @@ const router = createBrowserRouter([
           { path: "new", element: <MaterialCreate /> },
         ],
       },
-      { path: "employees", children:[
-        {index:true,element: <EmployeesPage /> },
-          { path: "new", element: <UserCreate/> },
-
-        
-      ]  },
+      {
+        path: "employees",
+        children: [
+          { index: true, element: <EmployeesPage /> },
+          { path: "new", element: <UserCreate /> },
+        ],
+      },
       { path: "alerts", element: <AlertsPage /> },
     ],
   },
@@ -78,6 +84,16 @@ const router = createBrowserRouter([
         allowedRoles={["researcher"]}
       />
     ),
+    children: [
+      { index: true, element: <ResearcherInventoryPage/> },
+      {
+        path: "departments",
+        children: [
+          { index: true, element: <DepartmentPage /> },
+          { path: "new", element: <DepartmentCreate /> },
+        ],
+      },
+    ],
   },
   {
     path: "/unauthorized",
