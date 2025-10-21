@@ -32,13 +32,14 @@ export const useMaterial = async(materialId, quantity_used)=> {
   }
 
   const params = new URLSearchParams({ quantity_used: String(Math.floor(Number(quantity_used))) });
-
-  const res = await apiCall(`/material/${materialId}/use?quantity_used=1`, {
+  
+  const res = await apiCall(`/material/${materialId}/use?quantity_used=${quantity_used}`, {
     method: 'POST',
   });
+  console.log(res);
 
-  // apiCall may already throw on non-2xx; return the API response for caller to inspect.
-  return res;
+
+  return res.data;
 }
 
 

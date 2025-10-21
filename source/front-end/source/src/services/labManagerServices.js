@@ -16,7 +16,7 @@ export const getDepartmentMaterials = async (departmentId) => {
 };
 
 
-export async function getMany({ departmentId, paginationModel = { page: 0, pageSize: 10 }, filterModel = { items: [] } }) {
+export async function getMany({ departmentId, paginationModel = { page: 0, pageSize: 10 }, filterModel = { items: [] } ,sortModel =  [{ field: 'name', sort: 'asc' }]}) {
   if (departmentId == null) throw new Error('departmentId is required');
   
   // fetch all materials for the department
@@ -81,7 +81,52 @@ export async function getMany({ departmentId, paginationModel = { page: 0, pageS
     );
   }
 
- 
+ const activeSort =
+    (paginationModel && Array.isArray(paginationModel.sortModel) && paginationModel.sortModel[0]) ||
+    (sortModel && Array.isArray(sortModel) && sortModel[0]) ||
+    { field: 'name', sort: 'asc' };
+
+  const { field: sortField, sort: sortOrder = 'asc' } = activeSort;
+
+  if (sortField) {
+    const compareValues = (a, b) => {
+      // both null/undefined
+      if (a == null && b == null) return 0;
+      // treat null/undefined as greater so they appear at the end for asc
+      if (a == null) return 1;
+      if (b == null) return -1;
+
+      // numeric comparison when both convert to valid numbers
+      const na = Number(a);
+      const nb = Number(b);
+      if (!Number.isNaN(na) && !Number.isNaN(nb)) {
+        return na - nb;
+      }
+
+      // date comparison when both parse as valid dates
+      const da = Date.parse(a);
+      const db = Date.parse(b);
+      if (!Number.isNaN(da) && !Number.isNaN(db)) {
+        return da - db;
+      }
+
+      // fallback to case-insensitive string compare
+      const sa = String(a).toLowerCase();
+      const sb = String(b).toLowerCase();
+      if (sa < sb) return -1;
+      if (sa > sb) return 1;
+      return 0;
+    };
+
+    // perform the sort (non-mutating original array variable already copied earlier)
+    filtered.sort((left, right) => {
+      const a = readField(left, sortField);
+      const b = readField(right, sortField);
+      const cmp = compareValues(a, b);
+      return sortOrder === 'desc' ? -cmp : cmp;
+    });
+  }
+
   // Pagination
   const page = paginationModel?.page ?? 0;
   const pageSize = paginationModel?.pageSize ?? filtered.length;

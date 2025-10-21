@@ -65,6 +65,7 @@ export default function InventoryPage(props) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const {user} = useAuth();
+  const [sortModel, setSortModel] = useState([{ field: 'category', sort: 'asc' }]);
 
   const dialogs = useDialogs();
   // const notifications = useNotifications();
@@ -187,9 +188,9 @@ export default function InventoryPage(props) {
         // treat undefined as success if your apiCall returns nothing
         await loadData();
         // optional quick feedback
-        await dialogs.alert(`Used ${amount} unit${amount === 1 ? '' : 's'} of "${row.name}".`, {
-          title: 'Success',
-        });
+        // await dialogs.alert(`Used ${amount} unit${amount === 1 ? '' : 's'} of "${row.name}".`, {
+        //   title: 'Success',
+        // });
       } else {
         // backend returned false
         await dialogs.alert(`Unable to use the material.`, { title: 'Error', severity: 'error' });
@@ -214,7 +215,7 @@ export default function InventoryPage(props) {
 
   const columns = useMemo(
     () => [
-      { field: 'name', headerName: 'Name', width: 180, sortable: false, disableColumnMenu: true ,flex:1},
+      { field: 'name', headerName: 'Name',sortable: false, width: 180, disableColumnMenu: true ,flex:1},
       { field: 'category', headerName: 'Category', width:180,sortable: false, disableColumnMenu: true, valueGetter:(params) => params?.title ?? ''  ,flex:1},
       { field: 'threshold', headerName: 'Threshold', type: 'number', width:100,sortable: false, disableColumnMenu: true ,flex:1},
       { field: 'quantity', headerName: 'Quantity', type: 'number', width: 100,sortable: false, disableColumnMenu: true,flex:1},
@@ -243,7 +244,6 @@ export default function InventoryPage(props) {
           <PageContainer
       title={pageTitle}
       actions={
-        <Stack direction="row" alignItems="center" spacing={1}>
           <Tooltip title="Reload data" placement="right" enterDelay={1000}>
             <div>
               <IconButton size="small" aria-label="refresh" onClick={handleRefresh}>
@@ -251,10 +251,7 @@ export default function InventoryPage(props) {
               </IconButton>
             </div>
           </Tooltip>
-          <Button variant="contained" onClick={handleCreateClick} startIcon={<AddIcon />}>
-            Create
-          </Button>
-        </Stack>
+          
       }
     >
       <Box sx={{ flex: 1, width: '100%' }}>
@@ -264,6 +261,7 @@ export default function InventoryPage(props) {
             columns={columns}
             pagination
             sortingMode="server"
+            sortModel={sortModel}
             filterMode="server"
             paginationMode="server"
             paginationModel={paginationModel}
@@ -301,24 +299,53 @@ export default function InventoryPage(props) {
   );
 }
 
-/**
- * UseCell - small local component rendered inside DataGrid cell.
- * Props:
- *  - row: the full row object
- *  - onUse: function(rowId, amount) => void  (called when user presses button or Enter)
- */
+
+
 function UseCell({ row, onUse }) {
-  const [value, setValue] = useState(1);
+  // keep the displayed value as a string to avoid fighting the TextField control
+  const [value, setValue] = useState('0');
 
   useEffect(() => {
-    const defaultValue = Number.isFinite(Number(row?.quantity)) && row.quantity > 0 ? 1 : 0;
-    setValue(defaultValue);
-  }, [row?.quantity]);
+    // reset to 0 when the row changes
+    setValue('0');
+  }, [row?.id]);
 
   const parseAmount = (v) => {
+    if (v === '' || v == null) return 0;
     const n = Number(v);
     if (!Number.isFinite(n)) return 0;
     return Math.max(0, Math.floor(n));
+  };
+
+  const handleChange = (e) => {
+    const raw = e.target.value;
+    const prev = parseAmount(value);
+    const next = parseAmount(raw);
+    const max = Number(row?.quantity || 0);
+
+    // RULES:
+    // - if prev === 0, don't allow decreasing (ignore any next < prev)
+    if (prev === 0 && next < prev) {
+      return; // ignore
+    }
+    // - if prev === max, don't allow increasing (ignore any next > prev)
+    if (prev === max && next > prev) {
+      return; // ignore
+    }
+
+    // clamp into 0..max
+    const clamped = Math.max(0, Math.min(next, max));
+
+    // store the clamped numeric string (keeps input predictable)
+    setValue(String(clamped));
+  };
+
+  const handleKeyDown = (e) => {
+    // allow Enter to trigger "Use"
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleClick();
+    }
   };
 
   const handleClick = () => {
@@ -326,16 +353,11 @@ function UseCell({ row, onUse }) {
     if (amount <= 0) return;
     const useAmount = Math.min(amount, Number(row.quantity || 0));
     if (useAmount <= 0) return;
-    // Now we call parent with the whole row so it can show name/other info in dialog
     onUse(row, useAmount);
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleClick();
-    }
-  };
+  const numericValue = parseAmount(value);
+  const outOfStock = Number(row?.quantity || 0) <= 0;
 
   return (
     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -343,21 +365,30 @@ function UseCell({ row, onUse }) {
         size="small"
         variant="outlined"
         type="number"
-        inputProps={{ min: 0, step: 1 }}
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={handleChange}
         onKeyDown={handleKeyDown}
         sx={{ width: 90 }}
         aria-label={`use-amount-${row.id}`}
+        inputProps={{
+          min: 0,
+          max: Number(row?.quantity || 0),
+          inputMode: 'numeric',
+          pattern: '[0-9]*',
+          step: 1,
+        }}
+        disabled={outOfStock}
+        helperText={outOfStock ? 'Out of stock' : ''}
       />
       <Button
         size="small"
         variant="contained"
         onClick={handleClick}
-        disabled={Number(row.quantity || 0) <= 0}
       >
         Use
       </Button>
     </Box>
   );
 }
+
+
