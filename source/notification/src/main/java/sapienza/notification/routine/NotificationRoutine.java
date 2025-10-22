@@ -4,8 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.AmqpAdmin;
-import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -22,22 +20,30 @@ import java.util.Map;
 public class NotificationRoutine {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationRoutine.class);
-    private static final String QUEUE_NAME = "notifications";
+    
+    // Use RabbitMQ's default topic exchange for interoperability with MQTT plugin.
+    // The RabbitMQ MQTT/WebSocket plugin maps MQTT topics to AMQP routing keys
+    // on the 'amq.topic' exchange by default, so publish there.
+    private static final String NOTIFICATION_EXCHANGE = "amq.topic"; 
+    
+    // La parte del topic che segue l'ID del dipartimento
+    private static final String TOPIC_SUFFIX = ".notifications"; 
 
     private final ResearchMaterialRepository researchMaterialRepository;
     private final MaterialRequestRepository materialRequestRepository;
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final AmqpAdmin amqpAdmin;
+    // Non è più necessario AmqpAdmin se non dichiariamo code, quindi lo rimuoviamo
+    // private final AmqpAdmin amqpAdmin; 
 
+    // Rimuoviamo AmqpAdmin dal costruttore
     public NotificationRoutine(ResearchMaterialRepository researchMaterialRepository,
                                MaterialRequestRepository materialRequestRepository,
-                               RabbitTemplate rabbitTemplate,
-                               AmqpAdmin amqpAdmin) {
+                               RabbitTemplate rabbitTemplate) {
         this.researchMaterialRepository = researchMaterialRepository;
         this.materialRequestRepository = materialRequestRepository;
         this.rabbitTemplate = rabbitTemplate;
-        this.amqpAdmin = amqpAdmin;
+        // this.amqpAdmin = amqpAdmin; // AmqpAdmin rimosso
     }
 
     // runs every 30 seconds
@@ -59,6 +65,7 @@ public class NotificationRoutine {
             payload.put("materialId", m.getId());
             payload.put("name", m.getName());
             payload.put("quantity", m.getQuantity());
+            // Uso dell'ID del dipartimento come parte della routing key
             sendMessage(payload, m.getDepartment().getId());
         }
     }
@@ -78,32 +85,35 @@ public class NotificationRoutine {
                 payload.put("quantity", r.getQuantity());
             }
 
+            // Uso dell'ID del dipartimento come parte della routing key
             sendMessage(payload, r.getMaterial().getDepartment().getId());
 
         }
     }
 
+    /**
+     * Invia un messaggio tramite RabbitTemplate al Topic Exchange.
+     * La routing key creata funge da topic MQTT (e.g., "1/notifications").
+     * @param payload Il payload della notifica.
+     * @param id L'ID del dipartimento (usato come parte del topic).
+     */
     private void sendMessage(Map<String, Object> payload, Long id) {
         try {
+            // Serializza il payload in JSON
             String msg = objectMapper.writeValueAsString(payload);
-            String queueName = id + "/" + QUEUE_NAME ;
-            // ensure queue exists (declare if missing) so consumers can bind later
-            try {
-                if (amqpAdmin.getQueueProperties(queueName) == null) {
-                    amqpAdmin.declareQueue(new Queue(queueName, true));
-                    logger.info("Declared queue {}", queueName);
-                }
-            } catch (Exception e) {
-                // log but continue to attempt sending; declaration failures shouldn't stop the routine
-                logger.warn("Could not declare queue {}: {}", queueName, e.getMessage());
-            }
-            rabbitTemplate.convertAndSend(queueName, msg);
+            
+            // Crea la Routing Key (e.g., "1/notifications", "2/notifications")
+            String routingKey = id + TOPIC_SUFFIX;
+            
+            // Utilizza convertAndSend con Exchange e Routing Key
+            rabbitTemplate.convertAndSend(NOTIFICATION_EXCHANGE, routingKey, msg);
+            
+            logger.info("Notifica inviata al Topic Exchange: {} con Routing Key: {}", NOTIFICATION_EXCHANGE, routingKey);
+
         } catch (JsonProcessingException e) {
             logger.error("Failed to serialize notification payload", e);
         } catch (Exception e) {
             logger.error("Failed to send notification message", e);
         }
     }
-
-
 }

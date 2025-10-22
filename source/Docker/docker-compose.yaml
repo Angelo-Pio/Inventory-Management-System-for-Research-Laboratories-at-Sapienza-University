@@ -61,15 +61,18 @@ services:
     ports:
       - "5672:5672"    # RabbitMQ protocol
       - "15672:15672"  # Management UI
+      - "1883:1883"    # NEW: Native MQTT port
+      - "15675:15675"  # NEW: MQTT over WebSockets for frontend
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-    restart: always
+      - ./enabled_plugins:/etc/rabbitmq/enabled_plugins
     depends_on:
       - db
       - back-end
+    restart: always
 
   notification:
 
