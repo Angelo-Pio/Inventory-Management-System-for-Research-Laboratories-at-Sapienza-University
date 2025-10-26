@@ -11,6 +11,11 @@ export const addMaterial = async (departmentId, materialData) => {
   });
 };
 
+export const getMaterialById = async (id) => {
+  return await apiCall(`/material?id=${id}`);
+};
+
+
 export const getDepartmentMaterials = async (departmentId) => {
   return await apiCall(`/management/${departmentId}/material`);
 };

@@ -1,42 +1,41 @@
-import CssBaseline from '@mui/material/CssBaseline';
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useAuth } from '../components/AuthContext'; 
+import CssBaseline from "@mui/material/CssBaseline";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { useAuth } from "../components/AuthContext";
 
-import AppTheme from '../themes/AppTheme';
+import AppTheme from "../themes/AppTheme";
 import {
   dataGridCustomizations,
   datePickersCustomizations,
   formInputCustomizations,
-} from '../themes/customization';
+} from "../themes/customization";
 const themeComponents = {
   ...dataGridCustomizations,
   ...datePickersCustomizations,
   ...formInputCustomizations,
 };
 
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
-import TextField from '@mui/material/TextField'; // <-- added
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
+import TextField from "@mui/material/TextField"; // <-- added
 import {
   DataGrid,
   gridClasses,
   Toolbar,
   QuickFilter,
   QuickFilterControl,
-} from '@mui/x-data-grid';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import { useLocation, useNavigate, useSearchParams } from 'react-router';
-import { useDialogs } from '../hooks/useDialogs';
+} from "@mui/x-data-grid";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
+import { useDialogs } from "../hooks/useDialogs";
 
+import { useMaterial } from "../services/researcherServices";
+import { getMaterialById } from "../services/labManagerServices";
 
-import { useMaterial } from '../services/researcherServices';
+import PageContainer from "../components/PageContainer";
 
-import PageContainer from '../components/PageContainer';
-
-
-const INITIAL_PAGE_SIZE = 10
+const INITIAL_PAGE_SIZE = 10;
 
 import {
   createMqttClient,
@@ -44,11 +43,9 @@ import {
   disconnect,
 } from "../services/notificationServices";
 
-
 const MQTT_BROKER_URL = "ws://localhost:15675/ws";
 const MQTT_USERNAME = "guest";
 const MQTT_PASSWORD = "guest";
-
 
 function QuickSearchToolbar() {
   return (
@@ -60,35 +57,53 @@ function QuickSearchToolbar() {
   );
 }
 
-
 export default function MqttSubscriberApp(props) {
   const [status, setStatus] = useState("Disconnesso");
   const [messages, setMessages] = useState([]);
   const { department } = useAuth();
 
-
   const { pathname } = useLocation();
-    const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
-    const {user} = useAuth();
-    const [sortModel, setSortModel] = useState([{ field: 'category', sort: 'asc' }]);
-  
-    const dialogs = useDialogs();
-    // const notifications = useNotifications();
-  
-    const [paginationModel, setPaginationModel] = useState({
-      page: searchParams.get('page') ? Number(searchParams.get('page')) : 0, //get page number
-      pageSize: searchParams.get('pageSize') //get page size
-        ? Number(searchParams.get('pageSize'))
-        : INITIAL_PAGE_SIZE,
-    });
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [sortModel, setSortModel] = useState([
+    { field: "category", sort: "asc" },
+  ]);
 
+const [filterModel, setFilterModel] = useState(
+    searchParams.get("filter")
+      ? JSON.parse(searchParams.get("filter") ?? "")
+      : { items: [] }
+  );
+
+  //row state and row count
+  const [rowsState, setRowsState] = useState({
+    rows: [],
+    rowCount: 0,
+  });
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const dialogs = useDialogs();
+  // const notifications = useNotifications();
+
+  const [paginationModel, setPaginationModel] = useState({
+    page: searchParams.get("page") ? Number(searchParams.get("page")) : 0, //get page number
+    pageSize: searchParams.get("pageSize") //get page size
+      ? Number(searchParams.get("pageSize"))
+      : INITIAL_PAGE_SIZE,
+  });
 
   useEffect(() => {
     if (!department?.id) {
       setStatus("Dipartimento non valido");
       return;
     }
+
+     setTimeout(() => {
+      setIsLoading(false);
+    }, 3500);
 
     const currentTopic = `${department.id}/notifications`;
     const clientId = `mqtt_react_client_${new Date().getTime()}`;
@@ -103,8 +118,7 @@ export default function MqttSubscriberApp(props) {
       clean: true,
     };
 
-
-//MQTT code
+    //MQTT code
     const newClient = createMqttClient({
       brokerUrl: MQTT_BROKER_URL,
       options,
@@ -118,17 +132,15 @@ export default function MqttSubscriberApp(props) {
           const timestamp = new Date().toLocaleTimeString();
 
           setMessages((prev) => {
-            const duplicate = prev.some(
-              (m) => JSON.stringify(m) === payload
-            );
+            const duplicate = prev.some((m) => JSON.stringify(m) === payload);
             if (duplicate) {
               console.log("DUPLICATEEE");
-              return prev
+              return prev;
             }
-            const newEntry = JSON.parse(payload)
+            const newEntry = JSON.parse(payload);
             console.log(payload, typeof payload);
-            
-            return [newEntry, ...prev]
+
+            return [newEntry, ...prev];
           });
         },
         onError: (err) => {
@@ -158,69 +170,64 @@ export default function MqttSubscriberApp(props) {
     };
   }, [department?.id]);
 
-//
-//End mqtt code
-//
+  //
+  //End mqtt code
+  //
 
-// If a filter query param exists, it attempts to JSON.parse its value and use that as the initial filter mode
-  const [filterModel, setFilterModel] = useState(
-    searchParams.get('filter')
-      ? JSON.parse(searchParams.get('filter') ?? '')
-      : { items: [] },
-  );
-
-  //row state and row count
-  const [rowsState, setRowsState] = useState({
-    rows: [],
-    rowCount: 0,
-  });
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   const handlePaginationModelChange = useCallback(
     (model) => {
       setPaginationModel(model);
-      searchParams.set('page', String(model.page));
-      searchParams.set('pageSize', String(model.pageSize));
+      searchParams.set("page", String(model.page));
+      searchParams.set("pageSize", String(model.pageSize));
       const newSearchParamsString = searchParams.toString();
-      navigate(`${pathname}${newSearchParamsString ? '?' : ''}${newSearchParamsString}`);
+      navigate(
+        `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
+      );
     },
-    [navigate, pathname, searchParams],
+    [navigate, pathname, searchParams]
   );
 
   const handleFilterModelChange = useCallback(
     (model) => {
       setFilterModel(model);
-      
+
       if (
         model.items.length > 0 ||
         (model.quickFilterValues && model.quickFilterValues.length > 0)
       ) {
-        searchParams.set('filter', JSON.stringify(model));
+        searchParams.set("filter", JSON.stringify(model));
       } else {
-        searchParams.delete('filter');
+        searchParams.delete("filter");
       }
       const newSearchParamsString = searchParams.toString();
       console.log(messages);
-      
-      navigate(`${pathname}${newSearchParamsString ? '?' : ''}${newSearchParamsString}`);
+
+      navigate(
+        `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
+      );
     },
-    [navigate, pathname, searchParams],
+    [navigate, pathname, searchParams]
   );
 
   const loadData = useCallback(async () => {
-    console.log(messages)
+    console.log(messages);
     setIsLoading(true);
-      console.log(messages.length);
-      
-      setRowsState({
-        rows: messages,
-        rowCount: messages.length,
-      });
-
-      setIsLoading(false)
+    try {
+      const material = await getMaterialById(1);
+      console.log(material);
+    } catch (error) {
+      console.error("Error fetching material:", error);
+    }
+    console.log(material);
     
+
+    setRowsState({
+      rows: messages,
+      rowCount: messages.length,
+    });
+
+    setIsLoading(false);
   }, [paginationModel, filterModel, user?.departmentId, messages]);
 
   useEffect(() => {
@@ -233,93 +240,127 @@ export default function MqttSubscriberApp(props) {
     }
   }, [isLoading, loadData]);
 
-
-
-  
   // Called when user clicks Use button in the cell: rowId and amount are provided.
   const handleUse = useCallback(
-  async (row, amount) => {
-    // Show confirmation
-    const confirmed = await dialogs.confirm(
-      `Do you want to use ${amount} unit${amount === 1 ? '' : 's'} of "${row.name}"?`,
-      {
-        title: 'Confirm use',
-        severity: 'warning',
-        okText: 'Use',
-        cancelText: 'Cancel',
-      },
-    );
+    async (row, amount) => {
+      // Show confirmation
+      const confirmed = await dialogs.confirm(
+        `Do you want to use ${amount} unit${amount === 1 ? "" : "s"} of "${
+          row.name
+        }"?`,
+        {
+          title: "Confirm use",
+          severity: "warning",
+          okText: "Use",
+          cancelText: "Cancel",
+        }
+      );
 
-    if (!confirmed) return;
+      if (!confirmed) return;
 
-    setIsLoading(true);
-    try {
-      const result = await useMaterial(row.id, amount);
-      if (result === true || result === undefined) {
-        await loadData();
-      } else {
-        await dialogs.alert(`Unable to use the material.`, { title: 'Error', severity: 'error' });
+      setIsLoading(true);
+      try {
+        const result = await useMaterial(row.id, amount);
+        if (result === true || result === undefined) {
+          await loadData();
+        } else {
+          await dialogs.alert(`Unable to use the material.`, {
+            title: "Error",
+            severity: "error",
+          });
+        }
+      } catch (err) {
+        console.error("Error using material", err);
+        await dialogs.alert(`Error: ${err?.message ?? "Unknown error"}`, {
+          title: "Error",
+          severity: "error",
+        });
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error('Error using material', err);
-      await dialogs.alert(`Error: ${err?.message ?? 'Unknown error'}`, { title: 'Error', severity: 'error' });
-    } finally {
-      setIsLoading(false);
-    }
-  },
-  [dialogs, loadData],
-);
+    },
+    [dialogs, loadData]
+  );
 
   const initialState = useMemo(
     () => ({
       pagination: { paginationModel: { pageSize: INITIAL_PAGE_SIZE } },
     }),
-    [],
+    []
   );
 
   const columns = useMemo(
     () => [
-      { field: 'name', headerName: 'Name', width: 180, sortable: false, disableColumnMenu: true },
-      { field: 'researcher', headerName: 'Researcher', width:180,sortable: false, disableColumnMenu: true },
-      { field: 'category', headerName: 'Category', width: 200,sortable: false, disableColumnMenu: true},
-      { field: 'quantity', headerName: 'Quantity', width:180,sortable: false, disableColumnMenu: true},
       {
-  field: 'orderQuantity',
-  headerName: 'Order Quantity',
-  width: 220,
-  sortable: false,
-  filterable: false,
-  disableColumnMenu: true,
-  renderCell: (params) => (
-    // pass entire row to handler so confirmation can show row.name
-    <UseCell row={params.row} onUse={(rowObj, amount) => handleUse(rowObj, amount)} />
-  ),
-},
+        field: "name",
+        headerName: "Name",
+        width: 180,
+        sortable: false,
+        disableColumnMenu: true,
+      },
+      {
+        field: "researcher",
+        headerName: "Researcher",
+        width: 180,
+        sortable: false,
+        disableColumnMenu: true,
+      },
+      {
+        field: "category",
+        headerName: "Category",
+        width: 200,
+        sortable: false,
+        disableColumnMenu: true,
+      },
+      {
+        field: "quantity",
+        headerName: "Quantity",
+        width: 180,
+        sortable: false,
+        disableColumnMenu: true,
+      },
+      {
+        field: "orderQuantity",
+        headerName: "Order Quantity",
+        width: 220,
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        renderCell: (params) => (
+          // pass entire row to handler so confirmation can show row.name
+          <UseCell
+            row={params.row}
+            onUse={(rowObj, amount) => handleUse(rowObj, amount)}
+          />
+        ),
+      },
     ],
-    [handleUse],
+    [handleUse]
   );
 
-  const pageTitle = 'Inventory';
-
+  const pageTitle = "Inventory";
 
   return (
     <AppTheme {...props} themeComponents={themeComponents}>
       <CssBaseline enableColorScheme />
-          <PageContainer
-      title={pageTitle}
-      actions={
+      <PageContainer
+        title={pageTitle}
+        actions={
           <Tooltip title="Reload data" placement="right" enterDelay={1000}>
             <div>
-              <IconButton size="small" aria-label="refresh" onClick={handleRefresh}>
+              <IconButton
+                size="small"
+                aria-label="refresh"
+                onClick={handleRefresh}
+              >
                 <RefreshIcon />
               </IconButton>
             </div>
           </Tooltip>
-          
-      }
-    >
-      <Box sx={{ flex: 1, width: '100%' }}>
-        <DataGrid
+        }
+      >
+        <Box sx={{ flex: 1, width: "100%" }}>
+          <DataGrid
             rows={rowsState.rows}
             rowCount={rowsState.rowCount ?? 0}
             getRowId={(row) => row.materialId}
@@ -341,42 +382,40 @@ export default function MqttSubscriberApp(props) {
             pageSizeOptions={[5, INITIAL_PAGE_SIZE, 25]}
             sx={{
               [`& .${gridClasses.columnHeader}, & .${gridClasses.cell}`]: {
-                outline: 'transparent',
+                outline: "transparent",
               },
-              [`& .${gridClasses.columnHeader}:focus-within, & .${gridClasses.cell}:focus-within`]: {
-                outline: 'none',
-              },
-            
+              [`& .${gridClasses.columnHeader}:focus-within, & .${gridClasses.cell}:focus-within`]:
+                {
+                  outline: "none",
+                },
             }}
             slotProps={{
               loadingOverlay: {
-                variant: 'circular-progress',
-                noRowsVariant: 'circular-progress',
+                variant: "circular-progress",
+                noRowsVariant: "circular-progress",
               },
               baseIconButton: {
-                size: 'small',
+                size: "small",
               },
             }}
           />
-          </Box>
-    </PageContainer>
+        </Box>
+      </PageContainer>
     </AppTheme>
   );
 }
 
-
-
 function UseCell({ row, onUse }) {
   // keep the displayed value as a string to avoid fighting the TextField control
-  const [value, setValue] = useState('0');
+  const [value, setValue] = useState("0");
 
   useEffect(() => {
     // reset to 0 when the row changes
-    setValue('0');
+    setValue("0");
   }, [row?.id]);
 
   const parseAmount = (v) => {
-    if (v === '' || v == null) return 0;
+    if (v === "" || v == null) return 0;
     const n = Number(v);
     if (!Number.isFinite(n)) return 0;
     return Math.max(0, Math.floor(n));
@@ -407,7 +446,7 @@ function UseCell({ row, onUse }) {
 
   const handleKeyDown = (e) => {
     // allow Enter to trigger "Use"
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleClick();
     }
@@ -425,7 +464,7 @@ function UseCell({ row, onUse }) {
   const outOfStock = Number(row?.quantity || 0) <= 0;
 
   return (
-    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+    <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
       <TextField
         size="small"
         variant="outlined"
@@ -438,22 +477,16 @@ function UseCell({ row, onUse }) {
         inputProps={{
           min: 0,
           max: Number(row?.quantity || 0),
-          inputMode: 'numeric',
-          pattern: '[0-9]*',
+          inputMode: "numeric",
+          pattern: "[0-9]*",
           step: 1,
         }}
         disabled={outOfStock}
-        helperText={outOfStock ? 'Out of stock' : ''}
+        helperText={outOfStock ? "Out of stock" : ""}
       />
-      <Button
-        size="small"
-        variant="contained"
-        onClick={handleClick}
-      >
+      <Button size="small" variant="contained" onClick={handleClick}>
         Use
       </Button>
     </Box>
   );
 }
-
-
