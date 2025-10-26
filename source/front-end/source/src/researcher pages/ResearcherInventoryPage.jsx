@@ -156,11 +156,7 @@ export default function InventoryPage(props) {
     }
   }, [isLoading, loadData]);
 
-  const handleCreateClick = useCallback(() => {
-    navigate('new');
-  }, [navigate]);
 
-  
 
   
   // Called when user clicks Use button in the cell: rowId and amount are provided.
