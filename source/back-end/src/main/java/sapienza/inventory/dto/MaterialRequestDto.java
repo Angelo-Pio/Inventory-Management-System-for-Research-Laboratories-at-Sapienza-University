@@ -15,6 +15,10 @@ public class MaterialRequestDto {
 
     private Long researcher_id;
 
+    private String researcher_name;
+
+    private String researcher_surname;
+
     private LocalDateTime created_at ;
 
     private LocalDateTime processed_at ;

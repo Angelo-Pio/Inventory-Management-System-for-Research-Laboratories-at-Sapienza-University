@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import sapienza.inventory.dto.*;
 import sapienza.inventory.model.*;
 import sapienza.inventory.repository.DepartmentRepository;
+import sapienza.inventory.repository.LabUserRepository;
 import sapienza.inventory.repository.ResearchMaterialRepository;
 
 import java.util.Optional;
@@ -18,6 +19,9 @@ public class AppMapper {
 
     @Autowired
     private DepartmentRepository departmentRepository;
+
+    @Autowired
+    private LabUserRepository labUserRepository;
 
     @Autowired
     private ResearchMaterialRepository researchMaterialRepository;
@@ -75,6 +79,7 @@ public class AppMapper {
         MaterialRequestDto requestDto = mapper.map(materialRequest, MaterialRequestDto.class);
         requestDto.setMaterial_id(materialRequest.getMaterial().getId());
         requestDto.setResearcher_id(materialRequest.getResearcher().getId());
+        requestDto.setResearcher_surname(materialRequest.getResearcher().getSurname());
         return requestDto;
     }
 
@@ -86,8 +91,10 @@ public class AppMapper {
         MaterialRequest materialRequest = mapper.map(request, MaterialRequest.class);
 
         ResearchMaterial researchMaterial = researchMaterialRepository.findById(request.getMaterial_id()).orElseThrow(EntityNotFoundException::new);
+        LabUser labUser = labUserRepository.findById(request.getResearcher_id()).orElseThrow(EntityNotFoundException::new);
 
         materialRequest.setMaterial(researchMaterial);
+        materialRequest.setResearcher(labUser);
         return materialRequest;
 
 

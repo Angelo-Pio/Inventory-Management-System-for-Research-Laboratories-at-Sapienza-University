@@ -76,13 +76,16 @@ public class NotificationRoutine {
             Map<String, Object> payload = new HashMap<>();
             payload.put("type", "PENDING_REQUEST");
             payload.put("requestId", r.getId());
-            payload.put("labUser", r.getResearcher().getName());
+            payload.put("user_id", r.getResearcher().getId());
+            payload.put("user_name", r.getResearcher().getName());
+            payload.put("user_surname", r.getResearcher().getSurname());
+
             if (r.getMaterial() != null) payload.put("materialId", r.getMaterial().getId());
             String materialStatus = r.getMaterialStatus();
             if (materialStatus.equals("Damaged")){
                 payload.put("materialStatus", materialStatus);
             }else{
-                payload.put("quantity", r.getQuantity());
+                payload.put("requested_quantity", r.getQuantity());
             }
 
             // Uso dell'ID del dipartimento come parte della routing key

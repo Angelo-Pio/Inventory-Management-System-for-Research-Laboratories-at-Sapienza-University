@@ -2,6 +2,7 @@ package sapienza.inventory.controller;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -55,9 +56,13 @@ public class LabManagerController {
         return service.createCategory(request);
     }
 
-    @GetMapping("/material/category")
-    public List<CategoryDto> getAllCategories() {
-        return service.getAllCategories();
+    @GetMapping("/material")
+    public ResponseEntity<?> getMaterialById(@RequestParam Long id) {
+        return service.getMaterial(id).<ResponseEntity<?>>map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body("Material not found with id: " + id));
+
     }
 
     // Researcher in department

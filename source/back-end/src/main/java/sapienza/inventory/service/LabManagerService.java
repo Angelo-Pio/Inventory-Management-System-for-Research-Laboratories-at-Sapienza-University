@@ -263,4 +263,8 @@ public class LabManagerService {
             throw new EntityNotFoundException("LabUser with id " + researcherId + " not found");
         }
     }
+
+    public Optional<ResearchMaterial> getMaterial(Long id) {
+        return researchMaterialRepository.findById(id);
+    }
 }
