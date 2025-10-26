@@ -47,7 +47,9 @@ public class NotificationRoutine {
     }
 
     // runs every 30 seconds
+
     @Scheduled(fixedRateString = "3000", initialDelayString="0")
+
     public void checkLowStockAndPendingRequests() {
         try {
             checkLowStock();
