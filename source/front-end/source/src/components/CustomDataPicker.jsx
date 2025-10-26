@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import dayjs from "dayjs";
 import Button from "@mui/material/Button";
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
@@ -12,18 +12,18 @@ import {
 } from "@mui/x-date-pickers";
 import { useForkRef } from "@mui/material/utils";
 
+/* ButtonField stays the same but uses forwarded props already provided by MUI internals */
 function ButtonField(props) {
   const { forwardedProps } = useSplitFieldProps(props, "date");
   const pickerContext = usePickerContext();
   const handleRef = useForkRef(pickerContext.triggerRef, pickerContext.rootRef);
   const parsedFormat = useParsedFormat();
 
-  // Filter out props that shouldn't be passed to the Button DOM element
-  const { 
-    slotProps, 
-    inputRef, 
+  const {
+    slotProps,
+    inputRef,
     enableAccessibleFieldDOMStructure,
-    ...buttonProps 
+    ...buttonProps
   } = forwardedProps;
 
   const valueStr =
@@ -38,7 +38,7 @@ function ButtonField(props) {
       ref={handleRef}
       size="small"
       startIcon={<CalendarTodayRoundedIcon fontSize="small" />}
-      className="w-full "
+      className="w-full"
       onClick={() => pickerContext.setOpen((prev) => !prev)}
     >
       {pickerContext.label ?? valueStr}
@@ -46,15 +46,23 @@ function ButtonField(props) {
   );
 }
 
-export default function CustomDatePicker() {
-  const [value, setValue] = useState(dayjs("2023-04-17"));
+/**
+ * Controlled CustomDatePicker.
+ * Props:
+ *  - value: dayjs instance or null
+ *  - onChange: function(newValue: dayjs|null)
+ *  - label (optional)
+ */
+export default function CustomDatePicker({ value, onChange, label }) {
+  // default fallback value if none passed
+  const fallback = dayjs("2025-10-01");
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <DatePicker
-        value={value}
-        label={value == null ? null : value.format("MMM DD, YYYY")}
-        onChange={(newValue) => setValue(newValue)}
+        value={value ?? fallback}
+        label={value == null ? null : (label ?? value.format("MMM DD, YYYY"))}
+        onChange={(newValue) => onChange?.(newValue)}
         slots={{ field: ButtonField }}
         slotProps={{
           nextIconButton: { size: "small" },

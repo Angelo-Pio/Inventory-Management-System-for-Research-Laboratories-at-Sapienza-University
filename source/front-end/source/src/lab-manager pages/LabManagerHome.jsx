@@ -4,7 +4,12 @@ import StatCard from "../components/StatCard";
 import { Button, Divider } from "@mui/material";
 import Stack from "@mui/material/Stack";
 import CustomDatePicker from "../components/CustomDataPicker";
-import PieChartCard from "../components/PieChartCard";
+import { downloadReport } from "../services/labManagerServices";
+import { useEffect, useState } from "react";
+import { useAuth } from '../components/AuthContext'; 
+
+import dayjs from "dayjs";
+
 
 const pieData = [
   { id: 0, value: 10, label: "PC" },
@@ -47,90 +52,117 @@ const data = [
 ];
 
 export default function LabManagerHome() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [startDate, setStartDate] = useState(dayjs("2025-10-01"));
+  const [endDate, setEndDate] = useState(dayjs("2025-10-01"));
+  const { user } = useAuth();
+
+  useEffect(() => {
+    console.log(endDate.format("YYYY-MM-DD[T]HH:mm:ss"));
+    console.log(dayjs("2025-10-01").format("YYYY-MM-DD[T]HH:mm:ss"))
+  }, [endDate]);
+
+
+  const handleDownload = async () => {
+    // simple validation
+    if (!startDate || !endDate) {
+      alert("Please select both start and end dates.");
+      return;
+    }
+
+    // format dates how your backend expects them. Example: YYYY-MM-DD
+    const startStr = startDate.format("YYYY-MM-DD[T]HH:mm:ss")
+    const endStr = endDate.format("YYYY-MM-DD[T]HH:mm:ss")
+    try {
+      setIsLoading(true);
+      console.log(user);
+      
+      console.log(startStr);
+      console.log(endStr);
+      
+      
+      const result = await downloadReport(user.departmentId, startStr, endStr);
+
+      
+
+      if (result.success) {
+        // you already trigger the download in downloadReport, optionally notify
+        alert("Report downloaded successfully.");
+      } else {
+        alert(`Failed to generate report: ${result.error}`);
+      }
+    } catch (err) {
+      setIsLoading(false); // immediate fallback if something thrown
+      console.error(err);
+      alert("Unexpected error while downloading report.");
+    }
+  };
+
   return (
-    <div className="flex flex-col items-center space-y-6 px-6 pb-10 mt-8 md:mt-0">
+    <div className="flex flex-col items-center space-y-6 px-6 pb-10 mt-8">
       <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" } }}>
-      {/* cards */}
-      <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-        Overview
-      </Typography>
-
-      {/* Stat Cards Grid */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "1fr",
-            md: "1fr 1fr 1fr",
-          },
-          gap: {
-            xs: "16px",
-            sm: "20px",
-            md: "2vw",
-            lg: "3vw",
-            xl: "4vw",
-          },
-          width: "100%",
-        }}
-      >
-        {data.map((card, index) => (
-          <StatCard {...card} key={index} />
-        ))}
-      </Box>
-
-      <Divider sx={{ my: 4 }} />
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "1fr",
-            md: "1fr 1fr 1fr",
-          },
-          gap: {
-            xs: "16px",
-            sm: "20px",
-            md: "2vw",
-            lg: "3vw",
-            xl: "4vw",
-          },
-          width: "100%",
-        }}
-      >
-        <PieChartCard title="Most Requested Categories" value={pieData} />
-      </Box>
-
-      <Divider sx={{ my: 4 }} />
-      <Box
-        sx={{
-          width: "100%",
-        }}
-      >
-        <Typography component="h2" variant="h6">
-          Reports
+        {/* cards */}
+        <Typography component="h2" variant="h4" sx={{ mb: 2 }}>
+          Overview
         </Typography>
-        <Stack
-          direction="row"
+
+        {/* Stat Cards Grid */}
+        <Box
           sx={{
-            display: { xs: "none", md: "flex" },
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              md: "1fr 1fr 1fr",
+            },
+            gap: {
+              xs: "16px",
+              sm: "20px",
+              md: "2vw",
+              lg: "3vw",
+              xl: "4vw",
+            },
             width: "100%",
-            alignItems: { xs: "flex-start", md: "center" },
-            justifyContent: "space-between",
-            maxWidth: { sm: "100%", md: "1700px" },
-            py: 1.5,
           }}
-          spacing={2}
         >
-          <CustomDatePicker />
-          <CustomDatePicker />
-        </Stack>
-        <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
-          <Button variant="outlined">New Report</Button>
+          {data.map((card, index) => (
+            <StatCard {...card} key={index} />
+          ))}
         </Box>
-        {/* <SessionsChart />
+
+        <Divider sx={{ my: 4 }} />
+
+        <Box
+          sx={{
+            width: "100%",
+          }}
+        >
+          <Typography component="h2" variant="h4">
+            Reports
+          </Typography>
+          <Stack
+            direction="row"
+            sx={{
+              display: { md: "flex" },
+              width: "100%",
+              alignItems: { xs: "flex-start", md: "center" },
+              justifyContent: "space-between",
+              maxWidth: { sm: "100%", md: "1700px" },
+              py: 1.5,
+            }}
+            spacing={2}
+          >
+            <CustomDatePicker value={startDate} onChange={setStartDate} />
+            <CustomDatePicker value={endDate} onChange={setEndDate} />
+          </Stack>
+          <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
+            <Button onClick={handleDownload} variant="outlined">
+              New Report
+            </Button>
+          </Box>
+          {/* <SessionsChart />
         <PageViewsBarChart /> */}
+        </Box>
       </Box>
-    </Box>
-            </div>
-          
+    </div>
   );
 }

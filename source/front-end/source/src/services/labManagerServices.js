@@ -222,28 +222,38 @@ export const getAllCategories = async () => {
 // Report generation (kept as-is; consider using apiCall wrapper if desired)
 export const downloadReport = async (departmentId, startDate, endDate) => {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/management/report/${departmentId}?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`,
-      { credentials: 'include' }
+    const response = await apiCall(
+      `/management/report/${departmentId}?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`,
+      {
+        method: 'GET',
+        credentials: 'include',
+      }
     );
-    
-    if (response.ok) {
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `report_${departmentId}_${startDate}_${endDate}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      return { success: true };
-    } else {
+
+    if (!response.data) {
+      console.log(response);
+      
       const errorText = await response.text();
-      return { success: false, error: errorText || 'Report generation failed' };
+      return { success: false, error: errorText || 'Failed to generate report' };
     }
+    console.log(response);
+    
+    // Get the CSV blob
+    const blob = new Blob([response.data], { type: 'text/csv' });
+
+    // Create a download link and trigger the file download
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `report_${departmentId}_${startDate}_${endDate}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    return { success: true };
   } catch (error) {
-    console.error('Report download error:', error);
+    console.error('Error downloading report:', error);
     return { success: false, error: 'Network error occurred' };
   }
 };
