@@ -1,5 +1,6 @@
 package sapienza.inventory.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,10 +19,12 @@ public class MaterialRequest {
 
     @ManyToOne
     @JoinColumn(name = "material_id", nullable = false)
+    @JsonBackReference
     private ResearchMaterial material;
 
     @ManyToOne
     @JoinColumn(name = "researcher_id", nullable = false)
+    @JsonBackReference
     private LabUser researcher;
 
     @Column(name = "material_status", length = 100)

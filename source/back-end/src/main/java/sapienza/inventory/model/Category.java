@@ -1,5 +1,6 @@
 package sapienza.inventory.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,6 +21,7 @@ public class Category {
     private String title;
 
     @OneToMany(mappedBy = "category")
+    @JsonManagedReference
     private List<ResearchMaterial> researchMaterials;
 
     // getters and setters

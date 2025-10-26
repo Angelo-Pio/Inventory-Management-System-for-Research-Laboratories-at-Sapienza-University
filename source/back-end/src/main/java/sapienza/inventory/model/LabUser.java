@@ -1,5 +1,7 @@
 package sapienza.inventory.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,12 +35,15 @@ public class LabUser {
     private String role;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference
     private Department department;
 
     @OneToMany(mappedBy = "researcher")
+    @JsonManagedReference
     private List<MaterialRequest> materialRequests;
 
     @OneToMany(mappedBy = "labUser")
+    @JsonManagedReference
     private List<MaterialLogs> materialLogs;
 
 
