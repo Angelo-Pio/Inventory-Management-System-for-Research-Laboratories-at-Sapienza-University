@@ -3,6 +3,8 @@ package sapienza.inventory.service;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import sapienza.inventory.dto.CategoryDto;
 import sapienza.inventory.dto.LabUserDto;
@@ -264,7 +266,12 @@ public class LabManagerService {
         }
     }
 
-    public Optional<ResearchMaterial> getMaterial(Long id) {
-        return researchMaterialRepository.findById(id);
+    public Optional<ResearchMaterialDto> getMaterial(Long id) {
+        Optional<ResearchMaterial> researchMaterial = researchMaterialRepository.findById(id);
+        if (researchMaterial.isPresent()) {
+            return Optional.of(appMapper.toResearchMaterialDto(researchMaterial.get()));
+        }else {
+            return Optional.empty();
+        }
     }
 }
