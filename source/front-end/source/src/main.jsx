@@ -26,13 +26,12 @@ import UserCreate from "./components/UserCreate";
 import ResearcherDashboard from "./researcher pages/ResearcherDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ResearcherInventoryPage from "./researcher pages/ResearcherInventoryPage";
-import MqttPage from "./researcher pages/mqtt";
-
+import RequestPage from "./researcher pages/RequestPage"
+import RequestCreate from "./researcher pages/RequestCreate"
 
 const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" /> },
   { path: "/login", element: <Login /> },
-  { path: "/mqtt", element: <MqttPage /> },
   {
     path: "/admin-dashboard",
     element: (
@@ -89,10 +88,10 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <ResearcherInventoryPage /> },
       {
-        path: "departments",
+        path: "requests",
         children: [
-          { index: true, element: <DepartmentPage /> },
-          { path: "new", element: <DepartmentCreate /> },
+          { index: true, element: <RequestPage /> },
+          { path: "new", element: <RequestCreate /> },
         ],
       },
     ],

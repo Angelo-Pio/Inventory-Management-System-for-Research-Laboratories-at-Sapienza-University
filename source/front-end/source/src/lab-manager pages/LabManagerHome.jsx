@@ -57,10 +57,7 @@ export default function LabManagerHome() {
   const [endDate, setEndDate] = useState(dayjs("2025-10-01"));
   const { user } = useAuth();
 
-  useEffect(() => {
-    console.log(endDate.format("YYYY-MM-DD[T]HH:mm:ss"));
-    console.log(dayjs("2025-10-01").format("YYYY-MM-DD[T]HH:mm:ss"))
-  }, [endDate]);
+
 
 
   const handleDownload = async () => {
@@ -75,10 +72,7 @@ export default function LabManagerHome() {
     const endStr = endDate.format("YYYY-MM-DD[T]HH:mm:ss")
     try {
       setIsLoading(true);
-      console.log(user);
-      
-      console.log(startStr);
-      console.log(endStr);
+
       
       
       const result = await downloadReport(user.departmentId, startStr, endStr);

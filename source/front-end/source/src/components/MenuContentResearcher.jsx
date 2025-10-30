@@ -16,7 +16,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 
 const mainListItems = [
   { text: "Inventory", icon: <StorageIcon />, path: "/researcher-dashboard" },
-  { text: "Requests", icon: <NotificationsIcon />, path: "/admin-dashboard/alerts" },
+  { text: "Requests", icon: <NotificationsIcon />, path: "/researcher-dashboard/requests" },
 ];
 
 export default function MenuContent() {

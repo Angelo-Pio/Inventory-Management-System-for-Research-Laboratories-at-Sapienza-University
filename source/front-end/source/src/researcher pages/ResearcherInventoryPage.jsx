@@ -374,7 +374,8 @@ function UseCell({ row, onUse }) {
           step: 1,
         }}
         disabled={outOfStock}
-        helperText={outOfStock ? 'Out of stock' : ''}
+        helperText={outOfStock ? 'Out of stock' : ''} //RE
+        // VIEW
       />
       <Button
         size="small"

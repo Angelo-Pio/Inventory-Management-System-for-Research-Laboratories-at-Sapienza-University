@@ -1,5 +1,5 @@
 import CssBaseline from "@mui/material/CssBaseline";
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useAuth } from "../components/AuthContext";
 
 import AppTheme from "../themes/AppTheme";
@@ -30,8 +30,10 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { useDialogs } from "../hooks/useDialogs";
 
-import { useMaterial } from "../services/researcherServices";
-import { getMaterialById } from "../services/labManagerServices";
+import {
+  updateMaterialQuantity,
+  getMaterialById,
+} from "../services/labManagerServices";
 
 import PageContainer from "../components/PageContainer";
 
@@ -42,35 +44,23 @@ import {
   subscribe,
   disconnect,
 } from "../services/notificationServices";
+import { useTimeout } from "@mui/x-data-grid/internals";
 
 const MQTT_BROKER_URL = "ws://localhost:15675/ws";
 const MQTT_USERNAME = "guest";
 const MQTT_PASSWORD = "guest";
 
-function QuickSearchToolbar() {
-  return (
-    <Toolbar>
-      <QuickFilter>
-        <QuickFilterControl placeholder="Search…" />
-      </QuickFilter>
-    </Toolbar>
-  );
-}
-
 export default function MqttSubscriberApp(props) {
   const [status, setStatus] = useState("Disconnesso");
   const [messages, setMessages] = useState([]);
-  const { department } = useAuth();
+  const { department, user } = useAuth();
 
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [sortModel, setSortModel] = useState([
-    { field: "category", sort: "asc" },
-  ]);
+  const [sortModel, setSortModel] = useState([{ field: "name", sort: "asc" }]);
 
-const [filterModel, setFilterModel] = useState(
+  const [filterModel, setFilterModel] = useState(
     searchParams.get("filter")
       ? JSON.parse(searchParams.get("filter") ?? "")
       : { items: [] }
@@ -81,7 +71,7 @@ const [filterModel, setFilterModel] = useState(
     rows: [],
     rowCount: 0,
   });
-
+  const messagesInitializedRef = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -101,7 +91,7 @@ const [filterModel, setFilterModel] = useState(
       return;
     }
 
-     setTimeout(() => {
+    setTimeout(() => {
       setIsLoading(false);
     }, 3500);
 
@@ -134,22 +124,18 @@ const [filterModel, setFilterModel] = useState(
           setMessages((prev) => {
             const duplicate = prev.some((m) => JSON.stringify(m) === payload);
             if (duplicate) {
-              console.log("DUPLICATEEE");
               return prev;
             }
             const newEntry = JSON.parse(payload);
-            console.log(payload, typeof payload);
 
             return [newEntry, ...prev];
           });
         },
         onError: (err) => {
           setStatus(`ERRORE DI CONNESSIONE: ${err?.message ?? String(err)}`);
-          console.error("Errore MQTT:", err);
         },
         onClose: () => {
           setStatus("Disconnesso (Connessione Persa)");
-          console.log("Connessione MQTT chiusa.");
         },
       },
     });
@@ -173,7 +159,6 @@ const [filterModel, setFilterModel] = useState(
   //
   //End mqtt code
   //
-
 
   const handlePaginationModelChange = useCallback(
     (model) => {
@@ -201,7 +186,6 @@ const [filterModel, setFilterModel] = useState(
         searchParams.delete("filter");
       }
       const newSearchParamsString = searchParams.toString();
-      console.log(messages);
 
       navigate(
         `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
@@ -211,45 +195,95 @@ const [filterModel, setFilterModel] = useState(
   );
 
   const loadData = useCallback(async () => {
-    console.log(messages);
-    setIsLoading(true);
-    try {
-      const material = await getMaterialById(1);
-      console.log(material);
-    } catch (error) {
-      console.error("Error fetching material:", error);
+    // CASE A: initial empty (component just mounted and messages is still the placeholder [])
+    const isInitialEmpty =
+      !messagesInitializedRef.current && (!messages || messages.length === 0);
+
+    if (isInitialEmpty) {
+      // show spinner because we expect messages to be filled soon
+      setIsLoading(true);
+
+      // Optionally set rows to empty so the UI doesn't show stale content:
+      setRowsState({ rows: [], rowCount: 0 });
+
+      // Do not mark messages as "initialized" — wait until we actually receive data
+      return;
     }
-    console.log(material);
-    
 
-    setRowsState({
-      rows: messages,
-      rowCount: messages.length,
-    });
+    // From here on, either we have messages to process, or this is a subsequent change
+    setIsLoading(true);
 
-    setIsLoading(false);
-  }, [paginationModel, filterModel, user?.departmentId, messages]);
+    let unifiedMaterials = [];
+    try {
+      if (!messages || messages.length === 0) {
+        // real empty (we've already initialized before)
+        unifiedMaterials = [];
+      } else {
+        const unified = await Promise.all(
+          messages.map(async (msg) => {
+            try {
+              const response = await getMaterialById(msg.materialId);
+              const mat = response.data;
+              return {
+                name: mat.name,
+                quantity: mat.quantity,
+                threshold: mat.threshold,
+                status: mat.status,
+                category: mat.category ?? "-", // backend or fallback
+                materialId: mat.id,
+                researcher: mat.researcher ?? "-",
+                type: msg.type ?? "",
+              };
+            } catch (err) {
+              console.error(
+                "Error fetching material for id",
+                msg.materialId,
+                err
+              );
+              return {
+                name: msg.name ?? "",
+                quantity: msg.quantity ?? 0,
+                threshold: null,
+                status: null,
+                category: "",
+                materialId: msg.materialId,
+                type: msg.type,
+              };
+            }
+          })
+        );
+
+        unifiedMaterials = unified;
+      }
+
+      // after a successful process of (possibly empty) messages we consider messages initialized
+      messagesInitializedRef.current = true;
+
+      // update rows
+      setRowsState({
+        rows: unifiedMaterials,
+        rowCount: unifiedMaterials.length,
+      });
+    } finally {
+      // Always clear loading after the real processing finishes
+      setIsLoading(false);
+    }
+  }, [messages, paginationModel, filterModel, user?.departmentId]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  const handleRefresh = useCallback(() => {
-    if (!isLoading) {
-      loadData();
-    }
-  }, [isLoading, loadData]);
-
   // Called when user clicks Use button in the cell: rowId and amount are provided.
-  const handleUse = useCallback(
+  const handleOrder = useCallback(
     async (row, amount) => {
       // Show confirmation
       const confirmed = await dialogs.confirm(
-        `Do you want to use ${amount} unit${amount === 1 ? "" : "s"} of "${
+        `Do you want to order ${amount} unit${amount === 1 ? "" : "s"} of "${
           row.name
         }"?`,
         {
-          title: "Confirm use",
+          title: "Confirm order",
           severity: "warning",
           okText: "Use",
           cancelText: "Cancel",
@@ -260,9 +294,21 @@ const [filterModel, setFilterModel] = useState(
 
       setIsLoading(true);
       try {
-        const result = await useMaterial(row.id, amount);
-        if (result === true || result === undefined) {
+        const payload = {
+          materialId: row.materialId,
+          userId: user.id,
+          quantity: amount,
+        };
+        const result = await updateMaterialQuantity(department.id, payload);
+        console.log(result);
+
+        if (result.data === true || result === undefined) {
           await loadData();
+          setMessages((prevMessages) =>
+            prevMessages.filter((msg) => msg.materialId !== row.materialId)
+          );
+
+          console.log("YEEEE");
         } else {
           await dialogs.alert(`Unable to use the material.`, {
             title: "Error",
@@ -301,21 +347,28 @@ const [filterModel, setFilterModel] = useState(
       {
         field: "researcher",
         headerName: "Researcher",
-        width: 180,
+        width: 140,
         sortable: false,
         disableColumnMenu: true,
       },
       {
         field: "category",
         headerName: "Category",
-        width: 200,
+        width: 140,
         sortable: false,
         disableColumnMenu: true,
       },
       {
         field: "quantity",
         headerName: "Quantity",
-        width: 180,
+        width: 100,
+        sortable: false,
+        disableColumnMenu: true,
+      },
+      {
+        field: "threshold",
+        headerName: "Threshold",
+        width: 100,
         sortable: false,
         disableColumnMenu: true,
       },
@@ -330,35 +383,19 @@ const [filterModel, setFilterModel] = useState(
           // pass entire row to handler so confirmation can show row.name
           <UseCell
             row={params.row}
-            onUse={(rowObj, amount) => handleUse(rowObj, amount)}
+            onOrder={(rowObj, amount) => handleOrder(rowObj, amount)}
           />
         ),
       },
     ],
-    [handleUse]
+    [handleOrder]
   );
 
-  const pageTitle = "Inventory";
 
   return (
     <AppTheme {...props} themeComponents={themeComponents}>
       <CssBaseline enableColorScheme />
-      <PageContainer
-        title={pageTitle}
-        actions={
-          <Tooltip title="Reload data" placement="right" enterDelay={1000}>
-            <div>
-              <IconButton
-                size="small"
-                aria-label="refresh"
-                onClick={handleRefresh}
-              >
-                <RefreshIcon />
-              </IconButton>
-            </div>
-          </Tooltip>
-        }
-      >
+      <PageContainer title={"Status Alert"}>
         <Box sx={{ flex: 1, width: "100%" }}>
           <DataGrid
             rows={rowsState.rows}
@@ -377,8 +414,48 @@ const [filterModel, setFilterModel] = useState(
             disableRowSelectionOnClick
             loading={isLoading}
             initialState={initialState}
-            slots={{ toolbar: QuickSearchToolbar }}
-            showToolbar
+            pageSizeOptions={[5, INITIAL_PAGE_SIZE, 25]}
+            sx={{
+              [`& .${gridClasses.columnHeader}, & .${gridClasses.cell}`]: {
+                outline: "transparent",
+              },
+              [`& .${gridClasses.columnHeader}:focus-within, & .${gridClasses.cell}:focus-within`]:
+                {
+                  outline: "none",
+                },
+            }}
+            slotProps={{
+              loadingOverlay: {
+                variant: "circular-progress",
+                noRowsVariant: "circular-progress",
+              },
+              baseIconButton: {
+                size: "small",
+              },
+            }}
+          />
+        </Box>
+      </PageContainer>
+
+      <PageContainer title={"Low Stock"}>
+        <Box sx={{ flex: 1, width: "100%" }}>
+          <DataGrid
+            rows={rowsState.rows}
+            rowCount={rowsState.rowCount ?? 0}
+            getRowId={(row) => row.materialId}
+            columns={columns}
+            pagination
+            sortingMode="server"
+            sortModel={sortModel}
+            filterMode="server"
+            paginationMode="server"
+            paginationModel={paginationModel}
+            onPaginationModelChange={handlePaginationModelChange}
+            filterModel={filterModel}
+            onFilterModelChange={handleFilterModelChange}
+            disableRowSelectionOnClick
+            loading={isLoading}
+            initialState={initialState}
             pageSizeOptions={[5, INITIAL_PAGE_SIZE, 25]}
             sx={{
               [`& .${gridClasses.columnHeader}, & .${gridClasses.cell}`]: {
@@ -405,13 +482,14 @@ const [filterModel, setFilterModel] = useState(
   );
 }
 
-function UseCell({ row, onUse }) {
+function UseCell({ row, onOrder }) {
   // keep the displayed value as a string to avoid fighting the TextField control
-  const [value, setValue] = useState("0");
+
+  const [value, setValue] = useState((row.threshold - row.quantity).toString());
 
   useEffect(() => {
     // reset to 0 when the row changes
-    setValue("0");
+    setValue((row.threshold - row.quantity).toString());
   }, [row?.id]);
 
   const parseAmount = (v) => {
@@ -425,15 +503,15 @@ function UseCell({ row, onUse }) {
     const raw = e.target.value;
     const prev = parseAmount(value);
     const next = parseAmount(raw);
-    const max = Number(row?.quantity || 0);
+    const max = 100;
 
     // RULES:
     // - if prev === 0, don't allow decreasing (ignore any next < prev)
-    if (prev === 0 && next < prev) {
+    if (prev === row.threshold - row.quantity && next < prev) {
       return; // ignore
     }
     // - if prev === max, don't allow increasing (ignore any next > prev)
-    if (prev === max && next > prev) {
+    if (prev === max) {
       return; // ignore
     }
 
@@ -454,14 +532,11 @@ function UseCell({ row, onUse }) {
 
   const handleClick = () => {
     const amount = parseAmount(value);
-    if (amount <= 0) return;
-    const useAmount = Math.min(amount, Number(row.quantity || 0));
-    if (useAmount <= 0) return;
-    onUse(row, useAmount);
+    if (amount < row.threshold - row.quantity) return;
+    onOrder(row, amount);
   };
 
   const numericValue = parseAmount(value);
-  const outOfStock = Number(row?.quantity || 0) <= 0;
 
   return (
     <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
@@ -476,16 +551,14 @@ function UseCell({ row, onUse }) {
         aria-label={`use-amount-${row.id}`}
         inputProps={{
           min: 0,
-          max: Number(row?.quantity || 0),
+          max: 100,
           inputMode: "numeric",
           pattern: "[0-9]*",
           step: 1,
         }}
-        disabled={outOfStock}
-        helperText={outOfStock ? "Out of stock" : ""}
       />
       <Button size="small" variant="contained" onClick={handleClick}>
-        Use
+        Order
       </Button>
     </Box>
   );

@@ -3,7 +3,6 @@ import { apiCall } from './api';
 // Material management
 export const addMaterial = async (departmentId, materialData) => {
 
-  console.log(JSON.stringify(materialData));
   
   return await apiCall(`/management/${departmentId}/material`, {
     method: 'POST',
@@ -12,7 +11,7 @@ export const addMaterial = async (departmentId, materialData) => {
 };
 
 export const getMaterialById = async (id) => {
-  return await apiCall(`/material?id=${id}`);
+  return await apiCall(`/management/material?id=${id}`);
 };
 
 
@@ -152,6 +151,7 @@ export async function getMany({ departmentId, paginationModel = { page: 0, pageS
  */
 export const updateMaterialQuantity = async (departmentId, { materialId, userId, quantity }) => {
   const qs = `?materialId=${encodeURIComponent(materialId)}&userId=${encodeURIComponent(userId)}&quantity=${encodeURIComponent(quantity)}`;
+  
   return await apiCall(`/management/${departmentId}/material${qs}`, {
     method: 'PUT',
   });
@@ -231,12 +231,10 @@ export const downloadReport = async (departmentId, startDate, endDate) => {
     );
 
     if (!response.data) {
-      console.log(response);
       
       const errorText = await response.text();
       return { success: false, error: errorText || 'Failed to generate report' };
     }
-    console.log(response);
     
     // Get the CSV blob
     const blob = new Blob([response.data], { type: 'text/csv' });

@@ -62,7 +62,6 @@ export async function getFilteredUsers({ departmentId, paginationModel = { page:
   const users = await getAllUsers()
   
   let filtered = Array.isArray(users.data) ? [...users.data] : [];
-  console.log(filtered);
   
   // Helper to read nested fields if needed
   const readField = (obj, path) => {
