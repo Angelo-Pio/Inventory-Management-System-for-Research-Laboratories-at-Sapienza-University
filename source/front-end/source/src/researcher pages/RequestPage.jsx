@@ -395,48 +395,7 @@ export default function MqttSubscriberApp(props) {
   return (
     <AppTheme {...props} themeComponents={themeComponents}>
       <CssBaseline enableColorScheme />
-      <PageContainer title={"Status Alert"}>
-        <Box sx={{ flex: 1, width: "100%" }}>
-          <DataGrid
-            rows={rowsState.rows}
-            rowCount={rowsState.rowCount ?? 0}
-            getRowId={(row) => row.materialId}
-            columns={columns}
-            pagination
-            sortingMode="server"
-            sortModel={sortModel}
-            filterMode="server"
-            paginationMode="server"
-            paginationModel={paginationModel}
-            onPaginationModelChange={handlePaginationModelChange}
-            filterModel={filterModel}
-            onFilterModelChange={handleFilterModelChange}
-            disableRowSelectionOnClick
-            loading={isLoading}
-            initialState={initialState}
-            pageSizeOptions={[5, INITIAL_PAGE_SIZE, 25]}
-            sx={{
-              [`& .${gridClasses.columnHeader}, & .${gridClasses.cell}`]: {
-                outline: "transparent",
-              },
-              [`& .${gridClasses.columnHeader}:focus-within, & .${gridClasses.cell}:focus-within`]:
-                {
-                  outline: "none",
-                },
-            }}
-            slotProps={{
-              loadingOverlay: {
-                variant: "circular-progress",
-                noRowsVariant: "circular-progress",
-              },
-              baseIconButton: {
-                size: "small",
-              },
-            }}
-          />
-        </Box>
-      </PageContainer>
-
+      
       <PageContainer title={"Low Stock"}>
         <Box sx={{ flex: 1, width: "100%" }}>
           <DataGrid
