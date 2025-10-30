@@ -217,6 +217,8 @@ export default function AlertsPage(props) {
             try {
               const response = await getMaterialById(msg.materialId);
               const mat = response.data;
+              console.log(mat);
+              
               return {
                 name: mat.name,
                 quantity: mat.quantity,
