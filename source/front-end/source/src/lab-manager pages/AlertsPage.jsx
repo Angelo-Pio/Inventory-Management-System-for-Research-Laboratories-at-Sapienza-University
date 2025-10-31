@@ -224,7 +224,7 @@ export default function AlertsPage(props) {
                 quantity: mat.quantity,
                 threshold: mat.threshold,
                 status: mat.status,
-                category: mat.category ?? "-", // backend or fallback
+                category: mat.category.title ?? "-", // backend or fallback
                 materialId: mat.id,
                 researcher: mat.researcher ?? "-",
                 type: msg.type ?? "",

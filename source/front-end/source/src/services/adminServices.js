@@ -8,6 +8,12 @@ export const createUser = async (userData) => {
   });
 };
 
+// Get all researchers of a department
+export const getAllResearchersOfDepartment = async (departmentId) => {
+  return await apiCall(`/management/${departmentId}/researchers`);
+};
+
+
 export const getAllUsers = async () => {
   return await apiCall('/admin/users');
 };
@@ -59,10 +65,13 @@ export const getDepartmentIdByName = (departments, name) => {
 //FilterUser function
 export async function getFilteredUsers({ departmentId, paginationModel = { page: 0, pageSize: 10 }, filterModel = { items: [] } }) {
   if (departmentId == null) throw new Error('departmentId is required');
-  const users = await getAllUsers()
+  const users = await getAllResearchersOfDepartment(departmentId)
   
   let filtered = Array.isArray(users.data) ? [...users.data] : [];
   
+// console.log(filtered);
+
+
   // Helper to read nested fields if needed
   const readField = (obj, path) => {
     return path.split('.').reduce((acc, key) => (acc ? acc[key] : undefined), obj);

@@ -1,211 +1,129 @@
 import { useState, useCallback, useEffect } from "react";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Checkbox from "@mui/material/Checkbox";
-import FormControl from "@mui/material/FormControl";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import FormGroup from "@mui/material/FormGroup";
-import FormHelperText from "@mui/material/FormHelperText";
-import Grid from "@mui/material/Grid";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router";
+import { getDepartmentMaterials, validateRequest } from "../services/labManagerServices";
 import { useAuth } from "../components/AuthContext";
+import RequestForm from "./RequestForm";
+import PageContainer from "../components/PageContainer";
 
-import { lineHeight } from "@mui/system";
+export default function RequestCreate() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [formState, setFormState] = useState(() => ({
+    values: {},
+    errors: {},
+  }));
 
-export default function EmployeeForm(props) {
-  const {
-    formState,
-    onFieldChange,
-    onSubmit,
-    onReset,
-    submitButtonLabel,
-    backButtonPath,
-    departments
-  } = props;
-
+  const [materials, setMaterials] = useState([]);
   const formValues = formState.values;
   const formErrors = formState.errors;
 
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  useEffect(() => {
+      const fetchMaterials = async () => {
+        try {
+          const data = await getDepartmentMaterials(user.departmentId);
+  
+          setMaterials(data.data);
+        } catch (err) {
+          console.error("Failed to load materials", err);
+        }
+      };
+  
+      fetchMaterials();
+    }, []);
 
-  const handleSubmit = useCallback(
-    async (event) => {
-      event.preventDefault();
+    
 
-      setIsSubmitting(true);
-      try {
-        await onSubmit(formValues);
-      } finally {
-        setIsSubmitting(false);
-      }
+  const setFormValues = useCallback((newFormValues) => {
+    setFormState((previousState) => ({
+      ...previousState,
+      values: newFormValues,
+    }));
+  }, []);
+
+  const setFormErrors = useCallback((newFormErrors) => {
+    setFormState((previousState) => ({
+      ...previousState,
+      errors: newFormErrors,
+    }));
+  }, []);
+
+  const handleFormFieldChange = useCallback(
+    (name, value) => {
+      const validateField = async (values) => {
+        const { issues } = validateRequest(values);
+        setFormErrors({
+          ...formErrors,
+          [name]: issues?.find((issue) => issue.path?.[0] === name)?.message,
+        });
+      };
+
+      const newFormValues = { ...formValues, [name]: value };
+
+      setFormValues(newFormValues);
+      validateField(newFormValues);
     },
-    [formValues, onSubmit]
+    [formValues, formErrors, setFormErrors, setFormValues]
   );
 
-  const handleTextFieldChange = useCallback(
-    (event) => {
-      onFieldChange(event.target.name, event.target.value);
-    },
-    [onFieldChange]
-  );
+  const handleFormReset = useCallback(() => {
+    setFormValues(INITIAL_FORM_VALUES);
+  }, [setFormValues]);
 
-  const handleSelectFieldChange = useCallback(
-    (event) => {
-      onFieldChange(event.target.name, event.target.value, user.role);
-    },
-    [onFieldChange]
-  );
+  const handleFormSubmit = useCallback(async () => {
+    const { issues } = validateRequest(formValues);
 
-  const handleReset = useCallback(() => {
-    if (onReset) {
-      onReset(formValues);
+    if (issues && issues.length > 0) {
+      setFormErrors(
+        Object.fromEntries(
+          issues.map((issue) => [issue.path?.[0], issue.message])
+        )
+      );
+      return;
     }
-  }, [formValues, onReset]);
+    setFormErrors({});
 
-  const handleBack = useCallback(() => {
-    const parentPath = location.pathname.substring(
-      0,
-      location.pathname.lastIndexOf("/")
-    );
-    navigate(parentPath || "/");
-  }, [navigate, backButtonPath]);
+    try {
+      // let payload = {}
+      // if(user.role=='labmanager'){
+      // payload = {
+      //     ...formValues,
+      //     role:"researcher",
+      //     departmentId:user.departmentId
+      //   };
+      // console.log(payload);
+      // }
+      // if (user.role=='admin') {
+      //   const departmentId = getDepartmentIdByName(departments,formValues.department)
+      //   payload = {
+      //     ...formValues,
+      //     departmentId:departmentId
+      //   };
+      // }
+
+      console.log(formValues);
+      
+      
+      // await createUser(formValues);
+      const parentPath = location.pathname.substring(
+        0,
+        location.pathname.lastIndexOf("/")
+      );
+      navigate(parentPath || "/");
+    } catch (createError) {
+      throw createError;
+    }
+  }, [formValues, navigate, setFormErrors]);
 
   return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit}
-      noValidate
-      autoComplete="off"
-      onReset={handleReset}
-      sx={{ width: "100%" }}
-    >
-      <FormGroup>
-        <Stack direction="row" spacing={2} justifyContent="space-between">
-          <TextField
-            value={formValues.name ?? ""}
-            onChange={handleTextFieldChange}
-            name="name"
-            label="Name"
-            error={!!formErrors.name}
-            helperText={formErrors.name ?? " "}
-            fullWidth
-            variant="standard"
-          />
-          <TextField
-            value={formValues.surname ?? ""}
-            onChange={handleTextFieldChange}
-            name="surname"
-            label="Surname"
-            error={!!formErrors.surname}
-            helperText={formErrors.surname ?? " "}
-            fullWidth
-            variant="standard"
-          />
-        </Stack>
-        <Stack
-          direction="row"
-          spacing={2}
-          justifyContent="space-between"
-          sx={{ marginY: 5 }}
-        >
-          <TextField
-            value={formValues.email ?? ""}
-            onChange={handleTextFieldChange}
-            name="email"
-            label="Email"
-            error={!!formErrors.email}
-            helperText={formErrors.email ?? " "}
-            fullWidth
-            variant="standard"
-          />
-          <TextField
-            value={formValues.password ?? ""}
-            onChange={handleTextFieldChange}
-            name="password"
-            label="Password"
-            error={!!formErrors.password}
-            helperText={formErrors.password ?? " "}
-            fullWidth
-            variant="standard"
-          />
-        </Stack>
-        {user?.role === "labmanager" ? (
-          <TextField
-            sx={{ marginBottom: 5 }}
-            label="Curriculum"
-            variant="standard"
-            fullWidth
-            multiline
-          />
-        ) : (
-          <Stack
-          direction="row"
-          spacing={2}
-          justifyContent="space-between"
-          sx={{ marginY: 5 }}
-        >
-          <TextField
-            select
-            variant="standard"
-            value={formValues.role ?? ""}
-            onChange={handleSelectFieldChange}
-            name="role"
-            label="Role"
-            error={!!formErrors.role}
-            helperText={formErrors.role ?? " "}
-            fullWidth
-          >
-            {/* <MenuItem value="admin">admin</MenuItem> */}
-            <MenuItem value="labmanager">labmanager</MenuItem>
-            <MenuItem value="researcher">researcher</MenuItem>
-
-          </TextField>
-          <TextField
-            select
-            variant="standard"
-            value={formValues.department ?? ""}
-            onChange={handleSelectFieldChange}
-            name="department"
-            label="Department"
-            error={!!formErrors.department}
-            helperText={formErrors.department ?? " "}
-            fullWidth
-          >
-            {departments.map((department) => (
-                  <MenuItem key={department.id} value={department.name}>
-                    {department.name}
-                  </MenuItem>
-                ))}
-
-          </TextField>
-          </Stack>
-        )}
-      </FormGroup>
-      <Stack direction="row" spacing={2} justifyContent="space-between">
-        <Button
-          variant="contained"
-          startIcon={<ArrowBackIcon />}
-          onClick={handleBack}
-        >
-          Back
-        </Button>
-        <Button
-          type="submit"
-          variant="contained"
-          size="large"
-          loading={isSubmitting}
-        >
-          {submitButtonLabel}
-        </Button>
-      </Stack>
-    </Box>
+    <PageContainer title="New User">
+      <RequestForm
+        formState={formState}
+        onFieldChange={handleFormFieldChange}
+        onSubmit={handleFormSubmit}
+        onReset={handleFormReset}
+        submitButtonLabel="Save"
+        materials = {materials}
+      />
+    </PageContainer>
   );
 }

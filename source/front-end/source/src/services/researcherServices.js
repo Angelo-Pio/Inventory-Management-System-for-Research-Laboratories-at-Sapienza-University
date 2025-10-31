@@ -42,6 +42,27 @@ export const useMaterial = async(materialId, quantity_used)=> {
   return res.data;
 }
 
+// Issue a material request
+export const requestMaterial = async (materialId, requestBody) => {
+  return await apiCall(`/material/${materialId}/request`, {
+    method: "POST",
+    body: JSON.stringify(requestBody),
+  });
+};
+
+// Mark material as damaged and issue a ticket
+export const markDamagedAndIssue = async (materialId, labUserId) => {
+  return await apiCall(`/management/material/${materialId}/issue?labUserId=${labUserId}`, {
+    method: "POST",
+  });
+};
+
+// Get all requests opened by a researcher
+export const getResearcherRequests = async (researcherId) => {
+  return await apiCall(`/management/researcher/requests?researcherId=${researcherId}`);
+};
+
+
 
 const researcherService = {
   getAvailableMaterials,

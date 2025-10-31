@@ -1,5 +1,6 @@
 import { apiCall } from './api';
 
+
 // Material management
 export const addMaterial = async (departmentId, materialData) => {
 
@@ -218,7 +219,39 @@ export const getAllCategories = async () => {
   return await apiCall(`/management/material/category`);
 };
 
+// Fetch all material requests for a specific department
+export const getAllRequests = async (departmentId) => {
+  return await apiCall(`/management/${departmentId}/requests`);
+};
 
+// Mark a specific material request as done
+export const markRequestAsDone = async (requestId) => {
+  return await apiCall(`/management/requests/${requestId}/done`, {
+    method: "POST",
+  });
+};
+
+//validate request
+export function validateRequest(request) {
+  let issues = [];
+ 
+    
+
+  if (!request.material) {
+    issues = [...issues, { message: 'Material is required', path: ['material'] }];
+  }
+
+  if(!request.requestType){
+     issues = [...issues, { message: 'Request type is required', path: ['requestType'] }];
+  }
+
+  if(!request.quantity){
+     issues = [...issues, { message: 'Quantity is required', path: ['quantity'] }];
+  }
+
+
+ return { issues };
+}
 // Report generation (kept as-is; consider using apiCall wrapper if desired)
 export const downloadReport = async (departmentId, startDate, endDate) => {
   try {
