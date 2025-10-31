@@ -93,6 +93,7 @@ public class AppMapper {
         ResearchMaterial researchMaterial = researchMaterialRepository.findById(request.getMaterial_id()).orElseThrow(EntityNotFoundException::new);
         LabUser labUser = labUserRepository.findById(request.getResearcher_id()).orElseThrow(EntityNotFoundException::new);
 
+        materialRequest.setId(materialRequest.getId());
         materialRequest.setMaterial(researchMaterial);
         materialRequest.setResearcher(labUser);
         return materialRequest;

@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 @Data
 public class MaterialRequestDto {
 
+    private Long request_id;
+
     private Long material_id;
 
     private Long researcher_id;

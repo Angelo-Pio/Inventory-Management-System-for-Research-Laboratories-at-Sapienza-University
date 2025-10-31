@@ -236,8 +236,15 @@ public class LabManagerService {
 
     public Boolean markRequestAsDone(Long requestId) {
 
-        materialRequestRepository.findById(requestId).ifPresent(materialRequest -> {materialRequest.setRequestStatus("Processed");});
-        return true;
+
+        Optional<MaterialRequest> materialRequest = materialRequestRepository.findById(requestId);
+        if (materialRequest.isPresent()) {
+            materialRequestRepository.save(materialRequest.get());
+            return true;
+        }else {
+            return false;
+        }
+
     }
 
     public List<LabUserDto> getAllResearchersOfADepartment(Long departmentId) {
