@@ -59,7 +59,7 @@ export const markDamagedAndIssue = async (materialId, labUserId) => {
 
 // Get all requests opened by a researcher
 export const getResearcherRequests = async (researcherId) => {
-  return await apiCall(`/management/researcher/requests?researcherId=${researcherId}`);
+  return await apiCall(`/researcher/requests?researcherId=${researcherId}`);
 };
 
 

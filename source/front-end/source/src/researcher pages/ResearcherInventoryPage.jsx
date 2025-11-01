@@ -1,26 +1,28 @@
-import CssBaseline from '@mui/material/CssBaseline';
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useAuth } from '../components/AuthContext'; 
+import CssBaseline from "@mui/material/CssBaseline";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { useAuth } from "../components/AuthContext";
 
-import AppTheme from '../themes/AppTheme';
+import PriorityHighIcon from "@mui/icons-material/PriorityHigh";
+
+import AppTheme from "../themes/AppTheme";
 import {
   dataGridCustomizations,
   datePickersCustomizations,
   formInputCustomizations,
-} from '../themes/customization';
+} from "../themes/customization";
 const themeComponents = {
   ...dataGridCustomizations,
   ...datePickersCustomizations,
   ...formInputCustomizations,
 };
 
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import Stack from '@mui/material/Stack';
-import Tooltip from '@mui/material/Tooltip';
-import TextField from '@mui/material/TextField'; // <-- added
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import Stack from "@mui/material/Stack";
+import Tooltip from "@mui/material/Tooltip";
+import TextField from "@mui/material/TextField"; // <-- added
 import {
   DataGrid,
   GridActionsCellItem,
@@ -30,24 +32,21 @@ import {
   QuickFilterControl,
   QuickFilterTrigger,
   QuickFilterClear,
-} from '@mui/x-data-grid';
-import AddIcon from '@mui/icons-material/Add';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { useLocation, useNavigate, useSearchParams } from 'react-router';
-import { useDialogs } from '../hooks/useDialogs';
+} from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
+import { useDialogs } from "../hooks/useDialogs";
 // import useNotifications from '../hooks/useNotifications/useNotifications';
-import {
-  getMany,
-} from '../services/labManagerServices';
+import { getMany } from "../services/labManagerServices";
 
-import { useMaterial } from '../services/researcherServices';
+import { useMaterial } from "../services/researcherServices";
 
-import PageContainer from '../components/PageContainer';
+import PageContainer from "../components/PageContainer";
 
-
-const INITIAL_PAGE_SIZE = 10
+const INITIAL_PAGE_SIZE = 10;
 
 function QuickSearchToolbar() {
   return (
@@ -59,29 +58,30 @@ function QuickSearchToolbar() {
   );
 }
 
-
 export default function InventoryPage(props) {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const {user} = useAuth();
-  const [sortModel, setSortModel] = useState([{ field: 'category', sort: 'asc' }]);
+  const { user } = useAuth();
+  const [sortModel, setSortModel] = useState([
+    { field: "category", sort: "asc" },
+  ]);
 
   const dialogs = useDialogs();
   // const notifications = useNotifications();
 
   const [paginationModel, setPaginationModel] = useState({
-    page: searchParams.get('page') ? Number(searchParams.get('page')) : 0, //get page number
-    pageSize: searchParams.get('pageSize') //get page size
-      ? Number(searchParams.get('pageSize'))
+    page: searchParams.get("page") ? Number(searchParams.get("page")) : 0, //get page number
+    pageSize: searchParams.get("pageSize") //get page size
+      ? Number(searchParams.get("pageSize"))
       : INITIAL_PAGE_SIZE,
   });
 
   // If a filter query param exists, it attempts to JSON.parse its value and use that as the initial filter mode
   const [filterModel, setFilterModel] = useState(
-    searchParams.get('filter')
-      ? JSON.parse(searchParams.get('filter') ?? '')
-      : { items: [] },
+    searchParams.get("filter")
+      ? JSON.parse(searchParams.get("filter") ?? "")
+      : { items: [] }
   );
 
   //row state and row count
@@ -96,33 +96,37 @@ export default function InventoryPage(props) {
   const handlePaginationModelChange = useCallback(
     (model) => {
       setPaginationModel(model);
-      searchParams.set('page', String(model.page));
-      searchParams.set('pageSize', String(model.pageSize));
+      searchParams.set("page", String(model.page));
+      searchParams.set("pageSize", String(model.pageSize));
       const newSearchParamsString = searchParams.toString();
-      navigate(`${pathname}${newSearchParamsString ? '?' : ''}${newSearchParamsString}`);
+      navigate(
+        `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
+      );
     },
-    [navigate, pathname, searchParams],
+    [navigate, pathname, searchParams]
   );
 
   const handleFilterModelChange = useCallback(
     (model) => {
       setFilterModel(model);
       console.log("model", model);
-      
+
       if (
         model.items.length > 0 ||
         (model.quickFilterValues && model.quickFilterValues.length > 0)
       ) {
-        searchParams.set('filter', JSON.stringify(model));
+        searchParams.set("filter", JSON.stringify(model));
       } else {
-        searchParams.delete('filter');
+        searchParams.delete("filter");
       }
       const newSearchParamsString = searchParams.toString();
       console.log("parm:", newSearchParamsString);
-      
-      navigate(`${pathname}${newSearchParamsString ? '?' : ''}${newSearchParamsString}`);
+
+      navigate(
+        `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
+      );
     },
-    [navigate, pathname, searchParams],
+    [navigate, pathname, searchParams]
   );
 
   const loadData = useCallback(async () => {
@@ -135,7 +139,7 @@ export default function InventoryPage(props) {
         filterModel,
       });
       console.log(listData);
-      
+
       setRowsState({
         rows: listData.items,
         rowCount: listData.itemCount,
@@ -156,102 +160,180 @@ export default function InventoryPage(props) {
     }
   }, [isLoading, loadData]);
 
-
-
-  
   // Called when user clicks Use button in the cell: rowId and amount are provided.
   const handleUse = useCallback(
-  async (row, amount) => {
-    // Show confirmation
-    const confirmed = await dialogs.confirm(
-      `Do you want to use ${amount} unit${amount === 1 ? '' : 's'} of "${row.name}"?`,
-      {
-        title: 'Confirm use',
-        severity: 'warning',
-        okText: 'Use',
-        cancelText: 'Cancel',
-      },
-    );
+    async (row, amount) => {
+      // Show confirmation
+      const confirmed = await dialogs.confirm(
+        `Do you want to use ${amount} unit${amount === 1 ? "" : "s"} of "${
+          row.name
+        }"?`,
+        {
+          title: "Confirm use",
+          severity: "warning",
+          okText: "Use",
+          cancelText: "Cancel",
+        }
+      );
 
-    if (!confirmed) return;
+      if (!confirmed) return;
 
-    setIsLoading(true);
-    try {
-      // call real backend
-      const result = await useMaterial(row.id, amount);
-      // backend returns Boolean (true/false) according to your controller
-      if (result === true || result === undefined) {
-        // treat undefined as success if your apiCall returns nothing
-        await loadData();
-        // optional quick feedback
-        // await dialogs.alert(`Used ${amount} unit${amount === 1 ? '' : 's'} of "${row.name}".`, {
-        //   title: 'Success',
-        // });
-      } else {
-        // backend returned false
-        await dialogs.alert(`Unable to use the material.`, { title: 'Error', severity: 'error' });
+      setIsLoading(true);
+      try {
+        // call real backend
+        const result = await useMaterial(row.id, amount);
+        // backend returns Boolean (true/false) according to your controller
+        if (result === true || result === undefined) {
+          // treat undefined as success if your apiCall returns nothing
+          await loadData();
+          // optional quick feedback
+          // await dialogs.alert(`Used ${amount} unit${amount === 1 ? '' : 's'} of "${row.name}".`, {
+          //   title: 'Success',
+          // });
+        } else {
+          // backend returned false
+          await dialogs.alert(`Unable to use the material.`, {
+            title: "Error",
+            severity: "error",
+          });
+        }
+      } catch (err) {
+        console.error("Error using material", err);
+        await dialogs.alert(`Error: ${err?.message ?? "Unknown error"}`, {
+          title: "Error",
+          severity: "error",
+        });
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error('Error using material', err);
-      await dialogs.alert(`Error: ${err?.message ?? 'Unknown error'}`, { title: 'Error', severity: 'error' });
-    } finally {
-      setIsLoading(false);
-    }
-  },
-  [dialogs, loadData],
-);
+    },
+    [dialogs, loadData]
+  );
   // ------------------------------------------------
 
   const initialState = useMemo(
     () => ({
       pagination: { paginationModel: { pageSize: INITIAL_PAGE_SIZE } },
     }),
-    [],
+    []
   );
 
   const columns = useMemo(
     () => [
-      { field: 'name', headerName: 'Name',sortable: false, width: 180, disableColumnMenu: true ,flex:1},
-      { field: 'category', headerName: 'Category', width:180,sortable: false, disableColumnMenu: true, valueGetter:(params) => params?.title ?? ''  ,flex:1},
-      { field: 'threshold', headerName: 'Threshold', type: 'number', width:100,sortable: false, disableColumnMenu: true ,flex:1},
-      { field: 'quantity', headerName: 'Quantity', type: 'number', width: 100,sortable: false, disableColumnMenu: true,flex:1},
       {
-  field: 'use',
-  headerName: 'Use',
-  width: 220,
-  sortable: false,
-  filterable: false,
-  disableColumnMenu: true,
-  renderCell: (params) => (
-    // pass entire row to handler so confirmation can show row.name
-    <UseCell row={params.row} onUse={(rowObj, amount) => handleUse(rowObj, amount)} />
-  ),
-},
+        field: "name",
+        headerName: "Name",
+        sortable: false,
+        width: 180,
+        disableColumnMenu: true,
+        flex: 1,
+      },
+      {
+        field: "category",
+        headerName: "Category",
+        width: 180,
+        sortable: false,
+        disableColumnMenu: true,
+        valueGetter: (params) => params?.title ?? "",
+        flex: 1,
+      },
+      {
+        field: "threshold",
+        headerName: "Threshold",
+        type: "number",
+        width: 100,
+        sortable: false,
+        disableColumnMenu: true,
+        flex: 1,
+      },
+      {
+        field: "quantity",
+        headerName: "Quantity",
+        type: "number",
+        width: 100,
+        sortable: false,
+        disableColumnMenu: true,
+        flex: 1,
+      },
+      {
+        field: "actions",
+        headerName: "",
+        type: "actions",
+        align: "right",
+        width: 10,
+        sortable: false,
+        disableColumnMenu: true,
+        // use renderCell for full control and to return arbitrary JSX
+        renderCell: (params) => {
+          console.log(params);
+
+          const row = params.row;
+
+          if (row?.status === "Damaged") {
+            // Show simple tooltip + icon button for damaged items
+            return (
+              <Tooltip
+                title="1 unit of this material is damaged"
+                slotProps={{
+                  tooltip: {
+                    sx: {
+                      backgroundColor: "red",
+                      fontSize: "small",
+                    },
+                  },
+                }}
+              >
+                <PriorityHighIcon fontSize="large" color="error" />
+              </Tooltip>
+            );
+          }
+
+          // Default: use your GridActionsCellItem (keeps the previous behaviour)
+          return <></>;
+        },
+      },
+      {
+        field: "use",
+        headerName: "Use",
+        width: 220,
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        renderCell: (params) => (
+          // pass entire row to handler so confirmation can show row.name
+          <UseCell
+            row={params.row}
+            onUse={(rowObj, amount) => handleUse(rowObj, amount)}
+          />
+        ),
+      },
     ],
-    [handleUse],
+    [handleUse]
   );
 
-  const pageTitle = 'Inventory';
-
+  const pageTitle = "Inventory";
 
   return (
     <AppTheme {...props} themeComponents={themeComponents}>
       <CssBaseline enableColorScheme />
-          <PageContainer
-      title={pageTitle}
-      actions={
+      <PageContainer
+        title={pageTitle}
+        actions={
           <Tooltip title="Reload data" placement="right" enterDelay={1000}>
             <div>
-              <IconButton size="small" aria-label="refresh" onClick={handleRefresh}>
+              <IconButton
+                size="small"
+                aria-label="refresh"
+                onClick={handleRefresh}
+              >
                 <RefreshIcon />
               </IconButton>
             </div>
           </Tooltip>
-          
-      }
-    >
-      <Box sx={{ flex: 1, width: '100%' }}>
-        <DataGrid
+        }
+      >
+        <Box sx={{ flex: 1, width: "100%" }}>
+          <DataGrid
             rows={rowsState.rows}
             rowCount={rowsState.rowCount}
             columns={columns}
@@ -272,42 +354,40 @@ export default function InventoryPage(props) {
             pageSizeOptions={[5, INITIAL_PAGE_SIZE, 25]}
             sx={{
               [`& .${gridClasses.columnHeader}, & .${gridClasses.cell}`]: {
-                outline: 'transparent',
+                outline: "transparent",
               },
-              [`& .${gridClasses.columnHeader}:focus-within, & .${gridClasses.cell}:focus-within`]: {
-                outline: 'none',
-              },
-            
+              [`& .${gridClasses.columnHeader}:focus-within, & .${gridClasses.cell}:focus-within`]:
+                {
+                  outline: "none",
+                },
             }}
             slotProps={{
               loadingOverlay: {
-                variant: 'circular-progress',
-                noRowsVariant: 'circular-progress',
+                variant: "circular-progress",
+                noRowsVariant: "circular-progress",
               },
               baseIconButton: {
-                size: 'small',
+                size: "small",
               },
             }}
           />
-          </Box>
-    </PageContainer>
+        </Box>
+      </PageContainer>
     </AppTheme>
   );
 }
 
-
-
 function UseCell({ row, onUse }) {
   // keep the displayed value as a string to avoid fighting the TextField control
-  const [value, setValue] = useState('0');
+  const [value, setValue] = useState("0");
 
   useEffect(() => {
     // reset to 0 when the row changes
-    setValue('0');
+    setValue("0");
   }, [row?.id]);
 
   const parseAmount = (v) => {
-    if (v === '' || v == null) return 0;
+    if (v === "" || v == null) return 0;
     const n = Number(v);
     if (!Number.isFinite(n)) return 0;
     return Math.max(0, Math.floor(n));
@@ -338,7 +418,7 @@ function UseCell({ row, onUse }) {
 
   const handleKeyDown = (e) => {
     // allow Enter to trigger "Use"
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleClick();
     }
@@ -352,11 +432,10 @@ function UseCell({ row, onUse }) {
     onUse(row, useAmount);
   };
 
-  const numericValue = parseAmount(value);
-  const outOfStock = Number(row?.quantity || 0) <= 0;
+const max = row.status == "Damaged" ? row.quantity -1: row.quantity
 
   return (
-    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+    <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
       <TextField
         size="small"
         variant="outlined"
@@ -368,24 +447,16 @@ function UseCell({ row, onUse }) {
         aria-label={`use-amount-${row.id}`}
         inputProps={{
           min: 0,
-          max: Number(row?.quantity || 0),
-          inputMode: 'numeric',
-          pattern: '[0-9]*',
+          max: max,
+          inputMode: "numeric",
+          pattern: "[0-9]*",
           step: 1,
         }}
-        disabled={outOfStock}
-        helperText={outOfStock ? 'Out of stock' : ''} //RE
         // VIEW
       />
-      <Button
-        size="small"
-        variant="contained"
-        onClick={handleClick}
-      >
+      <Button size="small" variant="contained" onClick={handleClick}>
         Use
       </Button>
     </Box>
   );
 }
-
-

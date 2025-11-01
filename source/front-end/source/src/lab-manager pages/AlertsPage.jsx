@@ -17,10 +17,7 @@ const themeComponents = {
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField"; // <-- added
-import {
-  DataGrid,
-  gridClasses,
-} from "@mui/x-data-grid";
+import { DataGrid, gridClasses } from "@mui/x-data-grid";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { useDialogs } from "../hooks/useDialogs";
 
@@ -60,10 +57,16 @@ export default function AlertsPage(props) {
   );
 
   //row state and row count
-  const [rowsState, setRowsState] = useState({
+  const [AlertRowsState, setAlertRowsState] = useState({
     rows: [],
     rowCount: 0,
   });
+
+  const [LowStockrowsState, setLowStockRowsState] = useState({
+    rows: [],
+    rowCount: 0,
+  });
+
   const messagesInitializedRef = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -153,6 +156,10 @@ export default function AlertsPage(props) {
   //End mqtt code
   //
 
+  useEffect(() => {
+    console.log(messages);
+  }, [messages]);
+
   const handlePaginationModelChange = useCallback(
     (model) => {
       setPaginationModel(model);
@@ -197,7 +204,8 @@ export default function AlertsPage(props) {
       setIsLoading(true);
 
       // Optionally set rows to empty so the UI doesn't show stale content:
-      setRowsState({ rows: [], rowCount: 0 });
+      setAlertRowsState({ rows: [], rowCount: 0 });
+      setLowStockRowsState({ rows: [], rowCount: 0 });
 
       // Do not mark messages as "initialized" — wait until we actually receive data
       return;
@@ -218,15 +226,22 @@ export default function AlertsPage(props) {
               const response = await getMaterialById(msg.materialId);
               const mat = response.data;
               console.log(mat);
-              
+
               return {
                 name: mat.name,
                 quantity: mat.quantity,
                 threshold: mat.threshold,
-                status: mat.status,
+                status: msg.materialStatus,
                 category: mat.category.title ?? "-", // backend or fallback
                 materialId: mat.id,
-                researcher: mat.researcher ?? "-",
+                requested_quantity: msg.requested_quantity ?? 1,
+                researcher:
+                  (
+                    (msg?.user_name ?? "") +
+                    " " +
+                    (msg?.user_surname ?? "")
+                  ).trim() || "-",
+
                 type: msg.type ?? "",
               };
             } catch (err) {
@@ -251,13 +266,27 @@ export default function AlertsPage(props) {
         unifiedMaterials = unified;
       }
 
+      // permissive: missing or null/empty
+      const lowStockMaterials = unifiedMaterials.filter(
+        (m) => m.status == null || m.status === "None"
+      );
+
+      const alertMaterials = unifiedMaterials.filter(
+        (m) => m.status === "Damaged"
+      );
+
       // after a successful process of (possibly empty) messages we consider messages initialized
       messagesInitializedRef.current = true;
 
       // update rows
-      setRowsState({
-        rows: unifiedMaterials,
-        rowCount: unifiedMaterials.length,
+      setAlertRowsState({
+        rows: alertMaterials,
+        rowCount: alertMaterials.length,
+      });
+
+      setLowStockRowsState({
+        rows: lowStockMaterials,
+        rowCount: lowStockMaterials.length,
       });
     } finally {
       // Always clear loading after the real processing finishes
@@ -323,6 +352,63 @@ export default function AlertsPage(props) {
     [dialogs, loadData]
   );
 
+
+  const handleOrderAlert = useCallback(
+    async (row) => {
+      // Show confirmation
+      const confirmed = await dialogs.confirm(
+        `Do you want to order 1 unit of damaged "${
+          row.name
+        }"?`,
+        {
+          title: "Confirm replace",
+          severity: "warning",
+          okText: "Use",
+          cancelText: "Cancel",
+        }
+      );
+
+      if (!confirmed) return;
+
+      setIsLoading(true);
+      // try {
+      //   const payload = {
+      //     materialId: row.materialId,
+      //     userId: user.id,
+      //     quantity: 0,
+      //   };
+        // const result = await updateMaterialQuantity(department.id, payload);
+        // console.log(result);
+
+        // if (result.data === true || result === undefined) {
+          await loadData();
+          setMessages((prevMessages) =>
+            prevMessages.filter((msg) => msg.materialId !== row.materialId)
+          );
+
+          console.log("YEEEE");
+        // } else {
+        //   await dialogs.alert(`Unable to use the material.`, {
+        //     title: "Error",
+        //     severity: "error",
+        //   });
+        // }
+      // } catch (err) {
+      //   console.error("Error using material", err);
+      //   await dialogs.alert(`Error: ${err?.message ?? "Unknown error"}`, {
+      //     title: "Error",
+      //     severity: "error",
+      //   });
+      // } finally {
+      //   setIsLoading(false);
+      // }
+    },
+    [dialogs, loadData]
+  );
+
+
+  
+
   const initialState = useMemo(
     () => ({
       pagination: { paginationModel: { pageSize: INITIAL_PAGE_SIZE } },
@@ -330,7 +416,7 @@ export default function AlertsPage(props) {
     []
   );
 
-  const columns = useMemo(
+  const alertColumns = useMemo(
     () => [
       {
         field: "name",
@@ -338,7 +424,7 @@ export default function AlertsPage(props) {
         width: 180,
         sortable: false,
         disableColumnMenu: true,
-        flex:1
+        flex: 1,
       },
       {
         field: "researcher",
@@ -346,7 +432,7 @@ export default function AlertsPage(props) {
         width: 140,
         sortable: false,
         disableColumnMenu: true,
-        flex:1
+        flex: 1,
       },
       {
         field: "category",
@@ -354,15 +440,70 @@ export default function AlertsPage(props) {
         width: 140,
         sortable: false,
         disableColumnMenu: true,
-        flex:1
+        flex: 1,
+      },
+      
+      {
+        field: "orderQuantity",
+        headerName: "Replace",
+        width: 180,
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+
+        renderCell: (params) => (
+          // pass entire row to handler so confirmation can show row.name
+          <UseCellAlert
+            row={params.row}
+            onOrder={(rowObj, amount) => handleOrderAlert(rowObj)}
+          />
+        ),
+      },
+    ],
+    [handleOrder]
+  );
+
+const lowStoclColumns = useMemo(
+    () => [
+      {
+        field: "name",
+        headerName: "Name",
+        width: 180,
+        sortable: false,
+        disableColumnMenu: true,
+        flex: 1,
+      },
+      {
+        field: "researcher",
+        headerName: "Researcher",
+        width: 140,
+        sortable: false,
+        disableColumnMenu: true,
+        flex: 1,
+      },
+      {
+        field: "category",
+        headerName: "Category",
+        width: 140,
+        sortable: false,
+        disableColumnMenu: true,
+        flex: 1,
       },
       {
         field: "quantity",
-        headerName: "Quantity",
+        headerName: "Current Quantity",
         width: 100,
         sortable: false,
         disableColumnMenu: true,
-        flex:1
+        flex: 1,
+      },
+      {
+        field: "requested_quantity",
+        headerName: "Requested Quantity",
+        width: 100,
+        sortable: false,
+        disableColumnMenu: true,
+        flex: 1,
       },
       {
         field: "threshold",
@@ -370,7 +511,7 @@ export default function AlertsPage(props) {
         width: 100,
         sortable: false,
         disableColumnMenu: true,
-        flex:1
+        flex: 1,
       },
       {
         field: "orderQuantity",
@@ -379,10 +520,9 @@ export default function AlertsPage(props) {
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
-        flex:1,
         renderCell: (params) => (
           // pass entire row to handler so confirmation can show row.name
-          <UseCell
+          <UseCellLowStock
             row={params.row}
             onOrder={(rowObj, amount) => handleOrder(rowObj, amount)}
           />
@@ -399,10 +539,10 @@ export default function AlertsPage(props) {
       <PageContainer title={"Status Alert"}>
         <Box sx={{ flex: 1, width: "100%" }}>
           <DataGrid
-            rows={rowsState.rows}
-            rowCount={rowsState.rowCount ?? 0}
+            rows={AlertRowsState.rows}
+            rowCount={AlertRowsState.rowCount ?? 0}
             getRowId={(row) => row.materialId}
-            columns={columns}
+            columns={alertColumns}
             pagination
             sortingMode="server"
             sortModel={sortModel}
@@ -441,10 +581,10 @@ export default function AlertsPage(props) {
       <PageContainer title={"Low Stock"}>
         <Box sx={{ flex: 1, width: "100%" }}>
           <DataGrid
-            rows={rowsState.rows}
-            rowCount={rowsState.rowCount ?? 0}
+            rows={LowStockrowsState.rows}
+            rowCount={LowStockrowsState.rowCount ?? 0}
             getRowId={(row) => row.materialId}
-            columns={columns}
+            columns={lowStoclColumns}
             pagination
             sortingMode="server"
             sortModel={sortModel}
@@ -483,14 +623,14 @@ export default function AlertsPage(props) {
   );
 }
 
-function UseCell({ row, onOrder }) {
+function UseCellLowStock({ row, onOrder }) {
   // keep the displayed value as a string to avoid fighting the TextField control
-
-  const [value, setValue] = useState((row.threshold - row.quantity).toString());
+  const minValue = Math.max(0, row.threshold - row.quantity);
+  const [value, setValue] = useState(minValue.toString());
 
   useEffect(() => {
     // reset to 0 when the row changes
-    setValue((row.threshold - row.quantity).toString());
+    setValue(minValue.toString());
   }, [row?.id]);
 
   const parseAmount = (v) => {
@@ -508,7 +648,7 @@ function UseCell({ row, onOrder }) {
 
     // RULES:
     // - if prev === 0, don't allow decreasing (ignore any next < prev)
-    if (prev === row.threshold - row.quantity && next < prev) {
+    if (prev === minValue && next < prev) {
       return; // ignore
     }
     // - if prev === max, don't allow increasing (ignore any next > prev)
@@ -533,7 +673,7 @@ function UseCell({ row, onOrder }) {
 
   const handleClick = () => {
     const amount = parseAmount(value);
-    if (amount < row.threshold - row.quantity) return;
+    if (amount < minValue) return;
     onOrder(row, amount);
   };
 
@@ -562,5 +702,24 @@ function UseCell({ row, onOrder }) {
         Order
       </Button>
     </Box>
+  );
+}
+
+
+
+function UseCellAlert({ row, onOrder }) {
+  // keep the displayed value as a string to avoid fighting the TextField control
+
+
+  const handleClick = () => {
+    onOrder(row);
+  };
+
+
+  return (
+      
+      <Button size="small" variant="contained" onClick={handleClick}>
+        Order
+      </Button>
   );
 }

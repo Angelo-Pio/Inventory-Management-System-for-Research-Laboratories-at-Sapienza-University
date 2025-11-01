@@ -1,9 +1,13 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { getDepartmentMaterials, validateRequest } from "../services/labManagerServices";
+import {
+  getDepartmentMaterials,
+  validateRequest,
+} from "../services/labManagerServices";
 import { useAuth } from "../components/AuthContext";
 import RequestForm from "./RequestForm";
 import PageContainer from "../components/PageContainer";
+import { requestMaterial } from "../services/researcherServices";
 
 export default function RequestCreate() {
   const navigate = useNavigate();
@@ -18,20 +22,18 @@ export default function RequestCreate() {
   const formErrors = formState.errors;
 
   useEffect(() => {
-      const fetchMaterials = async () => {
-        try {
-          const data = await getDepartmentMaterials(user.departmentId);
-  
-          setMaterials(data.data);
-        } catch (err) {
-          console.error("Failed to load materials", err);
-        }
-      };
-  
-      fetchMaterials();
-    }, []);
+    const fetchMaterials = async () => {
+      try {
+        const data = await getDepartmentMaterials(user.departmentId);
+        console.log(data.data);
+        setMaterials(data.data);
+      } catch (err) {
+        console.error("Failed to load materials", err);
+      }
+    };
 
-    
+    fetchMaterials();
+  }, []);
 
   const setFormValues = useCallback((newFormValues) => {
     setFormState((previousState) => ({
@@ -99,11 +101,35 @@ export default function RequestCreate() {
       //     departmentId:departmentId
       //   };
       // }
+      const material = materials.find((m) => m.name === formValues.material);
+      console.log(material);
+      let payload = {}
 
-      console.log(formValues);
+      if (formValues.requestType === "Damaged") {  
+        payload = {
+          material_id: material.id,
+          researcher_id: user.id,
+          researcher_name: user.name,
+          researcher_surname: user.surname,
+          materialStatus: formValues.requestType,
+          quantity: 1,
+          requestStatus: "Pending",
+        };
+      }
+      else{
+        payload = {
+          material_id: material.id,
+          researcher_id: user.id,
+          researcher_name: user.name,
+          researcher_surname: user.surname,
+          materialStatus: formValues.requestType,
+          quantity: formValues.quantity,
+          requestStatus: "Pending",
+        };
+      }
+      console.log(payload);
       
-      
-      // await createUser(formValues);
+      await requestMaterial(payload.material_id,payload)
       const parentPath = location.pathname.substring(
         0,
         location.pathname.lastIndexOf("/")
@@ -122,7 +148,7 @@ export default function RequestCreate() {
         onSubmit={handleFormSubmit}
         onReset={handleFormReset}
         submitButtonLabel="Save"
-        materials = {materials}
+        materials={materials}
       />
     </PageContainer>
   );

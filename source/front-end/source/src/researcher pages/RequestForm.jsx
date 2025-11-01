@@ -107,40 +107,44 @@ export default function RequestForm(props) {
         </TextField>
 
         <Stack
-          direction="row"
-          spacing={2}
-          justifyContent="space-between"
-          sx={{ marginY: 5 }}
-        >
-          <TextField
-            select
-            variant="standard"
-            value={formValues.requestType ?? ""}
-            onChange={handleSelectFieldChange}
-            name="requestType"
-            label="Request Type"
-            error={!!formErrors.requestType}
-            helperText={formErrors.requestType ?? " "}
-            fullWidth
-          >
-            <MenuItem key="None" value="None">
-              None
-            </MenuItem>
-            <MenuItem key="Damaged" value="Damaged">
-              Damaged
-            </MenuItem>
-          </TextField>
-          <TextField
-            value={formValues.quantity ?? ""}
-            onChange={handleTextFieldChange}
-            name="quantity"
-            label="Quantity"
-            error={!!formErrors.quantity}
-            helperText={formErrors.quantity ?? " "}
-            fullWidth
-            variant="standard"
-          />
-        </Stack>
+  direction="row"
+  spacing={2}
+  justifyContent="space-between"
+  sx={{ marginY: 5 }}
+>
+  <TextField
+    select
+    variant="standard"
+    value={formValues.requestType ?? ""}
+    onChange={handleSelectFieldChange}
+    name="requestType"
+    label="Request Type"
+    error={!!formErrors.requestType}
+    helperText={formErrors.requestType ?? " "}
+    fullWidth
+  >
+    <MenuItem key="None" value="None">
+      None
+    </MenuItem>
+    <MenuItem key="Damaged" value="Damaged">
+      Damaged
+    </MenuItem>
+  </TextField>
+
+  {formValues.requestType === "None" && (
+    <TextField
+      value={formValues.quantity ?? ""}
+      onChange={handleTextFieldChange}
+      name="quantity"
+      label="Quantity"
+      error={!!formErrors.quantity}
+      helperText={formErrors.quantity ?? " "}
+      fullWidth
+      variant="standard"
+    />
+  )}
+</Stack>
+
         <TextField label="Description" variant="standard" fullWidth multiline sx={{marginY:5}} />
       </FormGroup>
       <Stack direction="row" spacing={2} justifyContent="space-between">

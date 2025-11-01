@@ -1,25 +1,25 @@
-import CssBaseline from '@mui/material/CssBaseline';
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useAuth } from '../components/AuthContext'; 
+import CssBaseline from "@mui/material/CssBaseline";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { useAuth } from "../components/AuthContext";
 
-
-import AppTheme from '../themes/AppTheme';
+import AppTheme from "../themes/AppTheme";
 import {
   dataGridCustomizations,
   datePickersCustomizations,
   formInputCustomizations,
-} from '../themes/customization';const themeComponents = {
+} from "../themes/customization";
+const themeComponents = {
   ...dataGridCustomizations,
   ...datePickersCustomizations,
   ...formInputCustomizations,
 };
-
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import Stack from '@mui/material/Stack';
-import Tooltip from '@mui/material/Tooltip';
+import PriorityHighIcon from "@mui/icons-material/PriorityHigh";
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import Stack from "@mui/material/Stack";
+import Tooltip from "@mui/material/Tooltip";
 import {
   DataGrid,
   GridActionsCellItem,
@@ -29,22 +29,18 @@ import {
   QuickFilterControl,
   QuickFilterTrigger,
   QuickFilterClear,
-} from '@mui/x-data-grid';
-import AddIcon from '@mui/icons-material/Add';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { useLocation, useNavigate, useSearchParams } from 'react-router';
-import { useDialogs } from '../hooks/useDialogs';
+} from "@mui/x-data-grid";
+import AddIcon from "@mui/icons-material/Add";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
+import { useDialogs } from "../hooks/useDialogs";
 // import useNotifications from '../hooks/useNotifications/useNotifications';
-import {
-  deleteMaterial,
-  getMany,
-} from '../services/labManagerServices';
-import PageContainer from '../components/PageContainer';
+import { deleteMaterial, getMany } from "../services/labManagerServices";
+import PageContainer from "../components/PageContainer";
 
-
-const INITIAL_PAGE_SIZE = 10
+const INITIAL_PAGE_SIZE = 10;
 
 function QuickSearchToolbar() {
   return (
@@ -56,34 +52,28 @@ function QuickSearchToolbar() {
   );
 }
 
-
 export default function InventoryPage(props) {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const {user} = useAuth();
-
-  
-  
+  const { user } = useAuth();
 
   const dialogs = useDialogs();
   // const notifications = useNotifications();
 
   const [paginationModel, setPaginationModel] = useState({
-    page: searchParams.get('page') ? Number(searchParams.get('page')) : 0, //get page number
-    pageSize: searchParams.get('pageSize') //get page size
-      ? Number(searchParams.get('pageSize'))
+    page: searchParams.get("page") ? Number(searchParams.get("page")) : 0, //get page number
+    pageSize: searchParams.get("pageSize") //get page size
+      ? Number(searchParams.get("pageSize"))
       : INITIAL_PAGE_SIZE,
   });
 
   // If a filter query param exists, it attempts to JSON.parse its value and use that as the initial filter mode
   const [filterModel, setFilterModel] = useState(
-    searchParams.get('filter')
-      ? JSON.parse(searchParams.get('filter') ?? '')
-      : { items: [] },
+    searchParams.get("filter")
+      ? JSON.parse(searchParams.get("filter") ?? "")
+      : { items: [] }
   );
-
- 
 
   //row state and row count
   const [rowsState, setRowsState] = useState({
@@ -97,36 +87,38 @@ export default function InventoryPage(props) {
   const handlePaginationModelChange = useCallback(
     (model) => {
       setPaginationModel(model);
-      searchParams.set('page', String(model.page));
-      searchParams.set('pageSize', String(model.pageSize));
+      searchParams.set("page", String(model.page));
+      searchParams.set("pageSize", String(model.pageSize));
       const newSearchParamsString = searchParams.toString();
-      navigate(`${pathname}${newSearchParamsString ? '?' : ''}${newSearchParamsString}`);
+      navigate(
+        `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
+      );
     },
-    [navigate, pathname, searchParams],
+    [navigate, pathname, searchParams]
   );
 
   const handleFilterModelChange = useCallback(
     (model) => {
       setFilterModel(model);
       console.log("model", model);
-      
+
       if (
         model.items.length > 0 ||
         (model.quickFilterValues && model.quickFilterValues.length > 0)
       ) {
-        searchParams.set('filter', JSON.stringify(model));
+        searchParams.set("filter", JSON.stringify(model));
       } else {
-        searchParams.delete('filter');
+        searchParams.delete("filter");
       }
       const newSearchParamsString = searchParams.toString();
       console.log("parm:", newSearchParamsString);
-      
-      navigate(`${pathname}${newSearchParamsString ? '?' : ''}${newSearchParamsString}`);
+
+      navigate(
+        `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
+      );
     },
-    [navigate, pathname, searchParams],
+    [navigate, pathname, searchParams]
   );
-
-
 
   const loadData = useCallback(async () => {
     setError(null);
@@ -138,7 +130,7 @@ export default function InventoryPage(props) {
         filterModel,
       });
       console.log(listData);
-      
+
       setRowsState({
         rows: listData.items,
         rowCount: listData.itemCount,
@@ -159,98 +151,166 @@ export default function InventoryPage(props) {
     }
   }, [isLoading, loadData]);
 
-
-
   const handleCreateClick = useCallback(() => {
-    navigate('new');
+    navigate("new");
   }, [navigate]);
-
-  
 
   const handleRowDelete = useCallback(
     (material) => async () => {
       console.log(material);
-      
+
       const confirmed = await dialogs.confirm(
         `Do you wish to delete ${material.name}?`,
         {
           title: `Delete material?`,
-          severity: 'error',
-          okText: 'Delete',
-          cancelText: 'Cancel',
-        },
+          severity: "error",
+          okText: "Delete",
+          cancelText: "Cancel",
+        }
       );
 
       if (confirmed) {
         setIsLoading(true);
         try {
-          await deleteMaterial(user.departmentId,material.id);
+          await deleteMaterial(user.departmentId, material.id);
           loadData();
-        } catch (deleteError) {
-        }
+        } catch (deleteError) {}
         setIsLoading(false);
       }
     },
-    [dialogs, loadData],
+    [dialogs, loadData]
   );
 
   const initialState = useMemo(
     () => ({
       pagination: { paginationModel: { pageSize: INITIAL_PAGE_SIZE } },
     }),
-    [],
+    []
   );
 
   const columns = useMemo(
     () => [
-      { field: 'name', headerName: 'Name', width: 180, sortable: false, disableColumnMenu: true },
-      { field: 'threshold', headerName: 'Threshold', type: 'number', width:100,sortable: false, disableColumnMenu: true },
-      { field: 'quantity', headerName: 'Quantity', type: 'number', width: 100,sortable: false, disableColumnMenu: true},
-      { field: 'category', headerName: 'Category', width:180,sortable: false, disableColumnMenu: true, valueGetter:(params) => params?.title ?? ''  },
       {
-        field: 'actions',
-        type: 'actions',
+        field: "name",
+        headerName: "Name",
+        width: 180,
+        sortable: false,
+        disableColumnMenu: true,
+      },
+      {
+        field: "threshold",
+        headerName: "Threshold",
+        type: "number",
+        width: 100,
+        sortable: false,
+        disableColumnMenu: true,
+      },
+      {
+        field: "quantity",
+        headerName: "Quantity",
+        type: "number",
+        width: 100,
+        sortable: false,
+        disableColumnMenu: true,
+      },
+      {
+        field: "category",
+        headerName: "Category",
+        width: 180,
+        sortable: false,
+        disableColumnMenu: true,
+        valueGetter: (params) => params?.title ?? "",
+      },
+      {
+        field: "actions",
+        headerName: "",
+        type: "actions",
         flex: 1,
-        align: 'right',
-        getActions: ({ row }) => [
-          
-          <GridActionsCellItem
-            key="delete-item"
-            icon={<DeleteIcon />}
-            label="Delete"
-            onClick={handleRowDelete(row)}
-          />,
-        ],
+        align: "right",
+        sortable: false,
+        disableColumnMenu: true,
+        // use renderCell for full control and to return arbitrary JSX
+        renderCell: (params) => {
+          console.log(params);
+
+          const row = params.row;
+
+          if (row?.status === "Damaged") {
+            // Show simple tooltip + icon button for damaged items
+            return (
+              <Stack direction="row" spacing={1} justifyContent="space-between">
+                <Tooltip
+                  title="1 unit of this material is damaged"
+                  slotProps={{
+                    tooltip: {
+                      sx: {
+                        backgroundColor: "red",
+                        fontSize:"small"
+                      },
+                    },
+                  }}
+                  onClick={()=> navigate("/labmanager-dashboard/alerts")}
+                >
+                  
+                  <PriorityHighIcon fontSize="large" color="error" />
+                </Tooltip>
+                <GridActionsCellItem
+                  key="delete-item"
+                  icon={<DeleteIcon />}
+                  label="Delete"
+                  onClick={handleRowDelete(row)}
+                />
+              </Stack>
+            );
+          }
+
+          // Default: use your GridActionsCellItem (keeps the previous behaviour)
+          return (
+            <GridActionsCellItem
+              key="delete-item"
+              icon={<DeleteIcon />}
+              label="Delete"
+              onClick={handleRowDelete(row)}
+            />
+          );
+        },
       },
     ],
-    [ handleRowDelete],
+    [handleRowDelete]
   );
 
-  const pageTitle = 'Inventory';
-
+  const pageTitle = "Inventory";
 
   return (
     <AppTheme {...props} themeComponents={themeComponents}>
       <CssBaseline enableColorScheme />
-          <PageContainer
-      title={pageTitle}
-      actions={
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Tooltip title="Reload data" placement="right" enterDelay={1000}>
-            <div>
-              <IconButton size="small" aria-label="refresh" onClick={handleRefresh}>
-                <RefreshIcon />
-              </IconButton>
-            </div>
-          </Tooltip>
-          <Button variant="contained" onClick={handleCreateClick} startIcon={<AddIcon />}>
-            Create
-          </Button>
-        </Stack>
-      }
-    >
-      <Box sx={{ flex: 1, width: '100%' }}>
-        <DataGrid
+      <PageContainer
+        title={pageTitle}
+        actions={
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Tooltip title="Reload data" placement="right" enterDelay={1000}>
+              <div>
+                <IconButton
+                  size="small"
+                  aria-label="refresh"
+                  onClick={handleRefresh}
+                >
+                  <RefreshIcon />
+                </IconButton>
+              </div>
+            </Tooltip>
+            <Button
+              variant="contained"
+              onClick={handleCreateClick}
+              startIcon={<AddIcon />}
+            >
+              Create
+            </Button>
+          </Stack>
+        }
+      >
+        <Box sx={{ flex: 1, width: "100%" }}>
+          <DataGrid
             rows={rowsState.rows}
             rowCount={rowsState.rowCount}
             columns={columns}
@@ -270,25 +330,25 @@ export default function InventoryPage(props) {
             pageSizeOptions={[5, INITIAL_PAGE_SIZE, 25]}
             sx={{
               [`& .${gridClasses.columnHeader}, & .${gridClasses.cell}`]: {
-                outline: 'transparent',
+                outline: "transparent",
               },
-              [`& .${gridClasses.columnHeader}:focus-within, & .${gridClasses.cell}:focus-within`]: {
-                outline: 'none',
-              },
-            
+              [`& .${gridClasses.columnHeader}:focus-within, & .${gridClasses.cell}:focus-within`]:
+                {
+                  outline: "none",
+                },
             }}
             slotProps={{
               loadingOverlay: {
-                variant: 'circular-progress',
-                noRowsVariant: 'circular-progress',
+                variant: "circular-progress",
+                noRowsVariant: "circular-progress",
               },
               baseIconButton: {
-                size: 'small',
+                size: "small",
               },
             }}
           />
-          </Box>
-    </PageContainer>
+        </Box>
+      </PageContainer>
     </AppTheme>
   );
 }

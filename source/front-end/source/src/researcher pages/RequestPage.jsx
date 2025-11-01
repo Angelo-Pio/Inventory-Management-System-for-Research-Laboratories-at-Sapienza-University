@@ -2,6 +2,8 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { useAuth } from "../components/AuthContext";
 
+import { getDepartmentMaterials } from "../services/labManagerServices";
+
 import AppTheme from "../themes/AppTheme";
 import {
   dataGridCustomizations,
@@ -39,6 +41,7 @@ import { useDialogs } from "../hooks/useDialogs";
 // import useNotifications from '../hooks/useNotifications/useNotifications';
 import { deleteMaterial, getAllRequests } from "../services/labManagerServices";
 import PageContainer from "../components/PageContainer";
+import { getResearcherRequests } from "../services/researcherServices";
 
 const INITIAL_PAGE_SIZE = 10;
 
@@ -57,11 +60,25 @@ export default function InventoryPage(props) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-
-  console.log(user.departmentId);
+  const [materials, setMaterials] = useState([]);
+    const [sortModel, setSortModel] = useState([{ field: 'requestStatus', sort: 'asc' }]);
+  
 
   const dialogs = useDialogs();
-  // const notifications = useNotifications();
+  //Get materials
+  useEffect(() => {
+    const fetchMaterials = async () => {
+      try {
+        const data = await getDepartmentMaterials(user.departmentId);
+        console.log(data.data);
+        setMaterials(data.data);
+      } catch (err) {
+        console.error("Failed to load materials", err);
+      }
+    };
+
+    fetchMaterials();
+  }, []);
 
   const [paginationModel, setPaginationModel] = useState({
     page: searchParams.get("page") ? Number(searchParams.get("page")) : 0, //get page number
@@ -102,7 +119,6 @@ export default function InventoryPage(props) {
   const handleFilterModelChange = useCallback(
     (model) => {
       setFilterModel(model);
-      console.log("model", model);
 
       if (
         model.items.length > 0 ||
@@ -113,7 +129,6 @@ export default function InventoryPage(props) {
         searchParams.delete("filter");
       }
       const newSearchParamsString = searchParams.toString();
-      console.log("parm:", newSearchParamsString);
 
       navigate(
         `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
@@ -126,18 +141,34 @@ export default function InventoryPage(props) {
     setError(null);
     setIsLoading(true);
     try {
-      const listData = await getAllRequests(user.departmentId);
-      console.log(listData);
+      const listData = await getResearcherRequests(user.id);
+
+      const materialMap = new Map((materials).map((m) => [m.id, m]));
+
+      const completeListData = listData.data.map((item) => {
+        const mat = materialMap.get(item.material_id);
+        
+        return {
+          ...item,
+          // add `name` from material if found, otherwise fallback to "-" or null
+          name: mat?.name ?? "-",
+          threshold: mat?.threshold ?? "-",
+          category: mat?.category ?? "-",
+
+        };
+      });
+
+      console.log(completeListData);
 
       setRowsState({
-        rows: listData.items,
-        rowCount: listData.itemCount,
+        rows: completeListData,
+        rowCount: completeListData.length,
       });
     } catch (listDataError) {
       setError(listDataError);
     }
     setIsLoading(false);
-  }, [paginationModel, filterModel]);
+  }, [paginationModel, filterModel, materials]);
 
   useEffect(() => {
     loadData();
@@ -194,6 +225,15 @@ export default function InventoryPage(props) {
         width: 180,
         sortable: false,
         disableColumnMenu: true,
+
+      },
+      {
+        field: "category",
+        headerName: "Category",
+        width: 180,
+        sortable: false,
+        disableColumnMenu: true,
+        valueGetter: (params) => params?.title ?? "",
       },
       {
         field: "threshold",
@@ -202,6 +242,7 @@ export default function InventoryPage(props) {
         width: 100,
         sortable: false,
         disableColumnMenu: true,
+        
       },
       {
         field: "quantity",
@@ -212,12 +253,19 @@ export default function InventoryPage(props) {
         disableColumnMenu: true,
       },
       {
-        field: "category",
-        headerName: "Category",
+        field: "materialStatus",
+        headerName: "Request Type",
         width: 180,
         sortable: false,
         disableColumnMenu: true,
-        valueGetter: (params) => params?.title ?? "",
+        valueGetter: (params) => params==="None" ? "Low quantity": "Damaged",
+      },
+      {
+        field: "requestStatus",
+        headerName: "Request Status",
+        width: 180,
+        sortable: false,
+        disableColumnMenu: true,
       },
       // {
       //   field: "actions",
@@ -237,7 +285,7 @@ export default function InventoryPage(props) {
     []
   );
 
-  const pageTitle = "Inventory";
+  const pageTitle = "Requests";
 
   return (
     <AppTheme {...props} themeComponents={themeComponents}>
@@ -272,11 +320,13 @@ export default function InventoryPage(props) {
             rows={rowsState.rows}
             rowCount={rowsState.rowCount}
             columns={columns}
+            getRowId={(row) => row.material_id}
             pagination
             sortingMode="server"
             filterMode="server"
             paginationMode="server"
-            getRowId={(row) => row.materialId}
+            sortModel={sortModel}
+
             paginationModel={paginationModel}
             onPaginationModelChange={handlePaginationModelChange}
             filterModel={filterModel}

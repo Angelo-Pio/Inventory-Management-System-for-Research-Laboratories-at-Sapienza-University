@@ -245,8 +245,8 @@ export function validateRequest(request) {
      issues = [...issues, { message: 'Request type is required', path: ['requestType'] }];
   }
 
-  if(!request.quantity){
-     issues = [...issues, { message: 'Quantity is required', path: ['quantity'] }];
+   if (request.requestType !== "Damaged" && !request.quantity) {
+    issues = [...issues, { message: 'Quantity is required', path: ['quantity'] }];
   }
 
 
