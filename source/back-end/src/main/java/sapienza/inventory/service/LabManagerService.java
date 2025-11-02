@@ -240,6 +240,11 @@ public class LabManagerService {
         Optional<MaterialRequest> materialRequest = materialRequestRepository.findById(requestId);
         if (materialRequest.isPresent()) {
             materialRequest.get().setRequestStatus("Done");
+            if (materialRequest.get().getMaterialStatus().equals("Damaged")) {
+                ResearchMaterial material = materialRequest.get().getMaterial();
+                material.setStatus("None");
+                researchMaterialRepository.save(material);
+            }
             materialRequestRepository.save(materialRequest.get());
             return true;
         }else {
