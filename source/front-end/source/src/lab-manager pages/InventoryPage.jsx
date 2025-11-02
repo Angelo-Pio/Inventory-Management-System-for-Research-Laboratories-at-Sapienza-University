@@ -157,7 +157,6 @@ export default function InventoryPage(props) {
 
   const handleRowDelete = useCallback(
     (material) => async () => {
-      console.log(material);
 
       const confirmed = await dialogs.confirm(
         `Do you wish to delete ${material.name}?`,
@@ -219,6 +218,7 @@ export default function InventoryPage(props) {
         width: 180,
         sortable: false,
         disableColumnMenu: true,
+        flex:1,
         valueGetter: (params) => params?.title ?? "",
       },
       {
@@ -231,7 +231,6 @@ export default function InventoryPage(props) {
         disableColumnMenu: true,
         // use renderCell for full control and to return arbitrary JSX
         renderCell: (params) => {
-          console.log(params);
 
           const row = params.row;
 

@@ -325,6 +325,7 @@ export default function AlertsPage(props) {
           userId: user.id,
           quantity: amount,
         };
+        const resultRequest = await markRequestAsDone(row.requestId);
         const result = await updateMaterialQuantity(department.id, payload);
         console.log(result);
 

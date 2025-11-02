@@ -7,7 +7,10 @@ import {
 import { useAuth } from "../components/AuthContext";
 import RequestForm from "./RequestForm";
 import PageContainer from "../components/PageContainer";
-import { requestMaterial } from "../services/researcherServices";
+import {
+  requestMaterial,
+  markDamagedAndIssue,
+} from "../services/researcherServices";
 
 export default function RequestCreate() {
   const navigate = useNavigate();
@@ -103,9 +106,9 @@ export default function RequestCreate() {
       // }
       const material = materials.find((m) => m.name === formValues.material);
       console.log(material);
-      let payload = {}
+      let payload = {};
 
-      if (formValues.requestType === "Damaged") {  
+      if (formValues.requestType === "Damaged") {
         payload = {
           material_id: material.id,
           researcher_id: user.id,
@@ -115,8 +118,10 @@ export default function RequestCreate() {
           quantity: 1,
           requestStatus: "Pending",
         };
-      }
-      else{
+        await markDamagedAndIssue(payload.material_id, user.id);
+        await requestMaterial(payload.material_id, payload);
+
+      } else {
         payload = {
           material_id: material.id,
           researcher_id: user.id,
@@ -126,10 +131,10 @@ export default function RequestCreate() {
           quantity: formValues.quantity,
           requestStatus: "Pending",
         };
+        await requestMaterial(payload.material_id, payload);
       }
       console.log(payload);
-      
-      await requestMaterial(payload.material_id,payload)
+
       const parentPath = location.pathname.substring(
         0,
         location.pathname.lastIndexOf("/")
