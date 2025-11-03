@@ -114,6 +114,21 @@ public class LabManagerController {
         return service.getAllRequests(departmentId);
     }
 
+    @GetMapping("/{departmentId}/graphdata/requests")
+    public List<MaterialRequestGD> getAllRequestsGraphData(@PathVariable Long departmentId) {
+        return service.getGraphRequests(departmentId);
+    }
+
+    @GetMapping("/{departmentId}/graphdata/totRestocked")
+    public Integer getTotalRestocked(@PathVariable Long departmentId) {
+;       return  service.getTotalRestocked(departmentId);
+    }
+
+    @GetMapping("/{departmentId}/graphdata/mostRestockedMaterial")
+    public ResearchMaterialDto getMostRestockedMaterial (@PathVariable Long departmentId) {
+        return service.getMostRestockedMaterial(departmentId);
+    }
+
     @PostMapping("/requests/{requestId}/done")
     public Boolean markRequestAsDone(@PathVariable Long requestId) {
         return service.markRequestAsDone(requestId);

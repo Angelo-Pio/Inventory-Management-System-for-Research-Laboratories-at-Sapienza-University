@@ -3,13 +3,8 @@ package sapienza.inventory.service;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import sapienza.inventory.dto.CategoryDto;
-import sapienza.inventory.dto.LabUserDto;
-import sapienza.inventory.dto.MaterialRequestDto;
-import sapienza.inventory.dto.ResearchMaterialDto;
+import sapienza.inventory.dto.*;
 import sapienza.inventory.mapper.AppMapper;
 import sapienza.inventory.model.*;
 import sapienza.inventory.repository.*;
@@ -286,5 +281,42 @@ public class LabManagerService {
         }else {
             return Optional.empty();
         }
+    }
+
+    public List<MaterialRequestGD> getGraphRequests(Long departmentId) {
+
+        List<MaterialRequest> materialRequests = materialRequestRepository.findAllByDepartmentIdLastDays(departmentId, LocalDateTime.now().minusDays(30));
+        List<MaterialRequestGD> materialRequestGDList = new LinkedList<>();
+        for (MaterialRequest r : materialRequests) {
+            materialRequestGDList.add(new MaterialRequestGD(r.getId(),r.getCreated_at(),r.getMaterialStatus(),r.getRequestStatus()));
+        }
+        return materialRequestGDList;
+
+    }
+
+    public Integer getTotalRestocked(Long departmentId) {
+
+        Integer sum = 0;
+        List<MaterialLogs> restockedMaterialsBeforeDate = materialLogsRepository.findRestockedMaterialsBeforeDate(departmentId, LocalDateTime.now().minusDays(30));
+        for (MaterialLogs log : restockedMaterialsBeforeDate) {
+            sum += log.getAdded();
+        }
+        return sum;
+    }
+
+    public ResearchMaterialDto getMostRestockedMaterial(Long departmentId) {
+
+        MaterialLogs l = null;
+        List<MaterialLogs> restockedMaterialsBeforeDate = materialLogsRepository.findRestockedMaterialsBeforeDate(departmentId, LocalDateTime.now().minusDays(30));
+        for (MaterialLogs log : restockedMaterialsBeforeDate) {
+            if(l == null){
+                l = log;
+            }else{
+                if(log.getAdded() > l.getAdded()){
+                    l = log;
+                }
+            }
+        }
+        return l != null ? appMapper.toResearchMaterialDto(l.getMaterial()) : null ;
     }
 }

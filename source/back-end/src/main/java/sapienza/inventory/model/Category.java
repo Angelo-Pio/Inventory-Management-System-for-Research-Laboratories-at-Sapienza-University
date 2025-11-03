@@ -20,6 +20,9 @@ public class Category {
     @Column(nullable = false, length = 150)
     private String title;
 
+    @Column(nullable = false)
+    private Boolean consumable = false;
+
     @OneToMany(mappedBy = "category")
     @JsonManagedReference
     private List<ResearchMaterial> researchMaterials;
