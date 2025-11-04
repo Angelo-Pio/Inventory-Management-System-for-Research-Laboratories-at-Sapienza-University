@@ -56,6 +56,11 @@ public class LabManagerController {
         return service.createCategory(request);
     }
 
+    @GetMapping("/material/category")
+    public List<CategoryDto> getAllCategories() {
+        return service.getAllCategories();
+    }
+
     @GetMapping("/material")
     public ResponseEntity<?> getMaterialById(@RequestParam Long id) {
         return service.getMaterial(id).<ResponseEntity<?>>map(ResponseEntity::ok)
