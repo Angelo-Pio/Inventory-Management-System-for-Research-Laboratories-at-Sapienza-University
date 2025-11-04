@@ -151,7 +151,7 @@ export default function EmployeeForm(props) {
         >
           {!isNewCategory ? (
             <>
-              <TextField
+              {/* <TextField
                 select
                 variant="standard"
                 value={formValues.category ?? ""}
@@ -167,7 +167,7 @@ export default function EmployeeForm(props) {
                     {cat.title}
                   </MenuItem>
                 ))}
-              </TextField>
+              </TextField> */}
 
               <Button
                 variant="contained"

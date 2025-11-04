@@ -146,7 +146,7 @@ export default function RequestCreate() {
   }, [formValues, navigate, setFormErrors]);
 
   return (
-    <PageContainer title="New User">
+    <PageContainer title="New Request">
       <RequestForm
         formState={formState}
         onFieldChange={handleFormFieldChange}

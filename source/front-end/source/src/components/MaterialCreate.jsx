@@ -35,6 +35,10 @@ export default function GridCreate() {
 
     fetchCategories();
   }, []);
+  useEffect(() => {
+    console.log(categories);
+    
+  }, [categories]);
 
   const setFormValues = useCallback((newFormValues) => {
     setFormState((previousState) => ({
@@ -49,6 +53,8 @@ export default function GridCreate() {
       errors: newFormErrors,
     }));
   }, []);
+
+
 
   const handleFormFieldChange = useCallback(
     (name, value) => {

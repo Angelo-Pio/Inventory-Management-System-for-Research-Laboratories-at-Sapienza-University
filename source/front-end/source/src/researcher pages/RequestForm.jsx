@@ -124,7 +124,7 @@ export default function RequestForm(props) {
     fullWidth
   >
     <MenuItem key="None" value="None">
-      None
+      Low Stock
     </MenuItem>
     <MenuItem key="Damaged" value="Damaged">
       Damaged

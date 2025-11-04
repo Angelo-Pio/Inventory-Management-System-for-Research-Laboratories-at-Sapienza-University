@@ -713,7 +713,7 @@ function UseCellAlert({ row, onOrder }) {
 
   return (
     <Button size="small" variant="contained" onClick={handleClick}>
-      Order
+      Replace
     </Button>
   );
 }

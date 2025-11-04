@@ -237,8 +237,30 @@ export default function InventoryPage(props) {
           if (row?.status === "Damaged") {
             // Show simple tooltip + icon button for damaged items
             return (
-              <Stack direction="row" spacing={1} justifyContent="space-between">
-                <Tooltip
+              // <Stack direction="row" spacing={1} justifyContent="space-between">
+              //   <Tooltip
+              //     title="1 unit of this material is damaged"
+              //     slotProps={{
+              //       tooltip: {
+              //         sx: {
+              //           backgroundColor: "red",
+              //           fontSize:"small"
+              //         },
+              //       },
+              //     }}
+              //     onClick={()=> navigate("/labmanager-dashboard/alerts")}
+              //   >
+                  
+              //     <PriorityHighIcon fontSize="large" color="error" />
+              //   </Tooltip>
+              //   <GridActionsCellItem
+              //     key="delete-item"
+              //     icon={<DeleteIcon />}
+              //     label="Delete"
+              //     onClick={handleRowDelete(row)}
+              //   />
+              // </Stack>
+              <Tooltip
                   title="1 unit of this material is damaged"
                   slotProps={{
                     tooltip: {
@@ -253,24 +275,18 @@ export default function InventoryPage(props) {
                   
                   <PriorityHighIcon fontSize="large" color="error" />
                 </Tooltip>
-                <GridActionsCellItem
-                  key="delete-item"
-                  icon={<DeleteIcon />}
-                  label="Delete"
-                  onClick={handleRowDelete(row)}
-                />
-              </Stack>
             );
           }
 
           // Default: use your GridActionsCellItem (keeps the previous behaviour)
           return (
-            <GridActionsCellItem
-              key="delete-item"
-              icon={<DeleteIcon />}
-              label="Delete"
-              onClick={handleRowDelete(row)}
-            />
+            // <GridActionsCellItem
+            //   key="delete-item"
+            //   icon={<DeleteIcon />}
+            //   label="Delete"
+            //   onClick={handleRowDelete(row)}
+            // />
+            <></>
           );
         },
       },
