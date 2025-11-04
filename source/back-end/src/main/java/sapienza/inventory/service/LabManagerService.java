@@ -143,6 +143,7 @@ public class LabManagerService {
         Optional<Department> department = departmentRepository.findById(departmentId);
         if (department.isPresent()) {
             LabUser labUser = appMapper.toLabUser(labUserDto);
+            labUser.setPassword(PasswordUtils.hashPassword(labUserDto.getPassword()));
             labUser.setDepartment(department.get());
             labUserRepository.save(labUser);
             return true;

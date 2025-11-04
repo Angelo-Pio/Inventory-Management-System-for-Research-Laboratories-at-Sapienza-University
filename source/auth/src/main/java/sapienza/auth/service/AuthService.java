@@ -23,9 +23,8 @@ public class AuthService {
 
         if (authUser.isPresent()) {
             AuthUser user = authUser.get();
-            String userEmail = user.getEmail();
             String userPassword = user.getPassword();
-            if (userEmail.equals(email) && userPassword.equals(password)) {
+            if (PasswordUtils.checkPassword(password, userPassword)) {
 
                 // Set cookie with role/id
                 Cookie roleCookie = new Cookie("role", user.getRole());

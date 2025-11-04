@@ -31,6 +31,7 @@ public class AdminService {
     public Boolean createUser(LabUserDto labuserdto) {
 
         LabUser labUser = appMapper.toLabUser(labuserdto);
+        labUser.setPassword(PasswordUtils.hashPassword(labuserdto.getPassword()));
         labUserRepository.save(labUser);
         return true;
     }
