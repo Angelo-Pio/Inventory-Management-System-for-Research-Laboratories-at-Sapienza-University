@@ -246,3 +246,67 @@ Temporary message persistence only; no long-term storage.
 - PORTS: 5672
 - TECHNOLOGICAL SPECIFICATION:
   - RabbitMQ
+
+---
+
+## CONTAINER_NAME: Notification
+
+### DESCRIPTION
+Service that sends alerts to MQTT broker at regular intervals, messages contain information about material stock lower that set threshold and researcher requests in Pending state
+
+### USER STORIES
+Supports notification-related parts of user stories 3, 6, 9, 10 (alerts and communication).
+
+### PORTS
+9003:8080
+
+### PERSISTENCE EVALUATION
+Temporary message persistence only; no long-term storage.
+
+### EXTERNAL SERVICES CONNECTIONS
+- Connected to the PostgreSQL database and RabbitMQ broker container.
+
+### TECHNOLOGICAL SPECIFICATION
+- RabbitMQ
+- Spring Boot
+
+### MICROSERVICE
+
+#### MICROSERVICE: notification-service
+- TYPE: notification
+- DESCRIPTION: Handles alerts sent to broker.
+- PORTS: 9003
+- TECHNOLOGICAL SPECIFICATION:
+  - RabbitMQ
+  - Spring Boot
+
+---
+
+## CONTAINER_NAME: Auth
+
+### DESCRIPTION
+Microservice responsible to manage authentication of system users
+
+### USER STORIES
+Supports notification-related parts of user story 14.
+
+### PORTS
+9002:8080
+
+### PERSISTENCE EVALUATION
+Temporary message persistence only; no long-term storage.
+
+### EXTERNAL SERVICES CONNECTIONS
+- Connected to the PostgreSQL database and front-end containers.
+
+### TECHNOLOGICAL SPECIFICATION
+- Spring Boot
+
+### MICROSERVICE
+
+#### MICROSERVICE: auth-service
+- TYPE: authentication
+- DESCRIPTION: Handles user authentication and authorization
+- PORTS: 9002
+- TECHNOLOGICAL SPECIFICATION:
+  - Spring Boot

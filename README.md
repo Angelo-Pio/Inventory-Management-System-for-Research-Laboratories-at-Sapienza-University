@@ -19,7 +19,7 @@ microservices
 TODO:
 1 capire le funzionalità del sistema, divisione in microservizi, disegnini (Lofi e omino)
 2 user stories e rest requests
-3 FP e COCOMO (chat gpt grazie mille)
+3 FP e COCOMO 
 4 SCRUM PLAN
 5 SVILUPPARE
 
