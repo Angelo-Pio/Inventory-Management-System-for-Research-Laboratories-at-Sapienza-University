@@ -44,9 +44,8 @@ public class LabManagerService {
 
         Optional<Category> category = categoryRepository.findByTitle(materialDto.getCategory().getTitle());
         if (category.isEmpty()) {
-            Category cat = new Category();
-            cat.setTitle(materialDto.getCategory().getTitle());
-            categoryRepository.save(cat);
+            Category category1 = appMapper.toCategory(materialDto.getCategory());
+            categoryRepository.save(category1);
         }
         category = categoryRepository.findByTitle(materialDto.getCategory().getTitle());
 

@@ -56,7 +56,7 @@ public class LabManagerController {
         return service.createCategory(request);
     }
 
-    @GetMapping("/material/category")
+    @GetMapping("/material/category/all")
     public List<CategoryDto> getAllCategories() {
         return service.getAllCategories();
     }
