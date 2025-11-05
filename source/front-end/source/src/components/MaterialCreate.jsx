@@ -102,10 +102,10 @@ export default function GridCreate() {
       if (formValues.newCategory) {
         payload = {
           ...formValues,
-          category: { title: formValues.newCategory },
+          category: { title: formValues.newCategory,  consumable: formValues.consumable },
         };
       }
-      const payloadNewCategory = { title: formValues.newCategory };
+      const payloadNewCategory = { title: formValues.newCategory, consumable: formValues.consumable };
 
 
       await addMaterial(user.departmentId, payload);

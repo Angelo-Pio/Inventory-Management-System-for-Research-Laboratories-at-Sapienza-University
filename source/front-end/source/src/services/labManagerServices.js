@@ -201,7 +201,7 @@ export function validate(material, categories=[]) {
     { message: "Category already exists", path: ['newCategory'] }
   ];
 }
-  
+ 
 
   return { issues };
 }

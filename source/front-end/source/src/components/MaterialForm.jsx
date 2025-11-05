@@ -26,18 +26,16 @@ export default function EmployeeForm(props) {
     onReset,
     submitButtonLabel,
     backButtonPath,
-    categories
+    categories,
   } = props;
 
-  const formValues =formState.values;
+  const formValues = formState.values;
   const formErrors = formState.errors;
 
   const navigate = useNavigate();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isNewCategory, setIsNewCategory] = useState(false);
-
-;
 
   const handleSubmit = useCallback(
     async (event) => {
@@ -74,7 +72,6 @@ export default function EmployeeForm(props) {
     [onFieldChange]
   );
 
-
   const handleSelectFieldChange = useCallback(
     (event) => {
       onFieldChange(event.target.name, event.target.value);
@@ -89,8 +86,11 @@ export default function EmployeeForm(props) {
   }, [formValues, onReset]);
 
   const handleBack = useCallback(() => {
-     const parentPath = location.pathname.substring(0, location.pathname.lastIndexOf("/"));
-  navigate(parentPath || "/"); 
+    const parentPath = location.pathname.substring(
+      0,
+      location.pathname.lastIndexOf("/")
+    );
+    navigate(parentPath || "/");
   }, [navigate, backButtonPath]);
 
   return (
@@ -145,7 +145,7 @@ export default function EmployeeForm(props) {
         </Stack>
         <Stack
           direction="row"
-          spacing={10}
+          spacing={5}
           justifyContent="space-between"
           sx={{ marginBottom: 5 }}
         >
@@ -182,24 +182,37 @@ export default function EmployeeForm(props) {
             </>
           ) : (
             <>
-            
               <TextField
                 variant="standard"
                 value={formValues.newCategory ?? ""}
                 onChange={handleCategoryFieldChange}
                 name="newCategory"
-                label="New Category"
+                label="New category name"
                 error={!!formErrors.newCategory}
                 helperText={formErrors.newCategory ?? " "}
                 fullWidth
               />
+              <FormControl error={!!formErrors.consumable} sx={{paddingRight: 10}}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formValues.consumable || false}
+                      onChange={handleSelectFieldChange}
+                      name="consumable"
+                    />
+                  }
+                  label="Consumable"
+                />
+                <FormHelperText>{formErrors.consumable ?? " "}</FormHelperText>
+              </FormControl>
 
               <Button
                 variant="contained"
                 onClick={() => {
-                  setIsNewCategory(false)
-                  onFieldChange("newCategory", "");}}
-                sx={{ lineHeight: 1, whiteSpace: "nowrap", paddingX: 3 }}
+                  setIsNewCategory(false);
+                  onFieldChange("newCategory", "");
+                }}
+                sx={{ lineHeight: 1, paddingY: 3 }}
               >
                 Select Existing Category
               </Button>
