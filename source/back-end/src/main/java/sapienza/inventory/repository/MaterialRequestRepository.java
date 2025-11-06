@@ -14,4 +14,7 @@ public interface MaterialRequestRepository extends JpaRepository<MaterialRequest
 
     @Query("select distinct r from MaterialRequest r where r.researcher.department.id = :depId and r.created_at >= :timestamp ")
     List<MaterialRequest> findAllByDepartmentIdLastDays(@Param("depId") Long departmentId, @Param("timestamp") LocalDateTime timestamp);
+
+    @Query("select r from MaterialRequest r where r.requestStatus = 'Completed' and r.researcher.department.id = :departmentId")
+    List<MaterialRequest> findAllByStatusCompleted(@Param("departmentId") Long departmentId);
 }

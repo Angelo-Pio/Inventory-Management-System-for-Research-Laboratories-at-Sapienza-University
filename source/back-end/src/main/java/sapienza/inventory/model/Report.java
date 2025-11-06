@@ -15,17 +15,19 @@ public class Report {
     private LinkedList<String> usages = new LinkedList<>() ;
     private LinkedList<String> restock = new LinkedList<>();
     private LinkedList<String> damage_requests = new LinkedList<>();
+    private LinkedList<String> requests_completed = new LinkedList<>();
 
 
     public Report() {
-        this.usages.add("Material Usage\nTimestamp,Material,Quantity,Researcher");
-        this.damage_requests.add("Equipment Damaged Requests\nTimestamp,Material,Request Status,Researcher");
-        this.restock.add("Restock\nTimestamp,Material,Quantity,Lab Manager");
-
+        this.usages.add("Material Usage:\nTimestamp,Material,Quantity,Researcher\n");
+        this.damage_requests.add("Equipment Damaged Requests:\nTimestamp,Material,Request Status,Researcher\n");
+        this.restock.add("Restock:\nTimestamp,Material,Quantity,Lab Manager\n");
+        this.requests_completed.add("Requests Completed:\nIssued by,Created_at,Processed_at,Type\n");
     }
     public Resource toCSV(
             Integer tot_used,
-            Integer tot_added
+            Integer tot_added,
+            Integer tot_completed
 
             ){
 
@@ -38,10 +40,10 @@ public class Report {
         csv.append("\nTotal materials restocked: "+tot_added + "\n");
 
 
-        /*String.join("\n", this.damage_requests);
-        csv.append(String.join("\n", this.damage_requests));
-        csv.append("\nTotal materials damaged: "+tot_damaged + "\n");
-        */
+        String.join("\n", this.requests_completed);
+        csv.append(String.join("\n", this.requests_completed));
+        csv.append("\nTotal requests completed: "+tot_completed + "\n");
+
 
 
         ByteArrayResource resource = new ByteArrayResource( csv.toString().getBytes());

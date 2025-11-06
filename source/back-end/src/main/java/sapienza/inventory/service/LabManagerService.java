@@ -209,7 +209,26 @@ public class LabManagerService {
 
         }
 
-        return report.toCSV(tot_used,tot_added);
+        // requests completed
+        List<MaterialRequest> allByStatusCompleted = materialRequestRepository.findAllByStatusCompleted(departmentId);
+        Integer tot_completed = allByStatusCompleted.size();
+        format = "%s,%s,%s,%s";
+        //Requests Completed\nIssued by,Created_at,Processed_at,Type
+        for (MaterialRequest r : allByStatusCompleted) {
+            String type = r.getQuantity() > 0 ? "Stock request" : "Damaged Equipment";
+
+            report.getRequests_completed().add(
+                    String.format(format,
+                            r.getResearcher().getName()+" "+r.getResearcher().getSurname(),
+                            r.getCreated_at().format(DateTimeFormatter.ofPattern("EEEE M/d/yyyy 'at' HH:mm", Locale.ENGLISH)),
+                            r.getProcessed_at().format(DateTimeFormatter.ofPattern("EEEE M/d/yyyy 'at' HH:mm", Locale.ENGLISH)),
+                            type
+
+                    )
+            );
+        }
+
+        return report.toCSV(tot_used,tot_added,tot_completed);
 
 
 
