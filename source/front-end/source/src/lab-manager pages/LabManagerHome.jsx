@@ -7,6 +7,7 @@ import CustomDatePicker from "../components/CustomDataPicker";
 import { downloadReport } from "../services/labManagerServices";
 import { useEffect, useState } from "react";
 import { useAuth } from '../components/AuthContext'; 
+import {getRequestsGraphData,getTotalRestocked,getMostRestockedMaterial} from "../services/labManagerServices"
 
 import dayjs from "dayjs";
 
@@ -57,8 +58,44 @@ export default function LabManagerHome() {
   const [endDate, setEndDate] = useState(dayjs("2025-10-01"));
   const { user } = useAuth();
 
+const [requestsData, setRequestsData] = useState(null);
+  const [totalRestocked, setTotalRestocked] = useState(null);
+  const [mostRestocked, setMostRestocked] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const departmentId = user.departmentId
 
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [
+          requestsResponse,
+          totalRestockedResponse,
+          mostRestockedResponse
+        ] = await Promise.all([
+          getRequestsGraphData(departmentId),
+          getTotalRestocked(departmentId),
+          getMostRestockedMaterial(departmentId),
+        ]);
 
+        setRequestsData(requestsResponse);
+        setTotalRestocked(totalRestockedResponse);
+        setMostRestocked(mostRestockedResponse);
+      } catch (err) {
+        console.error("Error loading dashboard data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [departmentId]);
+
+  useEffect(()=>{
+    console.log(requestsData);
+    console.log(totalRestocked);
+    console.log(mostRestocked);
+    
+  },[requestsData, totalRestocked, mostRestocked])
 
   const handleDownload = async () => {
     // simple validation

@@ -26,18 +26,16 @@ export default function EmployeeForm(props) {
     onReset,
     submitButtonLabel,
     backButtonPath,
-    categories
+    categories,
   } = props;
 
-  const formValues =formState.values;
+  const formValues = formState.values;
   const formErrors = formState.errors;
 
   const navigate = useNavigate();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isNewCategory, setIsNewCategory] = useState(false);
-
-;
 
   const handleSubmit = useCallback(
     async (event) => {
@@ -69,15 +67,24 @@ export default function EmployeeForm(props) {
 
   const handleCategoryFieldChange = useCallback(
     (event) => {
+      
       onFieldChange(event.target.name, event.target.value);
     },
     [onFieldChange]
   );
 
-
   const handleSelectFieldChange = useCallback(
     (event) => {
+      console.log(categories.find((cat=> cat.title === formValues?.category)));
+
       onFieldChange(event.target.name, event.target.value);
+    },
+    [onFieldChange]
+  );
+
+  const handleCheckboxChange = useCallback(
+    (e, checked) => {
+      onFieldChange("consumable", checked);
     },
     [onFieldChange]
   );
@@ -89,8 +96,11 @@ export default function EmployeeForm(props) {
   }, [formValues, onReset]);
 
   const handleBack = useCallback(() => {
-     const parentPath = location.pathname.substring(0, location.pathname.lastIndexOf("/"));
-  navigate(parentPath || "/"); 
+    const parentPath = location.pathname.substring(
+      0,
+      location.pathname.lastIndexOf("/")
+    );
+    navigate(parentPath || "/");
   }, [navigate, backButtonPath]);
 
   return (
@@ -113,41 +123,19 @@ export default function EmployeeForm(props) {
           fullWidth
           variant="standard"
         />
-        <TextField label="Description" variant="standard" fullWidth multiline />
+        <TextField
+          label="Description"
+          variant="standard"
+          fullWidth
+          multiline
+          sx={{ marginTop: 4 }}
+        />
+
         <Stack
           direction="row"
-          spacing={2}
+          spacing={5}
           justifyContent="space-between"
           sx={{ marginY: 5 }}
-        >
-          <TextField
-            type="number"
-            variant="standard"
-            value={formValues.threshold ?? ""}
-            onChange={handleNumberFieldChange}
-            name="threshold"
-            label="Threshold"
-            error={!!formErrors.threshold}
-            helperText={formErrors.threshold ?? " "}
-            fullWidth
-          />
-          <TextField
-            type="number"
-            variant="standard"
-            value={formValues.quantity ?? ""}
-            onChange={handleNumberFieldChange}
-            name="quantity"
-            label="Quantity"
-            error={!!formErrors.quantity}
-            helperText={formErrors.quantity ?? " "}
-            fullWidth
-          />
-        </Stack>
-        <Stack
-          direction="row"
-          spacing={10}
-          justifyContent="space-between"
-          sx={{ marginBottom: 5 }}
         >
           {!isNewCategory ? (
             <>
@@ -182,30 +170,77 @@ export default function EmployeeForm(props) {
             </>
           ) : (
             <>
-            
               <TextField
                 variant="standard"
                 value={formValues.newCategory ?? ""}
                 onChange={handleCategoryFieldChange}
                 name="newCategory"
-                label="New Category"
+                label="New category name"
                 error={!!formErrors.newCategory}
                 helperText={formErrors.newCategory ?? " "}
                 fullWidth
               />
+              <FormControl sx={{ paddingRight: 10 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={!!formValues.consumable}
+                      onChange={handleCheckboxChange}
+                      name="consumable"
+                    />
+                  }
+                  label="Consumable"
+                />
+                <FormHelperText></FormHelperText>
+              </FormControl>
 
               <Button
                 variant="contained"
                 onClick={() => {
-                  setIsNewCategory(false)
-                  onFieldChange("newCategory", "");}}
-                sx={{ lineHeight: 1, whiteSpace: "nowrap", paddingX: 3 }}
+                  setIsNewCategory(false);
+                  onFieldChange("newCategory", "");
+                }}
+                sx={{ lineHeight: 1, paddingY: 3 }}
               >
                 Select Existing Category
               </Button>
             </>
           )}
         </Stack>
+        {(categories.find((cat=> cat.title === formValues?.category))?.consumable) || formValues?.consumable ? (
+        
+          <Stack
+            direction="row"
+            spacing={2}
+            justifyContent="space-between"
+            sx={{ marginBottom: 5 }}
+          >
+            <TextField
+              type="number"
+              variant="standard"
+              value={formValues.threshold ?? ""}
+              onChange={handleNumberFieldChange}
+              name="threshold"
+              label="Threshold"
+              error={!!formErrors.threshold}
+              helperText={formErrors.threshold ?? " "}
+              fullWidth
+            />
+            <TextField
+              type="number"
+              variant="standard"
+              value={formValues.quantity ?? ""}
+              onChange={handleNumberFieldChange}
+              name="quantity"
+              label="Quantity"
+              error={!!formErrors.quantity}
+              helperText={formErrors.quantity ?? " "}
+              fullWidth
+            />
+          </Stack>
+        ) : (
+            <></>
+        )}
       </FormGroup>
       <Stack direction="row" spacing={2} justifyContent="space-between">
         <Button

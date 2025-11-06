@@ -1,5 +1,25 @@
 import { apiCall } from './api';
 
+//Dashboard management
+export const getRequestsGraphData = async (departmentId) => {
+  return await apiCall(`/management/${departmentId}/graphdata/requests`, {
+    method: 'GET',
+  });
+};
+
+export const getTotalRestocked = async (departmentId) => {
+  return await apiCall(`/management/${departmentId}/graphdata/totRestocked`, {
+    method: 'GET',
+  });
+};
+
+export const getMostRestockedMaterial = async (departmentId) => {
+  return await apiCall(`/management/${departmentId}/graphdata/mostRestockedMaterial`, {
+    method: 'GET',
+  });
+};
+
+
 
 // Material management
 export const addMaterial = async (departmentId, materialData) => {
@@ -177,13 +197,13 @@ export function validate(material, categories=[]) {
     issues = [...issues, { message: 'Name is required', path: ['name'] }];
   }
 
-  if(!material.quantity){
-     issues = [...issues, { message: 'Quantity is required', path: ['quantity'] }];
-  }
+  // if(!material.quantity){
+  //    issues = [...issues, { message: 'Quantity is required', path: ['quantity'] }];
+  // }
 
-  if(!material.threshold){
-     issues = [...issues, { message: 'Threshold is required', path: ['threshold'] }];
-  }
+  // if(!material.threshold){
+  //    issues = [...issues, { message: 'Threshold is required', path: ['threshold'] }];
+  // }
 
 
   if (!material.newCategory && !material.category) {
@@ -201,7 +221,9 @@ export function validate(material, categories=[]) {
     { message: "Category already exists", path: ['newCategory'] }
   ];
 }
-  
+ 
+// console.log(issues);
+
 
   return { issues };
 }
@@ -216,7 +238,7 @@ export const createCategory = async (categoryData) => {
 
 // Fetch all categories
 export const getAllCategories = async () => {
-  return await apiCall(`/management/material/category`);
+  return await apiCall(`/management/material/category/all`);
 };
 
 // Fetch all material requests for a specific department

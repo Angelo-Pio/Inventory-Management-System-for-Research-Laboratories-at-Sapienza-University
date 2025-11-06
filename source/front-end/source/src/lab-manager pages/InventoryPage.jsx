@@ -39,6 +39,7 @@ import { useDialogs } from "../hooks/useDialogs";
 // import useNotifications from '../hooks/useNotifications/useNotifications';
 import { deleteMaterial, getMany } from "../services/labManagerServices";
 import PageContainer from "../components/PageContainer";
+import Typography from "@mui/material/Typography";
 
 const INITIAL_PAGE_SIZE = 10;
 
@@ -157,7 +158,6 @@ export default function InventoryPage(props) {
 
   const handleRowDelete = useCallback(
     (material) => async () => {
-      console.log(material);
 
       const confirmed = await dialogs.confirm(
         `Do you wish to delete ${material.name}?`,
@@ -219,7 +219,19 @@ export default function InventoryPage(props) {
         width: 180,
         sortable: false,
         disableColumnMenu: true,
+        flex:1,
         valueGetter: (params) => params?.title ?? "",
+      },
+      {
+        field: "consumable",
+        headerName: "Consumable",
+        width: 180,
+        sortable: false,
+        disableColumnMenu: true,
+        flex:1,renderCell: (params) => {
+    const val = params.row?.category?.consumable;
+    return <Typography sx={{textAlign:"center", paddingY:2}}>{val === undefined ? "sasa" : val ? "Yes" : "No"}</Typography>;
+  }
       },
       {
         field: "actions",
@@ -231,15 +243,36 @@ export default function InventoryPage(props) {
         disableColumnMenu: true,
         // use renderCell for full control and to return arbitrary JSX
         renderCell: (params) => {
-          console.log(params);
 
           const row = params.row;
 
           if (row?.status === "Damaged") {
             // Show simple tooltip + icon button for damaged items
             return (
-              <Stack direction="row" spacing={1} justifyContent="space-between">
-                <Tooltip
+              // <Stack direction="row" spacing={1} justifyContent="space-between">
+              //   <Tooltip
+              //     title="1 unit of this material is damaged"
+              //     slotProps={{
+              //       tooltip: {
+              //         sx: {
+              //           backgroundColor: "red",
+              //           fontSize:"small"
+              //         },
+              //       },
+              //     }}
+              //     onClick={()=> navigate("/labmanager-dashboard/alerts")}
+              //   >
+                  
+              //     <PriorityHighIcon fontSize="large" color="error" />
+              //   </Tooltip>
+              //   <GridActionsCellItem
+              //     key="delete-item"
+              //     icon={<DeleteIcon />}
+              //     label="Delete"
+              //     onClick={handleRowDelete(row)}
+              //   />
+              // </Stack>
+              <Tooltip
                   title="1 unit of this material is damaged"
                   slotProps={{
                     tooltip: {
@@ -254,24 +287,18 @@ export default function InventoryPage(props) {
                   
                   <PriorityHighIcon fontSize="large" color="error" />
                 </Tooltip>
-                <GridActionsCellItem
-                  key="delete-item"
-                  icon={<DeleteIcon />}
-                  label="Delete"
-                  onClick={handleRowDelete(row)}
-                />
-              </Stack>
             );
           }
 
           // Default: use your GridActionsCellItem (keeps the previous behaviour)
           return (
-            <GridActionsCellItem
-              key="delete-item"
-              icon={<DeleteIcon />}
-              label="Delete"
-              onClick={handleRowDelete(row)}
-            />
+            // <GridActionsCellItem
+            //   key="delete-item"
+            //   icon={<DeleteIcon />}
+            //   label="Delete"
+            //   onClick={handleRowDelete(row)}
+            // />
+            <></>
           );
         },
       },

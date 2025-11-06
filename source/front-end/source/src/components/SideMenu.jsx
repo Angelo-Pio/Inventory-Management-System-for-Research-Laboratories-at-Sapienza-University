@@ -11,6 +11,8 @@ import Logo from "./Logo";
 import MenuContentLabManager from "./MenuContentLabManager";
 import MenuContentAdmin from "./MenuContentAdmin";
 import MenuContentResearcher from "./MenuContentResearcher"
+import Logout from './Logout';
+
 const drawerWidth = 240;
 
 const Drawer = styled(MuiDrawer)({
@@ -93,15 +95,15 @@ export default function SideMenu() {
           borderColor: "divider",
         }}
       >
-        <Avatar
+        {/* <Avatar
           alt={`${user.name} ${user.surname}`}
           src="/static/images/avatar/7.jpg"
           sx={{ width: 36, height: 36 }}
-        />
+        /> */}
         <Box sx={{ mr: "auto" }}>
           <Typography
             variant="body2"
-            sx={{ fontWeight: 500, lineHeight: "16px" }}
+            sx={{ fontWeight: 300, lineHeight: "16px" }}
           >
             {user.name} {user.surname}
           </Typography>
@@ -109,6 +111,7 @@ export default function SideMenu() {
             {user.email}
           </Typography>
         </Box>
+        <Logout/>
       </Stack>
     </Drawer>
   );

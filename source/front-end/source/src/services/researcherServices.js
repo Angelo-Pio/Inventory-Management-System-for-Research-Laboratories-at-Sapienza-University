@@ -52,7 +52,7 @@ export const requestMaterial = async (materialId, requestBody) => {
 
 // Mark material as damaged and issue a ticket
 export const markDamagedAndIssue = async (materialId, labUserId) => {
-  return await apiCall(`/management/material/${materialId}/issue?labUserId=${labUserId}`, {
+  return await apiCall(`/material/${materialId}/issue?labUserId=${labUserId}`, {
     method: "POST",
   });
 };

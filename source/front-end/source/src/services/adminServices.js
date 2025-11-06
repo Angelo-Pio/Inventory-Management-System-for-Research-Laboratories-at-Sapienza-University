@@ -65,11 +65,11 @@ export const getDepartmentIdByName = (departments, name) => {
 //FilterUser function
 export async function getFilteredUsers({ departmentId, paginationModel = { page: 0, pageSize: 10 }, filterModel = { items: [] } }) {
   if (departmentId == null) throw new Error('departmentId is required');
-  const users = await getAllResearchersOfDepartment(departmentId)
+  const users = await getAllUsers(departmentId)
   
   let filtered = Array.isArray(users.data) ? [...users.data] : [];
-  
-// console.log(filtered);
+  filtered = filtered.filter(user => user.role !== "admin")
+console.log(filtered);
 
 
   // Helper to read nested fields if needed

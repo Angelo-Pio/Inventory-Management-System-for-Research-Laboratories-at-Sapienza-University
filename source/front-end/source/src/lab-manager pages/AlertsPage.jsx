@@ -24,6 +24,7 @@ import { useDialogs } from "../hooks/useDialogs";
 import {
   updateMaterialQuantity,
   getMaterialById,
+  markRequestAsDone,
 } from "../services/labManagerServices";
 
 import PageContainer from "../components/PageContainer";
@@ -156,10 +157,6 @@ export default function AlertsPage(props) {
   //End mqtt code
   //
 
-  useEffect(() => {
-    console.log(messages);
-  }, [messages]);
-
   const handlePaginationModelChange = useCallback(
     (model) => {
       setPaginationModel(model);
@@ -220,21 +217,26 @@ export default function AlertsPage(props) {
         // real empty (we've already initialized before)
         unifiedMaterials = [];
       } else {
+        console.log(messages);
+
         const unified = await Promise.all(
           messages.map(async (msg) => {
             try {
               const response = await getMaterialById(msg.materialId);
               const mat = response.data;
-              console.log(mat);
 
               return {
                 name: mat.name,
                 quantity: mat.quantity,
                 threshold: mat.threshold,
                 status: msg.materialStatus,
+                requestId: msg.requestId ?? mat.name,
                 category: mat.category.title ?? "-", // backend or fallback
                 materialId: mat.id,
-                requested_quantity: msg.requested_quantity ?? 1,
+                requested_quantity:
+                  msg.materialStatus === "Damaged"
+                    ? 1
+                    : msg.requested_quantity ?? mat.threshold - mat.quantity,
                 researcher:
                   (
                     (msg?.user_name ?? "") +
@@ -308,8 +310,8 @@ export default function AlertsPage(props) {
         }"?`,
         {
           title: "Confirm order",
-          severity: "warning",
-          okText: "Use",
+          severity: "success",
+          okText: "Order",
           cancelText: "Cancel",
         }
       );
@@ -323,6 +325,7 @@ export default function AlertsPage(props) {
           userId: user.id,
           quantity: amount,
         };
+        const resultRequest = await markRequestAsDone(row.requestId);
         const result = await updateMaterialQuantity(department.id, payload);
         console.log(result);
 
@@ -352,18 +355,15 @@ export default function AlertsPage(props) {
     [dialogs, loadData]
   );
 
-
   const handleOrderAlert = useCallback(
     async (row) => {
       // Show confirmation
       const confirmed = await dialogs.confirm(
-        `Do you want to order 1 unit of damaged "${
-          row.name
-        }"?`,
+        `Do you want to replace 1 unit of damaged "${row.name}"?`,
         {
           title: "Confirm replace",
           severity: "warning",
-          okText: "Use",
+          okText: "Replace",
           cancelText: "Cancel",
         }
       );
@@ -371,43 +371,40 @@ export default function AlertsPage(props) {
       if (!confirmed) return;
 
       setIsLoading(true);
-      // try {
-      //   const payload = {
-      //     materialId: row.materialId,
-      //     userId: user.id,
-      //     quantity: 0,
-      //   };
-        // const result = await updateMaterialQuantity(department.id, payload);
-        // console.log(result);
+      try {
+        const payload = {
+          materialId: row.materialId,
+          userId: user.id,
+          quantity: 0,
+        };
+        const result = await markRequestAsDone(row.requestId);
+        console.log(result);
 
-        // if (result.data === true || result === undefined) {
-          await loadData();
+        if (result.data === true || result === undefined) {
           setMessages((prevMessages) =>
             prevMessages.filter((msg) => msg.materialId !== row.materialId)
           );
+          await loadData();
 
           console.log("YEEEE");
-        // } else {
-        //   await dialogs.alert(`Unable to use the material.`, {
-        //     title: "Error",
-        //     severity: "error",
-        //   });
-        // }
-      // } catch (err) {
-      //   console.error("Error using material", err);
-      //   await dialogs.alert(`Error: ${err?.message ?? "Unknown error"}`, {
-      //     title: "Error",
-      //     severity: "error",
-      //   });
-      // } finally {
-      //   setIsLoading(false);
-      // }
+        } else {
+          await dialogs.alert(`Unable to order the material.`, {
+            title: "Error",
+            severity: "error",
+          });
+        }
+      } catch (err) {
+        console.error("Error ordering material", err);
+        await dialogs.alert(`Error: ${err?.message ?? "Unknown error"}`, {
+          title: "Error",
+          severity: "error",
+        });
+      } finally {
+        setIsLoading(false);
+      }
     },
     [dialogs, loadData]
   );
-
-
-  
 
   const initialState = useMemo(
     () => ({
@@ -442,7 +439,7 @@ export default function AlertsPage(props) {
         disableColumnMenu: true,
         flex: 1,
       },
-      
+
       {
         field: "orderQuantity",
         headerName: "Replace",
@@ -463,7 +460,7 @@ export default function AlertsPage(props) {
     [handleOrder]
   );
 
-const lowStoclColumns = useMemo(
+  const lowStockColumns = useMemo(
     () => [
       {
         field: "name",
@@ -532,7 +529,6 @@ const lowStoclColumns = useMemo(
     [handleOrder]
   );
 
-
   return (
     <AppTheme {...props} themeComponents={themeComponents}>
       <CssBaseline enableColorScheme />
@@ -541,7 +537,7 @@ const lowStoclColumns = useMemo(
           <DataGrid
             rows={AlertRowsState.rows}
             rowCount={AlertRowsState.rowCount ?? 0}
-            getRowId={(row) => row.materialId}
+            getRowId={(row) => row.requestId}
             columns={alertColumns}
             pagination
             sortingMode="server"
@@ -583,8 +579,8 @@ const lowStoclColumns = useMemo(
           <DataGrid
             rows={LowStockrowsState.rows}
             rowCount={LowStockrowsState.rowCount ?? 0}
-            getRowId={(row) => row.materialId}
-            columns={lowStoclColumns}
+            getRowId={(row) => row.requestId}
+            columns={lowStockColumns}
             pagination
             sortingMode="server"
             sortModel={sortModel}
@@ -625,7 +621,10 @@ const lowStoclColumns = useMemo(
 
 function UseCellLowStock({ row, onOrder }) {
   // keep the displayed value as a string to avoid fighting the TextField control
-  const minValue = Math.max(0, row.threshold - row.quantity);
+  const minValue = Math.max(
+    row.requested_quantity,
+    row.threshold - row.quantity
+  );
   const [value, setValue] = useState(minValue.toString());
 
   useEffect(() => {
@@ -705,21 +704,16 @@ function UseCellLowStock({ row, onOrder }) {
   );
 }
 
-
-
 function UseCellAlert({ row, onOrder }) {
   // keep the displayed value as a string to avoid fighting the TextField control
-
 
   const handleClick = () => {
     onOrder(row);
   };
 
-
   return (
-      
-      <Button size="small" variant="contained" onClick={handleClick}>
-        Order
-      </Button>
+    <Button size="small" variant="contained" onClick={handleClick}>
+      Replace
+    </Button>
   );
 }

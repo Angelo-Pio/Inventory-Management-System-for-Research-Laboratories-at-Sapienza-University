@@ -246,7 +246,7 @@ export default function InventoryPage(props) {
       },
       {
         field: "quantity",
-        headerName: "Quantity",
+        headerName: "Requested Quantity",
         type: "number",
         width: 100,
         sortable: false,
