@@ -218,8 +218,8 @@ export default function InventoryPage(props) {
     []
   );
 
-  const columns = useMemo(
-    () => [
+  const columns = useMemo(() => {
+    const baseColumns = [
       {
         field: "name",
         headerName: "Name",
@@ -265,7 +265,7 @@ export default function InventoryPage(props) {
         disableColumnMenu: true,
         // use renderCell for full control and to return arbitrary JSX
         renderCell: (params) => {
-          console.log(params);
+          // console.log(params);
 
           const row = params.row;
 
@@ -292,24 +292,31 @@ export default function InventoryPage(props) {
           return <></>;
         },
       },
-      {
-        field: "use",
-        headerName: "Use",
-        width: 220,
-        sortable: false,
-        filterable: false,
-        disableColumnMenu: true,
-        renderCell: (params) => (
-          // pass entire row to handler so confirmation can show row.name
-          <UseCell
-            row={params.row}
-            onUse={(rowObj, amount) => handleUse(rowObj, amount)}
-          />
-        ),
+    ];
+
+    baseColumns.push({
+      field: "use",
+      headerName: "",
+      width: 220,
+      sortable: false,
+      filterable: false,
+      disableColumnMenu: true,
+      renderCell: ( params) => {
+        console.log(params.row.category.consumable);
+        
+        return params.row.category.consumable
+          ? [
+              <UseCell
+                row={params.row}
+                onUse={(rowObj, amount) => handleUse(rowObj, amount)}
+              />,
+            ]
+          : [];
       },
-    ],
-    [handleUse]
-  );
+    });
+
+    return baseColumns;
+  }, [handleUse]);
 
   const pageTitle = "Inventory";
 
@@ -432,7 +439,7 @@ function UseCell({ row, onUse }) {
     onUse(row, useAmount);
   };
 
-const max = row.status == "Damaged" ? row.quantity -1: row.quantity
+  const max = row.status == "Damaged" ? row.quantity - 1 : row.quantity;
 
   return (
     <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>

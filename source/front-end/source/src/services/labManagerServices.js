@@ -177,13 +177,13 @@ export function validate(material, categories=[]) {
     issues = [...issues, { message: 'Name is required', path: ['name'] }];
   }
 
-  if(!material.quantity){
-     issues = [...issues, { message: 'Quantity is required', path: ['quantity'] }];
-  }
+  // if(!material.quantity){
+  //    issues = [...issues, { message: 'Quantity is required', path: ['quantity'] }];
+  // }
 
-  if(!material.threshold){
-     issues = [...issues, { message: 'Threshold is required', path: ['threshold'] }];
-  }
+  // if(!material.threshold){
+  //    issues = [...issues, { message: 'Threshold is required', path: ['threshold'] }];
+  // }
 
 
   if (!material.newCategory && !material.category) {
@@ -202,6 +202,8 @@ export function validate(material, categories=[]) {
   ];
 }
  
+// console.log(issues);
+
 
   return { issues };
 }

@@ -14,7 +14,7 @@ export default function GridCreate() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [formState, setFormState] = useState(() => ({
-    values: {},
+    values: {consumable:false},
     errors: {},
   }));
 
@@ -67,7 +67,8 @@ export default function GridCreate() {
       };
 
       const newFormValues = { ...formValues, [name]: value };
-
+      console.log(newFormValues);
+      
       setFormValues(newFormValues);
       validateField(newFormValues);
     },
@@ -104,10 +105,21 @@ export default function GridCreate() {
           ...formValues,
           category: { title: formValues.newCategory,  consumable: formValues.consumable },
         };
+        
+        if (!formValues.consumable) {
+          payload = {
+          ...payload,
+          threshold : 1,
+          quantity:1,
+        };
+        }
       }
       const payloadNewCategory = { title: formValues.newCategory, consumable: formValues.consumable };
 
-
+      console.log("payload: ", payload);
+      console.log("categories:",payloadNewCategory);
+      
+      
       await addMaterial(user.departmentId, payload);
       if (formValues.newCategory)
         await createCategory(payloadNewCategory);
