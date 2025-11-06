@@ -235,6 +235,7 @@ public class LabManagerService {
         Optional<MaterialRequest> materialRequest = materialRequestRepository.findById(requestId);
         if (materialRequest.isPresent()) {
             materialRequest.get().setRequestStatus("Completed");
+            materialRequest.get().setProcessed_at(LocalDateTime.now());
             if (materialRequest.get().getMaterialStatus().equals("Damaged")) {
                 ResearchMaterial material = materialRequest.get().getMaterial();
                 material.setStatus("None");

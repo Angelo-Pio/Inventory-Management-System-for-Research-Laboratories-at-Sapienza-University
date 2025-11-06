@@ -77,8 +77,10 @@ public class AppMapper {
     public MaterialRequestDto toMaterialRequestDto(MaterialRequest materialRequest) {
 
         MaterialRequestDto requestDto = mapper.map(materialRequest, MaterialRequestDto.class);
+        requestDto.setRequest_id(materialRequest.getId());
         requestDto.setMaterial_id(materialRequest.getMaterial().getId());
         requestDto.setResearcher_id(materialRequest.getResearcher().getId());
+        requestDto.setResearcher_name(materialRequest.getResearcher().getName());
         requestDto.setResearcher_surname(materialRequest.getResearcher().getSurname());
         return requestDto;
     }

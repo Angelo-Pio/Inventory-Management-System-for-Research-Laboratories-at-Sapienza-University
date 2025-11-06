@@ -71,6 +71,7 @@ public class ResearcherService {
 
         //create material request
         MaterialRequest materialRequest = appMapper.toMaterialRequest(request);
+        materialRequest.setCreated_at(LocalDateTime.now());
         materialRequestRepository.save(materialRequest);
         return true;
     }

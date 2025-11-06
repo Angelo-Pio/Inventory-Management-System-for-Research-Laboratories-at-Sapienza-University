@@ -31,7 +31,7 @@ public class ResearcherController {
     }
 
     // Issue a material request
-    @PostMapping("/material/{materialId}/request")
+    @PostMapping("/material/request")
     public Boolean requestMaterial(
             @RequestBody MaterialRequestDto request) {
         return service.requestMaterial(request);
