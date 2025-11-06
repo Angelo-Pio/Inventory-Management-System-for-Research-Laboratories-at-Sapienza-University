@@ -1,5 +1,25 @@
 import { apiCall } from './api';
 
+//Dashboard management
+export const getRequestsGraphData = async (departmentId) => {
+  return await apiCall(`/management/${departmentId}/graphdata/requests`, {
+    method: 'GET',
+  });
+};
+
+export const getTotalRestocked = async (departmentId) => {
+  return await apiCall(`/management/${departmentId}/graphdata/totRestocked`, {
+    method: 'GET',
+  });
+};
+
+export const getMostRestockedMaterial = async (departmentId) => {
+  return await apiCall(`/management/${departmentId}/graphdata/mostRestockedMaterial`, {
+    method: 'GET',
+  });
+};
+
+
 
 // Material management
 export const addMaterial = async (departmentId, materialData) => {
@@ -218,7 +238,7 @@ export const createCategory = async (categoryData) => {
 
 // Fetch all categories
 export const getAllCategories = async () => {
-  return await apiCall(`/management/material/category`);
+  return await apiCall(`/management/material/category/all`);
 };
 
 // Fetch all material requests for a specific department

@@ -39,6 +39,7 @@ import { useDialogs } from "../hooks/useDialogs";
 // import useNotifications from '../hooks/useNotifications/useNotifications';
 import { deleteMaterial, getMany } from "../services/labManagerServices";
 import PageContainer from "../components/PageContainer";
+import Typography from "@mui/material/Typography";
 
 const INITIAL_PAGE_SIZE = 10;
 
@@ -220,6 +221,17 @@ export default function InventoryPage(props) {
         disableColumnMenu: true,
         flex:1,
         valueGetter: (params) => params?.title ?? "",
+      },
+      {
+        field: "consumable",
+        headerName: "Consumable",
+        width: 180,
+        sortable: false,
+        disableColumnMenu: true,
+        flex:1,renderCell: (params) => {
+    const val = params.row?.category?.consumable;
+    return <Typography sx={{textAlign:"center", paddingY:2}}>{val === undefined ? "sasa" : val ? "Yes" : "No"}</Typography>;
+  }
       },
       {
         field: "actions",

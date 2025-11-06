@@ -14,7 +14,7 @@ export default function GridCreate() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [formState, setFormState] = useState(() => ({
-    values: {consumable:false},
+    values: { consumable: false },
     errors: {},
   }));
 
@@ -37,7 +37,6 @@ export default function GridCreate() {
   }, []);
   useEffect(() => {
     console.log(categories);
-    
   }, [categories]);
 
   const setFormValues = useCallback((newFormValues) => {
@@ -54,8 +53,6 @@ export default function GridCreate() {
     }));
   }, []);
 
-
-
   const handleFormFieldChange = useCallback(
     (name, value) => {
       const validateField = async (values) => {
@@ -68,7 +65,7 @@ export default function GridCreate() {
 
       const newFormValues = { ...formValues, [name]: value };
       console.log(newFormValues);
-      
+
       setFormValues(newFormValues);
       validateField(newFormValues);
     },
@@ -94,41 +91,64 @@ export default function GridCreate() {
 
     try {
       let payload = {};
+      let payloadNewCategory = {};
       if (formValues.category) {
+        const isConsumable = categories.find(
+          (cat) => cat.title === formValues.category
+        ).consumable;
+
         payload = {
           ...formValues,
-          category: { title: formValues.category },
+          category: { title: formValues.category,consumable: isConsumable, },
+          consumable: isConsumable
         };
+        payloadNewCategory = {
+          title: formValues.category,
+          consumable: isConsumable,
+        };
+        if (!isConsumable) {
+          payload = {
+            ...payload,
+            threshold: 1,
+            quantity: 1,
+          };
+        }
+
       }
       if (formValues.newCategory) {
         payload = {
           ...formValues,
-          category: { title: formValues.newCategory,  consumable: formValues.consumable },
+          category: {
+            title: formValues.newCategory,
+            consumable: formValues.consumable,
+          },
         };
-        
+        payloadNewCategory = {
+          title: formValues.newCategory,
+          consumable: formValues.consumable,
+        };
+
         if (!formValues.consumable) {
           payload = {
-          ...payload,
-          threshold : 1,
-          quantity:1,
-        };
+            ...payload,
+            threshold: 1,
+            quantity: 1,
+          };
         }
       }
-      const payloadNewCategory = { title: formValues.newCategory, consumable: formValues.consumable };
 
       console.log("payload: ", payload);
-      console.log("categories:",payloadNewCategory);
-      
-      
-      await addMaterial(user.departmentId, payload);
-      if (formValues.newCategory)
-        await createCategory(payloadNewCategory);
+      console.log("categories:", payloadNewCategory);
 
-      const parentPath = location.pathname.substring(
-        0,
-        location.pathname.lastIndexOf("/")
-      );
-      navigate(parentPath || "/");
+      // await addMaterial(user.departmentId, payload);
+      // if (formValues.newCategory)
+      //   await createCategory(payloadNewCategory);
+
+      // const parentPath = location.pathname.substring(
+      //   0,
+      //   location.pathname.lastIndexOf("/")
+      // );
+      // navigate(parentPath || "/");
     } catch (createError) {
       throw createError;
     }
