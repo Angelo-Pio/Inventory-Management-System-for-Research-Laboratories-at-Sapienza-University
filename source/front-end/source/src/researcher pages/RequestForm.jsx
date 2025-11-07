@@ -79,13 +79,13 @@ export default function RequestForm(props) {
   }, [navigate, backButtonPath]);
 
   return (
-    <Box
+    <Box 
       component="form"
       onSubmit={handleSubmit}
       noValidate
       autoComplete="off"
       onReset={handleReset}
-      sx={{ width: "100%" }}
+      sx={{ width: "100%", marginTop:3 }}
     >
       <FormGroup>
         <TextField
@@ -112,7 +112,7 @@ export default function RequestForm(props) {
   justifyContent="space-between"
   sx={{ marginY: 5 }}
 >
-  <TextField
+  {/* <TextField
     select
     variant="standard"
     value={formValues.requestType ?? ""}
@@ -129,14 +129,15 @@ export default function RequestForm(props) {
     <MenuItem key="Damaged" value="Damaged">
       Damaged
     </MenuItem>
-  </TextField>
+  </TextField> */}
 
-  {formValues.requestType === "None" && (
+  {materials.find((mat)=>mat.name === formValues.material)?.category.consumable && (
     <TextField
       value={formValues.quantity ?? ""}
       onChange={handleTextFieldChange}
       name="quantity"
       label="Quantity"
+      type="number"
       error={!!formErrors.quantity}
       helperText={formErrors.quantity ?? " "}
       fullWidth
@@ -145,7 +146,7 @@ export default function RequestForm(props) {
   )}
 </Stack>
 
-        <TextField label="Description" variant="standard" fullWidth multiline sx={{marginY:5}} />
+        <TextField label="Description" variant="standard" fullWidth multiline sx={{marginBottom:5}} />
       </FormGroup>
       <Stack direction="row" spacing={2} justifyContent="space-between">
         <Button

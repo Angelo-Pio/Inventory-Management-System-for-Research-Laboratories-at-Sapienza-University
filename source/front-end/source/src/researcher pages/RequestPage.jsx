@@ -42,6 +42,7 @@ import { useDialogs } from "../hooks/useDialogs";
 import { deleteMaterial, getAllRequests } from "../services/labManagerServices";
 import PageContainer from "../components/PageContainer";
 import { getResearcherRequests } from "../services/researcherServices";
+import Typography from "@mui/material/Typography";
 
 const INITIAL_PAGE_SIZE = 10;
 
@@ -141,8 +142,10 @@ export default function InventoryPage(props) {
     setError(null);
     setIsLoading(true);
     try {
-      const listData = await getResearcherRequests(user.id);
 
+      const listData = await getResearcherRequests(user.id);
+      console.log(listData.data);
+      
       const materialMap = new Map((materials).map((m) => [m.id, m]));
 
       const completeListData = listData.data.map((item) => {
@@ -242,7 +245,15 @@ export default function InventoryPage(props) {
         width: 100,
         sortable: false,
         disableColumnMenu: true,
-        
+        renderCell: (params) => {
+          const isConsumable = params.row?.category?.consumable;
+          const threshold = params.row?.threshold;
+          return (
+            <Typography sx={{ textAlign: "center", paddingY: 2 }}>
+              {!isConsumable ? "-" : threshold}
+            </Typography>
+          );
+        },
       },
       {
         field: "quantity",
@@ -251,6 +262,15 @@ export default function InventoryPage(props) {
         width: 100,
         sortable: false,
         disableColumnMenu: true,
+        renderCell: (params) => {
+          const isConsumable = params.row?.category?.consumable;
+          const quantity = params.row?.quantity;
+          return (
+            <Typography sx={{ textAlign: "center", paddingY: 2 }}>
+              {!isConsumable ? "-" : quantity}
+            </Typography>
+          );
+        },
       },
       {
         field: "materialStatus",
@@ -258,7 +278,14 @@ export default function InventoryPage(props) {
         width: 180,
         sortable: false,
         disableColumnMenu: true,
-        valueGetter: (params) => params==="None" ? "Low quantity": "Damaged",
+        renderCell: (params) => {
+          const isConsumable = params.row?.category?.consumable;
+          return (
+            <Typography sx={{ textAlign: "left", paddingY: 2 }}>
+              {!isConsumable ? "Damaged" : "Low quantity"}
+            </Typography>
+          );
+        },
       },
       {
         field: "requestStatus",

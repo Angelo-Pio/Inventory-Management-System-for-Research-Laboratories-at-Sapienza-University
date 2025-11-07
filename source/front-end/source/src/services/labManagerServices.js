@@ -254,22 +254,24 @@ export const markRequestAsDone = async (requestId) => {
 };
 
 //validate request
-export function validateRequest(request) {
+export function validateRequest(request, materials) {
   let issues = [];
  
+    console.log(materials);
     
 
   if (!request.material) {
     issues = [...issues, { message: 'Material is required', path: ['material'] }];
   }
 
-  if(!request.requestType){
-     issues = [...issues, { message: 'Request type is required', path: ['requestType'] }];
-  }
-
-   if (request.requestType !== "Damaged" && !request.quantity) {
+  if (materials.find((mat)=>mat.name === request.material)?.category.consumable && !request.quantity) {
     issues = [...issues, { message: 'Quantity is required', path: ['quantity'] }];
+    
   }
+ 
+  //  if (request.requestType !== "Damaged" && !request.quantity) {
+  //   issues = [...issues, { message: 'Quantity is required', path: ['quantity'] }];
+  // }
 
 
  return { issues };

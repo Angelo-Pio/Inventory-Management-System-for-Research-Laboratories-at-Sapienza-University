@@ -302,11 +302,11 @@ export default function InventoryPage(props) {
       filterable: false,
       disableColumnMenu: true,
       renderCell: ( params) => {
-        console.log(params.row.category.consumable);
         
         return params.row.category.consumable
           ? [
               <UseCell
+              key={params.row.id}
                 row={params.row}
                 onUse={(rowObj, amount) => handleUse(rowObj, amount)}
               />,
@@ -345,6 +345,7 @@ export default function InventoryPage(props) {
             rowCount={rowsState.rowCount}
             columns={columns}
             pagination
+            getRowId={(row) => row.id}
             sortingMode="server"
             sortModel={sortModel}
             filterMode="server"
@@ -452,13 +453,7 @@ function UseCell({ row, onUse }) {
         onKeyDown={handleKeyDown}
         sx={{ width: 90 }}
         aria-label={`use-amount-${row.id}`}
-        inputProps={{
-          min: 0,
-          max: max,
-          inputMode: "numeric",
-          pattern: "[0-9]*",
-          step: 1,
-        }}
+        
         // VIEW
       />
       <Button size="small" variant="contained" onClick={handleClick}>

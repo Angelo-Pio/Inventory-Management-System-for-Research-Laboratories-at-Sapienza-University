@@ -55,7 +55,7 @@ export default function RequestCreate() {
   const handleFormFieldChange = useCallback(
     (name, value) => {
       const validateField = async (values) => {
-        const { issues } = validateRequest(values);
+        const { issues } = validateRequest(values,materials);
         setFormErrors({
           ...formErrors,
           [name]: issues?.find((issue) => issue.path?.[0] === name)?.message,
@@ -75,7 +75,7 @@ export default function RequestCreate() {
   }, [setFormValues]);
 
   const handleFormSubmit = useCallback(async () => {
-    const { issues } = validateRequest(formValues);
+    const { issues } = validateRequest(formValues, materials);
 
     if (issues && issues.length > 0) {
       setFormErrors(
@@ -108,7 +108,9 @@ export default function RequestCreate() {
       console.log(material);
       let payload = {};
 
-      if (formValues.requestType === "Damaged") {
+      if (!material.category.consumable) {
+        console.log(user.name);
+        
         payload = {
           material_id: material.id,
           researcher_id: user.id,
@@ -127,9 +129,7 @@ export default function RequestCreate() {
           researcher_id: user.id,
           researcher_name: user.name,
           researcher_surname: user.surname,
-          materialStatus: formValues.requestType,
           quantity: formValues.quantity,
-          requestStatus: "Pending",
         };
         await requestMaterial(payload.material_id, payload);
       }

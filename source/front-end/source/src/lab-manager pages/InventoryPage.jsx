@@ -158,7 +158,6 @@ export default function InventoryPage(props) {
 
   const handleRowDelete = useCallback(
     (material) => async () => {
-
       const confirmed = await dialogs.confirm(
         `Do you wish to delete ${material.name}?`,
         {
@@ -219,7 +218,7 @@ export default function InventoryPage(props) {
         width: 180,
         sortable: false,
         disableColumnMenu: true,
-        flex:1,
+        flex: 1,
         valueGetter: (params) => params?.title ?? "",
       },
       {
@@ -228,10 +227,15 @@ export default function InventoryPage(props) {
         width: 180,
         sortable: false,
         disableColumnMenu: true,
-        flex:1,renderCell: (params) => {
-    const val = params.row?.category?.consumable;
-    return <Typography sx={{textAlign:"center", paddingY:2}}>{val === undefined ? "sasa" : val ? "Yes" : "No"}</Typography>;
-  }
+        flex: 1,
+        renderCell: (params) => {
+          const val = params.row?.category?.consumable;
+          return (
+            <Typography sx={{ textAlign: "center", paddingY: 2 }}>
+              {val ? "Yes" : "No"}
+            </Typography>
+          );
+        },
       },
       {
         field: "actions",
@@ -243,7 +247,6 @@ export default function InventoryPage(props) {
         disableColumnMenu: true,
         // use renderCell for full control and to return arbitrary JSX
         renderCell: (params) => {
-
           const row = params.row;
 
           if (row?.status === "Damaged") {
@@ -262,7 +265,7 @@ export default function InventoryPage(props) {
               //     }}
               //     onClick={()=> navigate("/labmanager-dashboard/alerts")}
               //   >
-                  
+
               //     <PriorityHighIcon fontSize="large" color="error" />
               //   </Tooltip>
               //   <GridActionsCellItem
@@ -273,20 +276,19 @@ export default function InventoryPage(props) {
               //   />
               // </Stack>
               <Tooltip
-                  title="1 unit of this material is damaged"
-                  slotProps={{
-                    tooltip: {
-                      sx: {
-                        backgroundColor: "red",
-                        fontSize:"small"
-                      },
+                title="1 unit of this material is damaged"
+                slotProps={{
+                  tooltip: {
+                    sx: {
+                      backgroundColor: "red",
+                      fontSize: "small",
                     },
-                  }}
-                  onClick={()=> navigate("/labmanager-dashboard/alerts")}
-                >
-                  
-                  <PriorityHighIcon fontSize="large" color="error" />
-                </Tooltip>
+                  },
+                }}
+                onClick={() => navigate("/labmanager-dashboard/alerts")}
+              >
+                <PriorityHighIcon fontSize="large" color="error" />
+              </Tooltip>
             );
           }
 
