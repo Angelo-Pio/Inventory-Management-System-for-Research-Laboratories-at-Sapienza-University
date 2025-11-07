@@ -24,5 +24,5 @@ public interface MaterialLogsRepository extends JpaRepository<MaterialLogs, Long
     Long findLast30DaysTotRestocked(@Param("departmentId") Long departmentId,@Param("minus") LocalDateTime minus);
 
     @Query("select l from MaterialLogs l where l.department.id = :departmentId and l.timestamp >= :minus and l.added > 0 ")
-    List<MaterialLogs> findRestockedMaterialsBeforeDate(Long departmentId, LocalDateTime localDateTime);
+    List<MaterialLogs> findRestockedMaterialsBeforeDate(@Param("departmentId") Long departmentId, @Param("minus") LocalDateTime localDateTime);
 }
