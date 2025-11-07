@@ -164,8 +164,8 @@ export default function EmployeeForm(props) {
             fullWidth
           >
             {/* <MenuItem value="admin">admin</MenuItem> */}
-            <MenuItem value="labmanager">labmanager</MenuItem>
-            <MenuItem value="researcher">researcher</MenuItem>
+            <MenuItem value="labmanager">Labmanager</MenuItem>
+            <MenuItem value="researcher">Researcher</MenuItem>
 
           </TextField>
           <TextField

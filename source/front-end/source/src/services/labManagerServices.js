@@ -333,7 +333,7 @@ export const deleteMaterial = async (departmentId, materialId) => {
 
 
 //Validate Form
-export function validate(material, categories=[]) {
+export function validate(material, categories=[], materials=[]) {
   let issues = [];
  
     
@@ -349,7 +349,9 @@ export function validate(material, categories=[]) {
   // if(!material.threshold){
   //    issues = [...issues, { message: 'Threshold is required', path: ['threshold'] }];
   // }
-
+  if(materials.some((mat)=>mat.name === material.name)){
+    issues = [...issues, { message: 'A material with the same name already exists', path: ['name'] }];
+  }
 
   if (!material.newCategory && !material.category) {
     issues = [...issues, { message: 'Category is required', path: ['category','newCategory'] }];

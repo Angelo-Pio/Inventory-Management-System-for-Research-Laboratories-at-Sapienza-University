@@ -134,6 +134,7 @@ export default function EmployeesPage(props) {
         getAllDepartments(),
         getFilteredUsers({
           departmentId: user.departmentId,
+          role: user.role,
           paginationModel,
           filterModel,
         }),
@@ -141,6 +142,11 @@ export default function EmployeesPage(props) {
 
       // ✅ Set departments
       setDepartments(departmentsRes.data);
+      console.log(usersRes);
+      
+      // if (user.role === "Admin") {
+      //   usersRes = usersRes
+      // }
 
       // ✅ Set users
       setRowsState({

@@ -52,7 +52,7 @@ export default function SideMenu() {
           textAlign: "center",
         }}
       >
-        {department.name}
+        {user.role !== "admin" && department.name}
       </Box>
       <Divider />
 

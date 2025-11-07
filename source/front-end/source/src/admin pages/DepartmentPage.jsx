@@ -234,7 +234,6 @@ export default function EmployeesPage(props) {
           <div
             style={{
               whiteSpace: "normal",
-              lineHeight: "1.4",
               wordWrap: "break-word",
             }}
           >

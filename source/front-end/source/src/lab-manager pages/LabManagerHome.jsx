@@ -1,57 +1,21 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import StatCard from "../components/StatCard";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
 import { Button, Divider } from "@mui/material";
 import Stack from "@mui/material/Stack";
 import CustomDatePicker from "../components/CustomDataPicker";
 import { downloadReport } from "../services/labManagerServices";
 import { useEffect, useState } from "react";
-import { useAuth } from '../components/AuthContext'; 
-import {getTotalRestocked,getMostRestockedMaterial} from "../services/labManagerServices"
-import {summarizeRequests} from "../services/dashboardServices"
+import { useAuth } from "../components/AuthContext";
+import {
+  getTotalRestocked,
+  getMostRestockedMaterial,
+} from "../services/labManagerServices";
+import { summarizeRequests } from "../services/dashboardServices";
 
 import dayjs from "dayjs";
-
-
-const pieData = [
-  { id: 0, value: 10, label: "PC" },
-  { id: 1, value: 15, label: "Arduino" },
-  { id: 2, value: 20, label: "GPU" },
-];
-
-const data = [
-  {
-    title: "Total Requests",
-    value: 10,
-    interval: "Last 30 days",
-    trend: "up",
-    data: [
-      200, 24, 220, 260, 240, 380, 100, 240, 280, 240, 300, 340, 320, 360, 340,
-      380, 360, 400, 380, 420, 400, 640, 340, 460, 440, 480, 460, 600, 880, 920,
-    ],
-  },
-  {
-    title: "Low Stock Requests",
-    value: "325",
-    interval: "Last 30 days",
-    trend: "down",
-    data: [
-      1640, 1250, 970, 1130, 1050, 900, 720, 1080, 900, 450, 920, 820, 840, 600,
-      820, 780, 800, 760, 380, 740, 660, 620, 840, 500, 520, 480, 400, 360, 300,
-      220,
-    ],
-  },
-  {
-    title: "Damahged Requests",
-    value: "200k",
-    interval: "Last 30 days",
-    trend: "neutral",
-    data: [
-      500, 400, 510, 530, 520, 600, 530, 520, 510, 730, 520, 510, 530, 620, 510,
-      530, 520, 410, 530, 520, 610, 530, 520, 610, 530, 420, 510, 430, 520, 510,
-    ],
-  },
-];
 
 export default function LabManagerHome() {
   const [isLoading, setIsLoading] = useState(false);
@@ -59,11 +23,11 @@ export default function LabManagerHome() {
   const [endDate, setEndDate] = useState(dayjs("2025-10-01"));
   const { user } = useAuth();
 
-const [requestsData, setRequestsData] = useState({title:"Total Request", value:0, interval:"Last 30 days", trend:"neutral",trendValues:"0%", labels :[] ,data:[]});
-  const [totalRestocked, setTotalRestocked] = useState(null);
-  const [mostRestocked, setMostRestocked] = useState(null);
+  const [requestsData, setRequestsData] = useState([]);
+  const [totalRestocked, setTotalRestocked] = useState(0);
+  const [mostRestocked, setMostRestocked] = useState("");
   const [loading, setLoading] = useState(true);
-  const departmentId = user.departmentId
+  const departmentId = user.departmentId;
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -71,7 +35,7 @@ const [requestsData, setRequestsData] = useState({title:"Total Request", value:0
         const [
           requestsResponse,
           totalRestockedResponse,
-          mostRestockedResponse
+          mostRestockedResponse,
         ] = await Promise.all([
           summarizeRequests(departmentId),
           getTotalRestocked(departmentId),
@@ -79,8 +43,8 @@ const [requestsData, setRequestsData] = useState({title:"Total Request", value:0
         ]);
 
         setRequestsData(requestsResponse);
-        setTotalRestocked(totalRestockedResponse);
-        setMostRestocked(mostRestockedResponse);
+        setTotalRestocked(totalRestockedResponse.data);
+        setMostRestocked(mostRestockedResponse.data);
       } catch (err) {
         console.error("Error loading dashboard data:", err);
       } finally {
@@ -91,12 +55,11 @@ const [requestsData, setRequestsData] = useState({title:"Total Request", value:0
     fetchDashboardData();
   }, [departmentId]);
 
-  useEffect(()=>{
-    console.log(requestsData);
+  useEffect(() => {
+    // console.log(requestsData);
     console.log(totalRestocked);
     console.log(mostRestocked);
-    
-  },[requestsData, totalRestocked, mostRestocked])
+  }, [requestsData, totalRestocked, mostRestocked]);
 
   const handleDownload = async () => {
     // simple validation
@@ -106,20 +69,15 @@ const [requestsData, setRequestsData] = useState({title:"Total Request", value:0
     }
 
     // format dates how your backend expects them. Example: YYYY-MM-DD
-    const startStr = startDate.format("YYYY-MM-DD[T]HH:mm:ss")
-    const endStr = endDate.format("YYYY-MM-DD[T]HH:mm:ss")
+    const startStr = startDate.format("YYYY-MM-DD[T]HH:mm:ss");
+    const endStr = endDate.format("YYYY-MM-DD[T]HH:mm:ss");
     try {
       setIsLoading(true);
 
-      
-      
       const result = await downloadReport(user.departmentId, startStr, endStr);
-
-      
 
       if (result.success) {
         // you already trigger the download in downloadReport, optionally notify
-        alert("Report downloaded successfully.");
       } else {
         alert(`Failed to generate report: ${result.error}`);
       }
@@ -156,11 +114,37 @@ const [requestsData, setRequestsData] = useState({title:"Total Request", value:0
             width: "100%",
           }}
         >
-          {/* {data.map((card, index) => (
+          {requestsData.map((card, index) => (
             <StatCard {...card} key={index} />
-          ))} */}
-          <StatCard title={requestsData.title} value={requestsData.value} interval={requestsData.interval} trend={requestsData.trend} data={requestsData.data} trendValues={requestsData.trendValues} labels={requestsData.labels} key={1}/>
+          ))}
         </Box>
+
+        <Stack
+          sx={{ marginY: 5 }}
+          direction="row"
+          alignItems="center"
+          spacing={1}
+        >
+          <Card variant="outlined" sx={{ height: "100%", flexGrow: 1 }} key={1}>
+            <CardContent>
+              <Typography component="h2" variant="subtitle2" gutterBottom>
+                Total Materials Restocked
+              </Typography>
+
+              <Typography variant="h4">{totalRestocked}</Typography>
+            </CardContent>
+          </Card>
+
+          <Card variant="outlined" sx={{ height: "100%", flexGrow: 1 }} key={2}>
+            <CardContent>
+              <Typography component="h2" variant="subtitle2" gutterBottom>
+                Most Restocked Material
+              </Typography>
+
+              <Typography variant="h4">{mostRestocked.name}</Typography>
+            </CardContent>
+          </Card>
+        </Stack>
 
         <Divider sx={{ my: 4 }} />
 

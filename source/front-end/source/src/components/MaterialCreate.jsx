@@ -5,6 +5,7 @@ import {
   validate as validateMaterial,
   getAllCategories,
   createCategory,
+  getDepartmentMaterials,
 } from "../services/labManagerServices";
 import { useAuth } from "./AuthContext";
 import MaterialForm from "./MaterialForm";
@@ -18,26 +19,41 @@ export default function GridCreate() {
     errors: {},
   }));
 
+  const [materials, setMaterials] = useState([]);
   const [categories, setCategories] = useState([]);
   const formValues = formState.values;
   const formErrors = formState.errors;
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getAllCategories();
+        let categoriesData = await getAllCategories();
+        const materialsData = await getDepartmentMaterials(user.departmentId);
+        console.log(categoriesData);
+        console.log(materialsData);
 
-        setCategories(data.data);
+        categoriesData = categoriesData.data.filter((cat) =>
+          materialsData.data.some(
+            (mat) =>
+              mat.category?.title === cat.title &&
+              mat.department_id === user.departmentId
+          )
+        );
+
+          console.log(categoriesData);
+          
+        setCategories(categoriesData);
+        setMaterials(materialsData.data);
       } catch (err) {
         console.error("Failed to load categories", err);
       }
     };
 
-    fetchCategories();
+    fetchData();
   }, []);
   useEffect(() => {
-    console.log(categories);
-  }, [categories]);
+    console.log(materials);
+  }, [categories, materials]);
 
   const setFormValues = useCallback((newFormValues) => {
     setFormState((previousState) => ({
@@ -56,7 +72,7 @@ export default function GridCreate() {
   const handleFormFieldChange = useCallback(
     (name, value) => {
       const validateField = async (values) => {
-        const { issues } = validateMaterial(values, categories);
+        const { issues } = validateMaterial(values, categories, materials);
         setFormErrors({
           ...formErrors,
           [name]: issues?.find((issue) => issue.path?.[0] === name)?.message,
@@ -77,7 +93,7 @@ export default function GridCreate() {
   }, [setFormValues]);
 
   const handleFormSubmit = useCallback(async () => {
-    const { issues } = validateMaterial(formValues, categories);
+    const { issues } = validateMaterial(formValues, categories, materials);
 
     if (issues && issues.length > 0) {
       setFormErrors(
@@ -99,8 +115,8 @@ export default function GridCreate() {
 
         payload = {
           ...formValues,
-          category: { title: formValues.category,consumable: isConsumable, },
-          consumable: isConsumable
+          category: { title: formValues.category, consumable: isConsumable },
+          consumable: isConsumable,
         };
         payloadNewCategory = {
           title: formValues.category,
@@ -113,7 +129,6 @@ export default function GridCreate() {
             quantity: 1,
           };
         }
-
       }
       if (formValues.newCategory) {
         payload = {
@@ -141,8 +156,7 @@ export default function GridCreate() {
       console.log("categories:", payloadNewCategory);
 
       await addMaterial(user.departmentId, payload);
-      if (formValues.newCategory)
-        await createCategory(payloadNewCategory);
+      if (formValues.newCategory) await createCategory(payloadNewCategory);
 
       const parentPath = location.pathname.substring(
         0,

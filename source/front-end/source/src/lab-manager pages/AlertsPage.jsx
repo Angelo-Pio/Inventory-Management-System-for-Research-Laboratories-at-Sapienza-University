@@ -106,7 +106,9 @@ const [paginationModelLowStock, setPaginationModelLowStock] = useState({
       return;
     }
 
-
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 3500);
 
     const currentTopic = `${department.id}/notifications`;
     const clientId = `mqtt_react_client_${new Date().getTime()}`;
