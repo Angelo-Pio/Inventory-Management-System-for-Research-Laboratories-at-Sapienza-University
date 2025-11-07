@@ -27,10 +27,10 @@ function AreaGradient({ color, id }) {
   );
 }
 
-export default function StatCard({ title, value, interval, trend, data, uniqueId }) {
+export default function StatCard({ title, value, interval, trend, data,trendValues, labels,uniqueId }) {
   const theme = useTheme();
   const daysInWeek = getDaysInMonth(4, 2024);
-
+  
   const trendColors = {
     up: theme.palette.success.dark,
     down: theme.palette.error.dark,
@@ -40,7 +40,7 @@ export default function StatCard({ title, value, interval, trend, data, uniqueId
   const labelColors = { up: 'success', down: 'error', neutral: 'default' };
   const chartColor = trendColors[trend];
   const chipColor = labelColors[trend];
-  const trendValues = { up: '+25%', down: '-25%', neutral: '+5%' };
+  // const trendValues = { up: '+25%', down: '-25%', neutral: '+5%' };
   const gradientId = uniqueId || `area-gradient-${value}`;
 
   return (
@@ -53,7 +53,7 @@ export default function StatCard({ title, value, interval, trend, data, uniqueId
         <Stack direction="column" spacing={1}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="h4">{value}</Typography>
-            <Chip size="small" color={chipColor} label={trendValues[trend]} />
+            <Chip size="small" color={chipColor} label={trendValues} />
           </Stack>
           <Typography variant="caption" color="text.secondary">
             {interval}
@@ -66,7 +66,7 @@ export default function StatCard({ title, value, interval, trend, data, uniqueId
               area
               showHighlight
               showTooltip
-              xAxis={{ scaleType: 'band', data: daysInWeek }}
+              xAxis={{ scaleType: 'band', data: labels }}
               sx={{
                 [`& .${areaElementClasses.root}`]: {
                   fill: `url(#${gradientId})`,

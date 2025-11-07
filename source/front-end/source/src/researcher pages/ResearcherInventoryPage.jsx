@@ -273,7 +273,7 @@ export default function InventoryPage(props) {
             // Show simple tooltip + icon button for damaged items
             return (
               <Tooltip
-                title="1 unit of this material is damaged"
+                title="The material is damaged"
                 slotProps={{
                   tooltip: {
                     sx: {

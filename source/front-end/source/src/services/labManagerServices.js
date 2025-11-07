@@ -1,11 +1,6 @@
 import { apiCall } from './api';
 
-//Dashboard management
-export const getRequestsGraphData = async (departmentId) => {
-  return await apiCall(`/management/${departmentId}/graphdata/requests`, {
-    method: 'GET',
-  });
-};
+
 
 export const getTotalRestocked = async (departmentId) => {
   return await apiCall(`/management/${departmentId}/graphdata/totRestocked`, {
@@ -166,6 +161,156 @@ export async function getMany({ departmentId, paginationModel = { page: 0, pageS
 }
 
 
+
+export async function getManyRequests({
+  messages,
+  alertPaginationModel = { page: 0, pageSize: 10 },
+  lowStockPaginationModel = { page: 0, pageSize: 10 },
+
+  filterModel = { items: [] },
+  sortModel = [{ field: 'materialName', sort: 'asc' }],
+}) {
+
+  // Fetch all requests from API
+  const filtered = await Promise.all(
+          messages.map(async (msg) => {
+            try {
+              const response = await getMaterialById(msg.materialId);
+              const mat = response.data;
+
+              return {
+                name: mat.name,
+                quantity: mat.quantity,
+                threshold: mat.threshold,
+                status: msg.materialStatus,
+                requestId: msg.requestId ?? mat.name,
+                category: mat.category.title ?? "-", 
+                consumable: mat.category.consumable,
+                materialId: mat.id,
+                requested_quantity:
+                  mat.category.consumable
+                    ? msg.requested_quantity ?? mat.threshold - mat.quantity
+                    : 0,
+                researcher:
+                  (
+                    (msg?.user_name ?? "") +
+                    " " +
+                    (msg?.user_surname ?? "")
+                  ).trim() || "-",
+
+                type: msg.type ?? "",
+              };
+            } catch (err) {
+              console.error(
+                "Error fetching material for id",
+                msg.materialId,
+                err
+              );
+              return {
+                name: msg.name ?? "",
+                quantity: msg.quantity ?? 0,
+                threshold: null,
+                status: null,
+                category: "",
+                materialId: msg.materialId,
+                type: msg.type,
+              };
+            }
+          })
+        );
+
+        const lowStockMaterials = filtered.filter(
+        (m) => m.consumable
+      );
+
+      const alertMaterials = filtered.filter(
+        (m) => !m.consumable
+      );
+  // Helper to read nested fields like "material.name"
+  const readField = (obj, fieldPath) =>
+    fieldPath?.split('.').reduce((acc, key) => acc?.[key], obj);
+
+  // Filtering (same logic as materials)
+  if (filterModel?.items?.length) {
+    filterModel.items.forEach(({ field, operator, value }) => {
+      if (!field || value == null) return;
+
+      alertMaterials = alertMaterials.filter((item) => {
+        const itemValue = readField(item, field);
+        const aStr = itemValue != null ? String(itemValue).toLowerCase() : '';
+        const bStr = String(value).toLowerCase();
+
+        switch (operator) {
+          case 'contains':
+            return aStr.includes(bStr);
+          case 'equals':
+            return itemValue === value || aStr === bStr;
+          case 'startsWith':
+            return aStr.startsWith(bStr);
+          case 'endsWith':
+            return aStr.endsWith(bStr);
+          default:
+            return true;
+        }
+      });
+    });
+  }
+
+  // Quick Filter (search bar)
+  if (filterModel?.quickFilterValues?.length) {
+    const qvs = filterModel.quickFilterValues.map((q) => String(q).toLowerCase());
+    alertMaterials = alertMaterials.filter((item) =>{
+      console.log(item);
+      
+      qvs.every((q) =>
+        [
+          String(item.name || '').toLowerCase(),
+        ].some((v) => v.includes(q))
+      )
+    }
+    );
+  }
+
+  // Sorting
+  const activeSort = sortModel?.[0] || { field: 'materialName', sort: 'asc' };
+  const { field: sortField, sort: sortOrder } = activeSort;
+
+  if (sortField) {
+    alertMaterials.sort((a, b) => {
+      const va = readField(a, sortField);
+      const vb = readField(b, sortField);
+      const sa = String(va ?? '').toLowerCase();
+      const sb = String(vb ?? '').toLowerCase();
+      if (sa < sb) return sortOrder === 'asc' ? -1 : 1;
+      if (sa > sb) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
+
+  // PaginationLowStock
+  const pageLowStock = lowStockPaginationModel.page ?? 0;
+  const pageSizeLowStock = lowStockPaginationModel.pageSize ?? lowStockMaterials.length;
+  const startLowStock = pageLowStock * pageSizeLowStock;
+  const endLowStock = startLowStock + pageSizeLowStock;
+  const paginatedLowStock = lowStockMaterials.slice(startLowStock, endLowStock);
+
+  const pageAlert = alertPaginationModel.page ?? 0;
+  const pageSizeAlert = alertPaginationModel.pageSize ?? alertMaterials.length;
+  const startAlert = pageAlert * pageSizeAlert;
+  const endAlert = startAlert + pageSizeAlert;
+  const paginatedAlert = alertMaterials.slice(startAlert, endAlert);
+  console.log(paginatedAlert);
+  
+
+  return {
+    itemsLowStock: paginatedLowStock,
+    itemCountLowStock: lowStockMaterials.length,
+    itemsAlert: paginatedAlert,
+    itemCountAlert: alertMaterials.length
+  };
+}
+
+
 /**
  * updateMaterialQuantity: calls the backend PUT endpoint when you want to update only quantity via query params
  * (If your backend expects materialId, userId and quantity as request params)
@@ -222,7 +367,7 @@ export function validate(material, categories=[]) {
   ];
 }
  
-// console.log(issues);
+console.log(issues);
 
 
   return { issues };

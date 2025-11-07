@@ -7,7 +7,8 @@ import CustomDatePicker from "../components/CustomDataPicker";
 import { downloadReport } from "../services/labManagerServices";
 import { useEffect, useState } from "react";
 import { useAuth } from '../components/AuthContext'; 
-import {getRequestsGraphData,getTotalRestocked,getMostRestockedMaterial} from "../services/labManagerServices"
+import {getTotalRestocked,getMostRestockedMaterial} from "../services/labManagerServices"
+import {summarizeRequests} from "../services/dashboardServices"
 
 import dayjs from "dayjs";
 
@@ -21,7 +22,7 @@ const pieData = [
 const data = [
   {
     title: "Total Requests",
-    value: "14k",
+    value: 10,
     interval: "Last 30 days",
     trend: "up",
     data: [
@@ -58,7 +59,7 @@ export default function LabManagerHome() {
   const [endDate, setEndDate] = useState(dayjs("2025-10-01"));
   const { user } = useAuth();
 
-const [requestsData, setRequestsData] = useState(null);
+const [requestsData, setRequestsData] = useState({title:"Total Request", value:0, interval:"Last 30 days", trend:"neutral",trendValues:"0%", labels :[] ,data:[]});
   const [totalRestocked, setTotalRestocked] = useState(null);
   const [mostRestocked, setMostRestocked] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -72,7 +73,7 @@ const [requestsData, setRequestsData] = useState(null);
           totalRestockedResponse,
           mostRestockedResponse
         ] = await Promise.all([
-          getRequestsGraphData(departmentId),
+          summarizeRequests(departmentId),
           getTotalRestocked(departmentId),
           getMostRestockedMaterial(departmentId),
         ]);
@@ -155,9 +156,10 @@ const [requestsData, setRequestsData] = useState(null);
             width: "100%",
           }}
         >
-          {data.map((card, index) => (
+          {/* {data.map((card, index) => (
             <StatCard {...card} key={index} />
-          ))}
+          ))} */}
+          <StatCard title={requestsData.title} value={requestsData.value} interval={requestsData.interval} trend={requestsData.trend} data={requestsData.data} trendValues={requestsData.trendValues} labels={requestsData.labels} key={1}/>
         </Box>
 
         <Divider sx={{ my: 4 }} />

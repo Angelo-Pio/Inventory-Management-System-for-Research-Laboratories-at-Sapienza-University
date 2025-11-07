@@ -10,6 +10,7 @@ import PageContainer from "../components/PageContainer";
 import {
   requestMaterial,
   markDamagedAndIssue,
+  getResearcherRequests
 } from "../services/researcherServices";
 
 export default function RequestCreate() {
@@ -21,22 +22,55 @@ export default function RequestCreate() {
   }));
 
   const [materials, setMaterials] = useState([]);
+  const [filteredMaterials, setFilteredMaterials] = useState([])
   const formValues = formState.values;
   const formErrors = formState.errors;
 
-  useEffect(() => {
-    const fetchMaterials = async () => {
-      try {
-        const data = await getDepartmentMaterials(user.departmentId);
-        console.log(data.data);
-        setMaterials(data.data);
-      } catch (err) {
-        console.error("Failed to load materials", err);
-      }
-    };
+ useEffect(() => {
+  if (!user?.departmentId || !user?.id) return;
 
-    fetchMaterials();
-  }, []);
+  const fetchMaterials = async () => {
+    try {
+      const [materialsResp, requestsResp] = await Promise.all([
+        getDepartmentMaterials(user.departmentId).catch((err) => {
+          console.error("Failed to load materials", err);
+          return null;
+        }),
+        getResearcherRequests(user.id).catch((err) => {
+          console.error("Failed to load requests", err);
+          return null;
+        }),
+      ]);
+
+      const materialsData = materialsResp?.data ?? [];
+      const requestsData = requestsResp?.data ?? [];
+
+      console.log("materials:", materialsData);
+      console.log("requests:", requestsData);
+
+
+      // build a Set of material ids that are present in requests for O(1) lookup
+      const requestedMaterialIds = new Set(
+        requestsData
+          .map((r) => r.material_id)
+          .filter((id) => id !== undefined && id !== null)
+      );
+
+      // filter out materials that are requested
+      const filtered = materialsData.filter((mat) => !requestedMaterialIds.has(mat.id) || (requestedMaterialIds.has(mat.id) && mat.category.consumable) || (requestedMaterialIds.has(mat.id) && mat.status === "None") );
+
+      setMaterials(filtered);
+      console.log("filteredMaterials:", filtered);
+    } catch (err) {
+      // should rarely happen because we handle per-call errors above,
+      // but keep a final catch just in case.
+      console.error("Unexpected error while fetching dashboard data", err);
+    }
+  };
+
+  fetchMaterials();
+}, [user?.departmentId, user?.id]);
+
 
   const setFormValues = useCallback((newFormValues) => {
     setFormState((previousState) => ({
@@ -55,7 +89,7 @@ export default function RequestCreate() {
   const handleFormFieldChange = useCallback(
     (name, value) => {
       const validateField = async (values) => {
-        const { issues } = validateRequest(values,materials);
+        const { issues } = validateRequest(values, materials);
         setFormErrors({
           ...formErrors,
           [name]: issues?.find((issue) => issue.path?.[0] === name)?.message,
@@ -110,28 +144,28 @@ export default function RequestCreate() {
 
       if (!material.category.consumable) {
         console.log(user.name);
-        
+
         payload = {
           material_id: material.id,
           researcher_id: user.id,
           researcher_name: user.name,
           researcher_surname: user.surname,
-          materialStatus: formValues.requestType,
+          materialStatus: "Damaged",
           quantity: 1,
           requestStatus: "Pending",
         };
         await markDamagedAndIssue(payload.material_id, user.id);
-        await requestMaterial(payload.material_id, payload);
-
+        await requestMaterial(payload);
       } else {
         payload = {
           material_id: material.id,
           researcher_id: user.id,
           researcher_name: user.name,
           researcher_surname: user.surname,
+          materialStatus: "LowStock",
           quantity: formValues.quantity,
         };
-        await requestMaterial(payload.material_id, payload);
+        await requestMaterial(payload);
       }
       console.log(payload);
 

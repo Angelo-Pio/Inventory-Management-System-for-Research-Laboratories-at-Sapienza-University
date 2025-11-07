@@ -46,20 +46,20 @@ export const logout = async () => {
 };
 
 // Check if user is authenticated (optional utility function)
-export const checkAuth = async () => {
-  try {
-    console.debug('[authServices] checkAuth ->', AUTH_BASE_URL + '/check-auth');
-    const response = await fetch(`${AUTH_BASE_URL}/check-auth`, {
-      method: 'GET',
-      credentials: 'include'
-    });
-    console.debug('[authServices] checkAuth response status:', response.status);
-    return response.ok;
-  } catch (error) {
-    console.error('Auth check error:', error);
-    return false;
-  }
-};
+// export const checkAuth = async () => {
+//   try {
+//     console.debug('[authServices] checkAuth ->', AUTH_BASE_URL + '/check-auth');
+//     const response = await fetch(`${AUTH_BASE_URL}/check-auth`, {
+//       method: 'GET',
+//       credentials: 'include'
+//     });
+//     console.debug('[authServices] checkAuth response status:', response.status);
+//     return false;
+//   } catch (error) {
+//     console.error('Auth check error:', error);
+//     return false;
+//   }
+// };
 
 // Get user role from cookies
 export const getUserRole = () => {
@@ -79,7 +79,6 @@ export const getUserId = () => {
 const authService = {
   login,
   logout,
-  checkAuth,
   getUserRole,
   getUserId
 };

@@ -41,7 +41,7 @@ import { useDialogs } from "../hooks/useDialogs";
 // import useNotifications from '../hooks/useNotifications/useNotifications';
 import { deleteMaterial, getAllRequests } from "../services/labManagerServices";
 import PageContainer from "../components/PageContainer";
-import { getResearcherRequests } from "../services/researcherServices";
+import { getManyRequests } from "../services/researcherServices";
 import Typography from "@mui/material/Typography";
 
 const INITIAL_PAGE_SIZE = 10;
@@ -56,14 +56,15 @@ function QuickSearchToolbar() {
   );
 }
 
-export default function InventoryPage(props) {
+export default function RequestPage(props) {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [materials, setMaterials] = useState([]);
-    const [sortModel, setSortModel] = useState([{ field: 'requestStatus', sort: 'asc' }]);
-  
+  const [sortModel, setSortModel] = useState([
+    { field: "requestStatus", sort: "desc" },
+  ]);
 
   const dialogs = useDialogs();
   //Get materials
@@ -142,36 +143,39 @@ export default function InventoryPage(props) {
     setError(null);
     setIsLoading(true);
     try {
+      const { items, itemCount } = await getManyRequests({
+        researcherId: user.id,
+        paginationModel,
+        filterModel,
+        sortModel,
+      });
 
-      const listData = await getResearcherRequests(user.id);
-      console.log(listData.data);
-      
-      const materialMap = new Map((materials).map((m) => [m.id, m]));
+      const materialMap = new Map(materials.map((m) => [m.id, m]));
 
-      const completeListData = listData.data.map((item) => {
+      const completeListData = items.map((item) => {
         const mat = materialMap.get(item.material_id);
-        
+
         return {
           ...item,
-          // add `name` from material if found, otherwise fallback to "-" or null
           name: mat?.name ?? "-",
           threshold: mat?.threshold ?? "-",
-          category: mat?.category ?? "-",
-
+          category: mat?.category?.title ?? "-",
+          consumable: mat?.category?.consumable ?? "-",
         };
       });
 
       console.log(completeListData);
-
+      
       setRowsState({
         rows: completeListData,
-        rowCount: completeListData.length,
+        rowCount: itemCount,
       });
-    } catch (listDataError) {
-      setError(listDataError);
+    } catch (err) {
+      setError(err);
     }
+
     setIsLoading(false);
-  }, [paginationModel, filterModel, materials]);
+  }, [user.id, paginationModel, filterModel, sortModel, materials]);
 
   useEffect(() => {
     loadData();
@@ -228,7 +232,6 @@ export default function InventoryPage(props) {
         width: 180,
         sortable: false,
         disableColumnMenu: true,
-
       },
       {
         field: "category",
@@ -236,7 +239,6 @@ export default function InventoryPage(props) {
         width: 180,
         sortable: false,
         disableColumnMenu: true,
-        valueGetter: (params) => params?.title ?? "",
       },
       {
         field: "threshold",
@@ -246,7 +248,7 @@ export default function InventoryPage(props) {
         sortable: false,
         disableColumnMenu: true,
         renderCell: (params) => {
-          const isConsumable = params.row?.category?.consumable;
+          const isConsumable = params.row?.consumable;
           const threshold = params.row?.threshold;
           return (
             <Typography sx={{ textAlign: "center", paddingY: 2 }}>
@@ -263,7 +265,7 @@ export default function InventoryPage(props) {
         sortable: false,
         disableColumnMenu: true,
         renderCell: (params) => {
-          const isConsumable = params.row?.category?.consumable;
+          const isConsumable = params.row?.consumable;
           const quantity = params.row?.quantity;
           return (
             <Typography sx={{ textAlign: "center", paddingY: 2 }}>
@@ -278,14 +280,7 @@ export default function InventoryPage(props) {
         width: 180,
         sortable: false,
         disableColumnMenu: true,
-        renderCell: (params) => {
-          const isConsumable = params.row?.category?.consumable;
-          return (
-            <Typography sx={{ textAlign: "left", paddingY: 2 }}>
-              {!isConsumable ? "Damaged" : "Low quantity"}
-            </Typography>
-          );
-        },
+      
       },
       {
         field: "requestStatus",
@@ -347,13 +342,12 @@ export default function InventoryPage(props) {
             rows={rowsState.rows}
             rowCount={rowsState.rowCount}
             columns={columns}
-            getRowId={(row) => row.material_id}
+            getRowId={(row) => row.request_id}
             pagination
             sortingMode="server"
             filterMode="server"
             paginationMode="server"
             sortModel={sortModel}
-
             paginationModel={paginationModel}
             onPaginationModelChange={handlePaginationModelChange}
             filterModel={filterModel}

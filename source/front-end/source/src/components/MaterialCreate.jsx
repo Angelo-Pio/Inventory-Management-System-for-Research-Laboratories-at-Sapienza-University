@@ -140,15 +140,15 @@ export default function GridCreate() {
       console.log("payload: ", payload);
       console.log("categories:", payloadNewCategory);
 
-      // await addMaterial(user.departmentId, payload);
-      // if (formValues.newCategory)
-      //   await createCategory(payloadNewCategory);
+      await addMaterial(user.departmentId, payload);
+      if (formValues.newCategory)
+        await createCategory(payloadNewCategory);
 
-      // const parentPath = location.pathname.substring(
-      //   0,
-      //   location.pathname.lastIndexOf("/")
-      // );
-      // navigate(parentPath || "/");
+      const parentPath = location.pathname.substring(
+        0,
+        location.pathname.lastIndexOf("/")
+      );
+      navigate(parentPath || "/");
     } catch (createError) {
       throw createError;
     }

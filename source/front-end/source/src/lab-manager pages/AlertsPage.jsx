@@ -25,6 +25,7 @@ import {
   updateMaterialQuantity,
   getMaterialById,
   markRequestAsDone,
+  getManyRequests,
 } from "../services/labManagerServices";
 
 import PageContainer from "../components/PageContainer";
@@ -51,6 +52,11 @@ export default function AlertsPage(props) {
   const navigate = useNavigate();
   const [sortModel, setSortModel] = useState([{ field: "name", sort: "asc" }]);
 
+  const messagesInitializedRef = useRef(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const dialogs = useDialogs();
   const [filterModel, setFilterModel] = useState(
     searchParams.get("filter")
       ? JSON.parse(searchParams.get("filter") ?? "")
@@ -68,19 +74,31 @@ export default function AlertsPage(props) {
     rowCount: 0,
   });
 
-  const messagesInitializedRef = useRef(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const dialogs = useDialogs();
   // const notifications = useNotifications();
 
-  const [paginationModel, setPaginationModel] = useState({
-    page: searchParams.get("page") ? Number(searchParams.get("page")) : 0, //get page number
-    pageSize: searchParams.get("pageSize") //get page size
-      ? Number(searchParams.get("pageSize"))
-      : INITIAL_PAGE_SIZE,
-  });
+  // const [paginationModel, setPaginationModel] = useState({
+  //   page: searchParams.get("page") ? Number(searchParams.get("page")) : 0, //get page number
+  //   pageSize: searchParams.get("pageSize") //get page size
+  //     ? Number(searchParams.get("pageSize"))
+  //     : INITIAL_PAGE_SIZE,
+  // });
+// at top of component
+const parsePageParam = (key, fallbackPage = 0) =>
+  searchParams.get(key) ? Number(searchParams.get(key)) : fallbackPage;
+
+const parsePageSizeParam = (key, fallbackSize = INITIAL_PAGE_SIZE) =>
+  searchParams.get(key) ? Number(searchParams.get(key)) : fallbackSize;
+
+const [paginationModelAlert, setPaginationModelAlert] = useState({
+  page: parsePageParam("alertPage", 0),
+  pageSize: parsePageSizeParam("alertPageSize", INITIAL_PAGE_SIZE),
+});
+
+const [paginationModelLowStock, setPaginationModelLowStock] = useState({
+  page: parsePageParam("lowPage", 0),
+  pageSize: parsePageSizeParam("lowPageSize", INITIAL_PAGE_SIZE),
+});
+
 
   useEffect(() => {
     if (!department?.id) {
@@ -88,9 +106,7 @@ export default function AlertsPage(props) {
       return;
     }
 
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 3500);
+
 
     const currentTopic = `${department.id}/notifications`;
     const clientId = `mqtt_react_client_${new Date().getTime()}`;
@@ -157,11 +173,40 @@ export default function AlertsPage(props) {
   //End mqtt code
   //
 
-  const handlePaginationModelChange = useCallback(
+  // const handlePaginationModelChange = useCallback(
+  //   (model) => {
+  //     setPaginationModel(model);
+  //     searchParams.set("page", String(model.page));
+  //     searchParams.set("pageSize", String(model.pageSize));
+  //     const newSearchParamsString = searchParams.toString();
+  //     navigate(
+  //       `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
+  //     );
+  //   },
+  //   [navigate, pathname, searchParams]
+  // );
+  const handlePaginationModelChangeAlert = useCallback(
     (model) => {
-      setPaginationModel(model);
-      searchParams.set("page", String(model.page));
-      searchParams.set("pageSize", String(model.pageSize));
+      setPaginationModelAlert(model);
+
+      // update URL params for the ALERT grid
+      searchParams.set("alertPage", String(model.page));
+      searchParams.set("alertPageSize", String(model.pageSize));
+      const newSearchParamsString = searchParams.toString();
+      navigate(
+        `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
+      );
+    },
+    [navigate, pathname, searchParams]
+  );
+
+  const handlePaginationModelChangeLowStock = useCallback(
+    (model) => {
+      setPaginationModelLowStock(model);
+
+      // update URL params for the LOW-STOCK grid
+      searchParams.set("lowPage", String(model.page));
+      searchParams.set("lowPageSize", String(model.pageSize));
       const newSearchParamsString = searchParams.toString();
       navigate(
         `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
@@ -210,91 +255,116 @@ export default function AlertsPage(props) {
 
     // From here on, either we have messages to process, or this is a subsequent change
     setIsLoading(true);
-
+    let alerts = [];
+    let countAlerts = 0;
+    let lowStock = [];
+    let countLowStock = 0;
     let unifiedMaterials = [];
     try {
       if (!messages || messages.length === 0) {
         // real empty (we've already initialized before)
         unifiedMaterials = [];
       } else {
-        console.log(messages);
+        try {
+          const {
+            itemsLowStock,
+            itemCountLowStock,
+            itemsAlert,
+            itemCountAlert,
+          } = await getManyRequests({
+            messages,
+            alertPaginationModel: paginationModelAlert,
+            lowStockPaginationModel: paginationModelLowStock, // for low stock
+            filterModel,
+            sortModel,
+          });
 
-        const unified = await Promise.all(
-          messages.map(async (msg) => {
-            try {
-              const response = await getMaterialById(msg.materialId);
-              const mat = response.data;
+          // map returned names to your variables (adjust keys above to match API)
+          lowStock = itemsLowStock ?? [];
+          countLowStock = itemCountLowStock ?? 0;
+          alerts = itemsAlert ?? [];
+          countAlerts = itemCountAlert ?? 0;
+        } catch (error) {
+          console.error("error loading alerts", error);
+        }
 
-              return {
-                name: mat.name,
-                quantity: mat.quantity,
-                threshold: mat.threshold,
-                status: msg.materialStatus,
-                requestId: msg.requestId ?? mat.name,
-                category: mat.category.title ?? "-", // backend or fallback
-                materialId: mat.id,
-                requested_quantity:
-                  msg.materialStatus === "Damaged"
-                    ? 1
-                    : msg.requested_quantity ?? mat.threshold - mat.quantity,
-                researcher:
-                  (
-                    (msg?.user_name ?? "") +
-                    " " +
-                    (msg?.user_surname ?? "")
-                  ).trim() || "-",
+        // const unified = await Promise.all(
+        //   messages.map(async (msg) => {
+        //     try {
+        //       const response = await getMaterialById(msg.materialId);
+        //       const mat = response.data;
 
-                type: msg.type ?? "",
-              };
-            } catch (err) {
-              console.error(
-                "Error fetching material for id",
-                msg.materialId,
-                err
-              );
-              return {
-                name: msg.name ?? "",
-                quantity: msg.quantity ?? 0,
-                threshold: null,
-                status: null,
-                category: "",
-                materialId: msg.materialId,
-                type: msg.type,
-              };
-            }
-          })
-        );
+        //       return {
+        //         name: mat.name,
+        //         quantity: mat.quantity,
+        //         threshold: mat.threshold,
+        //         status: msg.materialStatus,
+        //         requestId: msg.requestId ?? mat.name,
+        //         category: mat.category.title ?? "-",
+        //         consumable: mat.category.consumable,
+        //         materialId: mat.id,
+        //         requested_quantity:
+        //           mat.category.consumable
+        //             ? msg.requested_quantity ?? mat.threshold - mat.quantity
+        //             : 0,
+        //         researcher:
+        //           (
+        //             (msg?.user_name ?? "") +
+        //             " " +
+        //             (msg?.user_surname ?? "")
+        //           ).trim() || "-",
 
-        unifiedMaterials = unified;
+        //         type: msg.type ?? "",
+        //       };
+        //     } catch (err) {
+        //       console.error(
+        //         "Error fetching material for id",
+        //         msg.materialId,
+        //         err
+        //       );
+        //       return {
+        //         name: msg.name ?? "",
+        //         quantity: msg.quantity ?? 0,
+        //         threshold: null,
+        //         status: null,
+        //         category: "",
+        //         materialId: msg.materialId,
+        //         type: msg.type,
+        //       };
+        //     }
+        //   })
+        // );
+
+        // unifiedMaterials = unified;
       }
 
       // permissive: missing or null/empty
-      const lowStockMaterials = unifiedMaterials.filter(
-        (m) => m.status == null || m.status === "None"
-      );
+      // const lowStockMaterials = unifiedMaterials.filter(
+      //   (m) => m.consumable
+      // );
 
-      const alertMaterials = unifiedMaterials.filter(
-        (m) => m.status === "Damaged"
-      );
+      // const alertMaterials = unifiedMaterials.filter(
+      //   (m) => !m.consumable
+      // );
 
       // after a successful process of (possibly empty) messages we consider messages initialized
       messagesInitializedRef.current = true;
 
       // update rows
       setAlertRowsState({
-        rows: alertMaterials,
-        rowCount: alertMaterials.length,
+        rows: alerts,
+        rowCount: countAlerts,
       });
 
       setLowStockRowsState({
-        rows: lowStockMaterials,
-        rowCount: lowStockMaterials.length,
+        rows: lowStock,
+        rowCount: countLowStock,
       });
     } finally {
       // Always clear loading after the real processing finishes
       setIsLoading(false);
     }
-  }, [messages, paginationModel, filterModel, user?.departmentId]);
+  }, [messages, paginationModelAlert, paginationModelLowStock, filterModel, user?.departmentId]);
 
   useEffect(() => {
     loadData();
@@ -327,7 +397,6 @@ export default function AlertsPage(props) {
         };
         const resultRequest = await markRequestAsDone(row.requestId);
         const result = await updateMaterialQuantity(department.id, payload);
-        console.log(result);
 
         if (result.data === true || result === undefined) {
           await loadData();
@@ -335,7 +404,6 @@ export default function AlertsPage(props) {
             prevMessages.filter((msg) => msg.materialId !== row.materialId)
           );
 
-          console.log("YEEEE");
         } else {
           await dialogs.alert(`Unable to use the material.`, {
             title: "Error",
@@ -357,9 +425,11 @@ export default function AlertsPage(props) {
 
   const handleOrderAlert = useCallback(
     async (row) => {
+      console.log(row);
+      
       // Show confirmation
       const confirmed = await dialogs.confirm(
-        `Do you want to replace 1 unit of damaged "${row.name}"?`,
+        `Do you want to replace the damaged "${row.name}"?`,
         {
           title: "Confirm replace",
           severity: "warning",
@@ -372,13 +442,8 @@ export default function AlertsPage(props) {
 
       setIsLoading(true);
       try {
-        const payload = {
-          materialId: row.materialId,
-          userId: user.id,
-          quantity: 0,
-        };
+        
         const result = await markRequestAsDone(row.requestId);
-        console.log(result);
 
         if (result.data === true || result === undefined) {
           setMessages((prevMessages) =>
@@ -386,7 +451,6 @@ export default function AlertsPage(props) {
           );
           await loadData();
 
-          console.log("YEEEE");
         } else {
           await dialogs.alert(`Unable to order the material.`, {
             title: "Error",
@@ -544,8 +608,8 @@ export default function AlertsPage(props) {
             sortModel={sortModel}
             filterMode="server"
             paginationMode="server"
-            paginationModel={paginationModel}
-            onPaginationModelChange={handlePaginationModelChange}
+            paginationModel={paginationModelAlert}
+            onPaginationModelChange={handlePaginationModelChangeAlert}
             filterModel={filterModel}
             onFilterModelChange={handleFilterModelChange}
             disableRowSelectionOnClick
@@ -586,8 +650,8 @@ export default function AlertsPage(props) {
             sortModel={sortModel}
             filterMode="server"
             paginationMode="server"
-            paginationModel={paginationModel}
-            onPaginationModelChange={handlePaginationModelChange}
+            paginationModel={paginationModelLowStock}
+            onPaginationModelChange={handlePaginationModelChangeLowStock}
             filterModel={filterModel}
             onFilterModelChange={handleFilterModelChange}
             disableRowSelectionOnClick

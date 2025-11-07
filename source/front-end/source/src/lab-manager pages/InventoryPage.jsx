@@ -130,7 +130,7 @@ export default function InventoryPage(props) {
         paginationModel,
         filterModel,
       });
-      console.log(listData);
+      console.log("LISTDATA",listData);
 
       setRowsState({
         rows: listData.items,
@@ -276,7 +276,7 @@ export default function InventoryPage(props) {
               //   />
               // </Stack>
               <Tooltip
-                title="1 unit of this material is damaged"
+                title="The material is damaged"
                 slotProps={{
                   tooltip: {
                     sx: {
