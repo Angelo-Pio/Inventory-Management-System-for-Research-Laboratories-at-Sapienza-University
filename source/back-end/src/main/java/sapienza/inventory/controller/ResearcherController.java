@@ -5,6 +5,7 @@ import sapienza.inventory.dto.MaterialRequestDto;
 import sapienza.inventory.dto.ResearchMaterialDto;
 import sapienza.inventory.service.ResearcherService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -39,8 +40,8 @@ public class ResearcherController {
 
     // Mark material as damaged and issue ticket
     @PostMapping("/material/{materialId}/issue")
-    public Boolean markDamagedAndIssue(@PathVariable Long materialId, @RequestParam Long labUserId) {
-        return service.markDamagedAndIssue(materialId, labUserId);
+    public Boolean markDamagedAndIssue(@PathVariable Long materialId, @RequestParam Long labUserId, @RequestParam(required = false) LocalDateTime timestamp) {
+        return service.markDamagedAndIssue(materialId, labUserId, timestamp);
     }
 
     // All requests opened by researcher

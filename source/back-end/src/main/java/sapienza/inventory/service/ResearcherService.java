@@ -80,7 +80,7 @@ public class ResearcherService {
         return true;
     }
 
-    public Boolean markDamagedAndIssue(Long materialId, Long labUserId) {
+    public Boolean markDamagedAndIssue(Long materialId, Long labUserId, LocalDateTime timestamp) {
         ResearchMaterial researchMaterial = researchMaterialRepository.findById(materialId).orElseThrow(EntityNotFoundException::new);
         LabUser labUser = labUserRepository.findById(labUserId).orElseThrow(EntityNotFoundException::new);
 
@@ -90,7 +90,12 @@ public class ResearcherService {
         // LOG
         MaterialLogs materialLogs = new MaterialLogs();
         materialLogs.setMaterial(researchMaterial);
+        if(timestamp != null){
+        materialLogs.setTimestamp(timestamp);
+        }else{
         materialLogs.setTimestamp(LocalDateTime.now());
+
+        }
         materialLogs.setStatus("Damaged");
         materialLogs.setLabUser(labUser);
         materialLogs.setDepartment(labUser.getDepartment());
