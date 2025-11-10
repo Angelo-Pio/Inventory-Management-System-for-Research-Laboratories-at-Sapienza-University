@@ -32,15 +32,7 @@ export default function StatCard({
 }) {
   const theme = useTheme();
 
-  const trendColors = {
-    up: theme.palette.success.dark,
-    down: theme.palette.error.dark,
-    neutral: theme.palette.grey[700],
-  };
-
-  const labelColors = { up: "success", down: "error", neutral: "default" };
-  const chartColor = trendColors[trend];
-  const chipColor = labelColors[trend];
+  const chartColor = theme.palette.grey[700];
   const gradientId = uniqueId || `area-gradient-${value}`;
 
   return (

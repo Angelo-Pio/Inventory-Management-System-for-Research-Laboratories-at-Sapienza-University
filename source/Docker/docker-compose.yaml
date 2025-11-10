@@ -97,23 +97,6 @@ services:
       - back-end
       - broker
 
-
-  # front-end:
-  #   build:
-  #     context: ../front-end/source
-  #     dockerfile: ../../Docker/Dockerfile.front
-  #   container_name: front_end-service
-  #   environment:
-  #     - REACT_APP_BACKEND_URL=http://localhost:9001
-  #     - REACT_APP_AUTH_URL=http://localhost:9002
-  #   ports:
-  #     - "3000:3000"
-  #   restart: always
-  #   depends_on:
-  #     - back-end
-  #     - authentication
-
-  #Development only - remove in production
   front-end:
     build:
       context: ../front-end/source
