@@ -57,7 +57,6 @@ export default function StatCard({
             alignItems="center"
           >
             <Typography variant="h4">{value}</Typography>
-            <Chip size="small" color={chipColor} label={trendValues} />
           </Stack>
           <Typography variant="caption" color="text.secondary">
             {interval}
