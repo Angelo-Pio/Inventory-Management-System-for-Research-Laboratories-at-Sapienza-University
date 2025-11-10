@@ -19,8 +19,8 @@ import dayjs from "dayjs";
 
 export default function LabManagerHome() {
   const [isLoading, setIsLoading] = useState(false);
-  const [startDate, setStartDate] = useState(dayjs("2025-10-01"));
-  const [endDate, setEndDate] = useState(dayjs("2025-10-01"));
+  const [startDate, setStartDate] = useState(dayjs());
+  const [endDate, setEndDate] = useState(dayjs());
   const { user } = useAuth();
 
   const [requestsData, setRequestsData] = useState([]);

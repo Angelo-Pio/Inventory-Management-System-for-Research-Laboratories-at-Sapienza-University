@@ -349,10 +349,10 @@ export default function AlertsPage(props) {
         const result = await markRequestAsDone(row.requestId);
 
         if (result.data === true || result === undefined) {
+          await loadData();
           setMessages((prevMessages) =>
             prevMessages.filter((msg) => msg.materialId !== row.materialId)
           );
-          await loadData();
         } else {
           await dialogs.alert(`Unable to order the material.`, {
             title: "Error",
