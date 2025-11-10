@@ -44,17 +44,17 @@ public class ResearcherService {
         Optional<ResearchMaterial> researchMaterial = researchMaterialRepository.findById(materialId);
         if (researchMaterial.isPresent()) {
             int set_quantity = researchMaterial.get().getQuantity();
-            if(set_quantity - quantityUsed < 0 ){
+            if (set_quantity - quantityUsed < 0) {
                 throw new ArithmeticException("Not enough material");
-            }else {
+            } else {
                 researchMaterial.get().setQuantity(set_quantity - quantityUsed);
                 researchMaterialRepository.save(researchMaterial.get());
             }
 
-        }else{
+        } else {
             throw new EntityNotFoundException("Research material not found");
         }
-        return  true;
+        return true;
     }
 
     public List<ResearchMaterialDto> getMaterialsByResearcher(Long researcherId) {
@@ -71,7 +71,11 @@ public class ResearcherService {
 
         //create material request
         MaterialRequest materialRequest = appMapper.toMaterialRequest(request);
-        materialRequest.setCreated_at(LocalDateTime.now());
+        if (request.getCreated_at() == null) {
+            materialRequest.setCreated_at(LocalDateTime.now());
+        }else{
+            materialRequest.setCreated_at(request.getCreated_at());
+        }
         materialRequestRepository.save(materialRequest);
         return true;
     }
