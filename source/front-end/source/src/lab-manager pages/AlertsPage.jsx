@@ -16,7 +16,7 @@ const themeComponents = {
 
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField"; // <-- added
+import TextField from "@mui/material/TextField";
 import { DataGrid, gridClasses } from "@mui/x-data-grid";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { useDialogs } from "../hooks/useDialogs";
@@ -63,7 +63,6 @@ export default function AlertsPage(props) {
       : { items: [] }
   );
 
-  //row state and row count
   const [AlertRowsState, setAlertRowsState] = useState({
     rows: [],
     rowCount: 0,
@@ -74,31 +73,21 @@ export default function AlertsPage(props) {
     rowCount: 0,
   });
 
-  // const notifications = useNotifications();
+  const parsePageParam = (key, fallbackPage = 0) =>
+    searchParams.get(key) ? Number(searchParams.get(key)) : fallbackPage;
 
-  // const [paginationModel, setPaginationModel] = useState({
-  //   page: searchParams.get("page") ? Number(searchParams.get("page")) : 0, //get page number
-  //   pageSize: searchParams.get("pageSize") //get page size
-  //     ? Number(searchParams.get("pageSize"))
-  //     : INITIAL_PAGE_SIZE,
-  // });
-// at top of component
-const parsePageParam = (key, fallbackPage = 0) =>
-  searchParams.get(key) ? Number(searchParams.get(key)) : fallbackPage;
+  const parsePageSizeParam = (key, fallbackSize = INITIAL_PAGE_SIZE) =>
+    searchParams.get(key) ? Number(searchParams.get(key)) : fallbackSize;
 
-const parsePageSizeParam = (key, fallbackSize = INITIAL_PAGE_SIZE) =>
-  searchParams.get(key) ? Number(searchParams.get(key)) : fallbackSize;
+  const [paginationModelAlert, setPaginationModelAlert] = useState({
+    page: parsePageParam("alertPage", 0),
+    pageSize: parsePageSizeParam("alertPageSize", INITIAL_PAGE_SIZE),
+  });
 
-const [paginationModelAlert, setPaginationModelAlert] = useState({
-  page: parsePageParam("alertPage", 0),
-  pageSize: parsePageSizeParam("alertPageSize", INITIAL_PAGE_SIZE),
-});
-
-const [paginationModelLowStock, setPaginationModelLowStock] = useState({
-  page: parsePageParam("lowPage", 0),
-  pageSize: parsePageSizeParam("lowPageSize", INITIAL_PAGE_SIZE),
-});
-
+  const [paginationModelLowStock, setPaginationModelLowStock] = useState({
+    page: parsePageParam("lowPage", 0),
+    pageSize: parsePageSizeParam("lowPageSize", INITIAL_PAGE_SIZE),
+  });
 
   useEffect(() => {
     if (!department?.id) {
@@ -123,7 +112,6 @@ const [paginationModelLowStock, setPaginationModelLowStock] = useState({
       clean: true,
     };
 
-    //MQTT code
     const newClient = createMqttClient({
       brokerUrl: MQTT_BROKER_URL,
       options,
@@ -155,7 +143,6 @@ const [paginationModelLowStock, setPaginationModelLowStock] = useState({
       },
     });
 
-    // subscribe to topic (qos 1)
     subscribe(newClient, currentTopic, { qos: 1 }, (err) => {
       if (!err) {
         setStatus(`Connesso e sottoscritto a ${currentTopic}`);
@@ -164,34 +151,16 @@ const [paginationModelLowStock, setPaginationModelLowStock] = useState({
       }
     });
 
-    // cleanup on unmount or when department.id changes
     return () => {
       disconnect(newClient);
       setStatus("Disconnesso (Pulizia eseguita)");
     };
   }, [department?.id]);
 
-  //
-  //End mqtt code
-  //
-
-  // const handlePaginationModelChange = useCallback(
-  //   (model) => {
-  //     setPaginationModel(model);
-  //     searchParams.set("page", String(model.page));
-  //     searchParams.set("pageSize", String(model.pageSize));
-  //     const newSearchParamsString = searchParams.toString();
-  //     navigate(
-  //       `${pathname}${newSearchParamsString ? "?" : ""}${newSearchParamsString}`
-  //     );
-  //   },
-  //   [navigate, pathname, searchParams]
-  // );
   const handlePaginationModelChangeAlert = useCallback(
     (model) => {
       setPaginationModelAlert(model);
 
-      // update URL params for the ALERT grid
       searchParams.set("alertPage", String(model.page));
       searchParams.set("alertPageSize", String(model.pageSize));
       const newSearchParamsString = searchParams.toString();
@@ -206,7 +175,6 @@ const [paginationModelLowStock, setPaginationModelLowStock] = useState({
     (model) => {
       setPaginationModelLowStock(model);
 
-      // update URL params for the LOW-STOCK grid
       searchParams.set("lowPage", String(model.page));
       searchParams.set("lowPageSize", String(model.pageSize));
       const newSearchParamsString = searchParams.toString();
@@ -239,23 +207,18 @@ const [paginationModelLowStock, setPaginationModelLowStock] = useState({
   );
 
   const loadData = useCallback(async () => {
-    // CASE A: initial empty (component just mounted and messages is still the placeholder [])
     const isInitialEmpty =
       !messagesInitializedRef.current && (!messages || messages.length === 0);
 
     if (isInitialEmpty) {
-      // show spinner because we expect messages to be filled soon
       setIsLoading(true);
 
-      // Optionally set rows to empty so the UI doesn't show stale content:
       setAlertRowsState({ rows: [], rowCount: 0 });
       setLowStockRowsState({ rows: [], rowCount: 0 });
 
-      // Do not mark messages as "initialized" — wait until we actually receive data
       return;
     }
 
-    // From here on, either we have messages to process, or this is a subsequent change
     setIsLoading(true);
     let alerts = [];
     let countAlerts = 0;
@@ -264,7 +227,6 @@ const [paginationModelLowStock, setPaginationModelLowStock] = useState({
     let unifiedMaterials = [];
     try {
       if (!messages || messages.length === 0) {
-        // real empty (we've already initialized before)
         unifiedMaterials = [];
       } else {
         try {
@@ -276,12 +238,11 @@ const [paginationModelLowStock, setPaginationModelLowStock] = useState({
           } = await getManyRequests({
             messages,
             alertPaginationModel: paginationModelAlert,
-            lowStockPaginationModel: paginationModelLowStock, // for low stock
+            lowStockPaginationModel: paginationModelLowStock,
             filterModel,
             sortModel,
           });
 
-          // map returned names to your variables (adjust keys above to match API)
           lowStock = itemsLowStock ?? [];
           countLowStock = itemCountLowStock ?? 0;
           alerts = itemsAlert ?? [];
@@ -289,70 +250,10 @@ const [paginationModelLowStock, setPaginationModelLowStock] = useState({
         } catch (error) {
           console.error("error loading alerts", error);
         }
-
-        // const unified = await Promise.all(
-        //   messages.map(async (msg) => {
-        //     try {
-        //       const response = await getMaterialById(msg.materialId);
-        //       const mat = response.data;
-
-        //       return {
-        //         name: mat.name,
-        //         quantity: mat.quantity,
-        //         threshold: mat.threshold,
-        //         status: msg.materialStatus,
-        //         requestId: msg.requestId ?? mat.name,
-        //         category: mat.category.title ?? "-",
-        //         consumable: mat.category.consumable,
-        //         materialId: mat.id,
-        //         requested_quantity:
-        //           mat.category.consumable
-        //             ? msg.requested_quantity ?? mat.threshold - mat.quantity
-        //             : 0,
-        //         researcher:
-        //           (
-        //             (msg?.user_name ?? "") +
-        //             " " +
-        //             (msg?.user_surname ?? "")
-        //           ).trim() || "-",
-
-        //         type: msg.type ?? "",
-        //       };
-        //     } catch (err) {
-        //       console.error(
-        //         "Error fetching material for id",
-        //         msg.materialId,
-        //         err
-        //       );
-        //       return {
-        //         name: msg.name ?? "",
-        //         quantity: msg.quantity ?? 0,
-        //         threshold: null,
-        //         status: null,
-        //         category: "",
-        //         materialId: msg.materialId,
-        //         type: msg.type,
-        //       };
-        //     }
-        //   })
-        // );
-
-        // unifiedMaterials = unified;
       }
 
-      // permissive: missing or null/empty
-      // const lowStockMaterials = unifiedMaterials.filter(
-      //   (m) => m.consumable
-      // );
-
-      // const alertMaterials = unifiedMaterials.filter(
-      //   (m) => !m.consumable
-      // );
-
-      // after a successful process of (possibly empty) messages we consider messages initialized
       messagesInitializedRef.current = true;
 
-      // update rows
       setAlertRowsState({
         rows: alerts,
         rowCount: countAlerts,
@@ -363,19 +264,22 @@ const [paginationModelLowStock, setPaginationModelLowStock] = useState({
         rowCount: countLowStock,
       });
     } finally {
-      // Always clear loading after the real processing finishes
       setIsLoading(false);
     }
-  }, [messages, paginationModelAlert, paginationModelLowStock, filterModel, user?.departmentId]);
+  }, [
+    messages,
+    paginationModelAlert,
+    paginationModelLowStock,
+    filterModel,
+    user?.departmentId,
+  ]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  // Called when user clicks Use button in the cell: rowId and amount are provided.
   const handleOrder = useCallback(
     async (row, amount) => {
-      // Show confirmation
       const confirmed = await dialogs.confirm(
         `Do you want to order ${amount} unit${amount === 1 ? "" : "s"} of "${
           row.name
@@ -405,7 +309,6 @@ const [paginationModelLowStock, setPaginationModelLowStock] = useState({
           setMessages((prevMessages) =>
             prevMessages.filter((msg) => msg.materialId !== row.materialId)
           );
-
         } else {
           await dialogs.alert(`Unable to use the material.`, {
             title: "Error",
@@ -428,8 +331,7 @@ const [paginationModelLowStock, setPaginationModelLowStock] = useState({
   const handleOrderAlert = useCallback(
     async (row) => {
       console.log(row);
-      
-      // Show confirmation
+
       const confirmed = await dialogs.confirm(
         `Do you want to replace the damaged "${row.name}"?`,
         {
@@ -444,7 +346,6 @@ const [paginationModelLowStock, setPaginationModelLowStock] = useState({
 
       setIsLoading(true);
       try {
-        
         const result = await markRequestAsDone(row.requestId);
 
         if (result.data === true || result === undefined) {
@@ -452,7 +353,6 @@ const [paginationModelLowStock, setPaginationModelLowStock] = useState({
             prevMessages.filter((msg) => msg.materialId !== row.materialId)
           );
           await loadData();
-
         } else {
           await dialogs.alert(`Unable to order the material.`, {
             title: "Error",
@@ -515,7 +415,6 @@ const [paginationModelLowStock, setPaginationModelLowStock] = useState({
         disableColumnMenu: true,
 
         renderCell: (params) => (
-          // pass entire row to handler so confirmation can show row.name
           <UseCellAlert
             row={params.row}
             onOrder={(rowObj, amount) => handleOrderAlert(rowObj)}
@@ -584,7 +483,6 @@ const [paginationModelLowStock, setPaginationModelLowStock] = useState({
         filterable: false,
         disableColumnMenu: true,
         renderCell: (params) => (
-          // pass entire row to handler so confirmation can show row.name
           <UseCellLowStock
             row={params.row}
             onOrder={(rowObj, amount) => handleOrder(rowObj, amount)}
@@ -686,7 +584,6 @@ const [paginationModelLowStock, setPaginationModelLowStock] = useState({
 }
 
 function UseCellLowStock({ row, onOrder }) {
-  // keep the displayed value as a string to avoid fighting the TextField control
   const minValue = Math.max(
     row.requested_quantity,
     row.threshold - row.quantity
@@ -694,7 +591,6 @@ function UseCellLowStock({ row, onOrder }) {
   const [value, setValue] = useState(minValue.toString());
 
   useEffect(() => {
-    // reset to 0 when the row changes
     setValue(minValue.toString());
   }, [row?.id]);
 
@@ -711,25 +607,19 @@ function UseCellLowStock({ row, onOrder }) {
     const next = parseAmount(raw);
     const max = 100;
 
-    // RULES:
-    // - if prev === 0, don't allow decreasing (ignore any next < prev)
     if (prev === minValue && next < prev) {
-      return; // ignore
+      return;
     }
-    // - if prev === max, don't allow increasing (ignore any next > prev)
     if (prev === max) {
-      return; // ignore
+      return;
     }
 
-    // clamp into 0..max
     const clamped = Math.max(0, Math.min(next, max));
 
-    // store the clamped numeric string (keeps input predictable)
     setValue(String(clamped));
   };
 
   const handleKeyDown = (e) => {
-    // allow Enter to trigger "Use"
     if (e.key === "Enter") {
       e.preventDefault();
       handleClick();
@@ -771,8 +661,6 @@ function UseCellLowStock({ row, onOrder }) {
 }
 
 function UseCellAlert({ row, onOrder }) {
-  // keep the displayed value as a string to avoid fighting the TextField control
-
   const handleClick = () => {
     onOrder(row);
   };

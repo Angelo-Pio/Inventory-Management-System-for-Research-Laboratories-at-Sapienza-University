@@ -5,18 +5,15 @@ import { useAuth } from "./AuthContext";
 export default function ProtectedRoute({ element, allowedRoles }) {
   const { isAuthenticated, user, loading } = useAuth();
 
-  if (loading) return <div>Loading...</div>; // Wait for checkAuth()
+  if (loading) return <div>Loading...</div>;
 
   if (!isAuthenticated) {
-    // Not logged in → go to login page
     return <Navigate to="/login" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // Logged in but wrong role → redirect or show 403 page
     return <Navigate to="/unauthorized" replace />;
   }
 
-  // Authenticated and allowed → render the component
   return element;
 }

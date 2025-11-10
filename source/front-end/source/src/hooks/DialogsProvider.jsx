@@ -2,10 +2,6 @@ import * as React from 'react';
 import useEventCallback from '@mui/utils/useEventCallback';
 import DialogsContext from './DialogsContext';
 
-/**
- * Provider for Dialog stacks. The subtree of this component can use the `useDialogs` hook to
- * access the dialogs API. The dialogs are rendered in the order they are requested.
- */
 export default function DialogsProvider(props) {
   const { children, unmountAfter = 1000 } = props;
   const [stack, setStack] = React.useState([]);
@@ -37,7 +33,6 @@ export default function DialogsProvider(props) {
       resolve,
     };
 
-    // Store metadata for reliable access during close
     dialogMetadata.current.set(promise, newEntry);
 
     setStack((prevStack) => [...prevStack, newEntry]);
@@ -51,9 +46,7 @@ export default function DialogsProvider(props) {
       ),
     );
     setTimeout(() => {
-      // wait for closing animation
       setStack((prevStack) => prevStack.filter((entry) => entry.promise !== dialog));
-      // WeakMap automatically cleans up when promise is garbage collected
     }, unmountAfter);
   });
 

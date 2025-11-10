@@ -15,30 +15,22 @@ const xThemeComponents = {
   ...treeViewCustomizations,
 };
 
-
 export default function Dashboard(props) {
-
-
-
   return (
     <AppTheme {...props} themeComponents={xThemeComponents}>
       <CssBaseline enableColorScheme />
-      {/* Main container with flex */}
       <div className="flex min-h-screen bg-gray-50">
-        {/* Left side menu */}
-        <SideMenu  />
+        <SideMenu />
 
         <div className="flex flex-col flex-1 overflow-hidden">
-         <Box
+          <Box
             component="main"
             className="flex-1 overflow-auto pt-2"
             sx={(theme) => ({
               backgroundColor: `rgba(${theme.vars.palette.background.defaultChannel} / 1)`,
             })}
           >
-
-          
-          <Outlet />
+            <Outlet />
           </Box>
         </div>
       </div>

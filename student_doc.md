@@ -5,7 +5,7 @@ The project aims to develop an **inventory management system for the research la
 The primary objective is to create an intuitive and functional tool that allows **real-time stock monitoring** and simplifies communication among laboratory members.
 
 The platform will be managed by **two types of users**:
-- **Lab manager** (administrator): configures the system, defines categories, adds items, sets reorder thresholds, assigns materials to researchers, monitors resource usage, and downloads reports.
+- **Lab manager** (administrator): configures the system, defines categories, adds items, sets reorder thresholds, monitors resource usage, and downloads reports.
 - **Researchers**: view materials, update stock levels, submit requests for unavailable items, and report damaged equipment.
 
 This collaborative approach will enable transparent and effective management, reducing the risk of interruptions due to insufficient stock.

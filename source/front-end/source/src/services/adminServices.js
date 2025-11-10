@@ -58,7 +58,7 @@ export const deleteDepartment = async (departmentId) => {
 
 export const getDepartmentIdByName = (departments, name) => {
   const department = departments.find((dep) => dep.name === name);
-  return department ? department.id : null; // Returns null if not found
+  return department ? department.id : null; 
 };
 
 //FilterUser function
@@ -79,14 +79,12 @@ export async function getFilteredUsers({
   }
   console.log(filtered);
 
-  // Helper to read nested fields if needed
   const readField = (obj, path) => {
     return path
       .split(".")
       .reduce((acc, key) => (acc ? acc[key] : undefined), obj);
   };
 
-  // Apply column filters
   if (filterModel?.items?.length) {
     filterModel.items.forEach(({ field, operator, value }) => {
       if (!field || value == null) return;
@@ -120,7 +118,6 @@ export async function getFilteredUsers({
     });
   }
 
-  // ✅ Apply quick search filter (name, surname, email, role)
   if (filterModel?.quickFilterValues?.length) {
     const qvs = filterModel.quickFilterValues.map((q) =>
       String(q).toLowerCase()
@@ -135,7 +132,6 @@ export async function getFilteredUsers({
     );
   }
 
-  // ✅ Apply pagination
   const page = paginationModel?.page ?? 0;
   const pageSize = paginationModel?.pageSize ?? filtered.length;
   const start = page * pageSize;
@@ -160,14 +156,12 @@ export async function getFilteredDepartment({
   let filtered = Array.isArray(departments.data) ? [...departments.data] : [];
   console.log(filtered);
 
-  // Helper to read nested fields if needed
   const readField = (obj, path) => {
     return path
       .split(".")
       .reduce((acc, key) => (acc ? acc[key] : undefined), obj);
   };
 
-  // Apply column filters
   if (filterModel?.items?.length) {
     filterModel.items.forEach(({ field, operator, value }) => {
       if (!field || value == null) return;
@@ -201,7 +195,6 @@ export async function getFilteredDepartment({
     });
   }
 
-  // ✅ Apply quick search filter (name, surname, email, role)
   if (filterModel?.quickFilterValues?.length) {
     const qvs = filterModel.quickFilterValues.map((q) =>
       String(q).toLowerCase()
@@ -215,7 +208,6 @@ export async function getFilteredDepartment({
     );
   }
 
-  // ✅ Apply pagination
   const page = paginationModel?.page ?? 0;
   const pageSize = paginationModel?.pageSize ?? filtered.length;
   const start = page * pageSize;

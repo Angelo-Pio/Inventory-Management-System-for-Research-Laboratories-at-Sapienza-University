@@ -79,13 +79,13 @@ export default function RequestForm(props) {
   }, [navigate, backButtonPath]);
 
   return (
-    <Box 
+    <Box
       component="form"
       onSubmit={handleSubmit}
       noValidate
       autoComplete="off"
       onReset={handleReset}
-      sx={{ width: "100%", marginTop:3 }}
+      sx={{ width: "100%", marginTop: 3 }}
     >
       <FormGroup>
         <TextField
@@ -107,46 +107,34 @@ export default function RequestForm(props) {
         </TextField>
 
         <Stack
-  direction="row"
-  spacing={2}
-  justifyContent="space-between"
-  sx={{ marginY: 5 }}
->
-  {/* <TextField
-    select
-    variant="standard"
-    value={formValues.requestType ?? ""}
-    onChange={handleSelectFieldChange}
-    name="requestType"
-    label="Request Type"
-    error={!!formErrors.requestType}
-    helperText={formErrors.requestType ?? " "}
-    fullWidth
-  >
-    <MenuItem key="None" value="None">
-      Low Stock
-    </MenuItem>
-    <MenuItem key="Damaged" value="Damaged">
-      Damaged
-    </MenuItem>
-  </TextField> */}
+          direction="row"
+          spacing={2}
+          justifyContent="space-between"
+          sx={{ marginY: 5 }}
+        >
+          {materials.find((mat) => mat.name === formValues.material)?.category
+            .consumable && (
+            <TextField
+              value={formValues.quantity ?? ""}
+              onChange={handleTextFieldChange}
+              name="quantity"
+              label="Quantity"
+              type="number"
+              error={!!formErrors.quantity}
+              helperText={formErrors.quantity ?? " "}
+              fullWidth
+              variant="standard"
+            />
+          )}
+        </Stack>
 
-  {materials.find((mat)=>mat.name === formValues.material)?.category.consumable && (
-    <TextField
-      value={formValues.quantity ?? ""}
-      onChange={handleTextFieldChange}
-      name="quantity"
-      label="Quantity"
-      type="number"
-      error={!!formErrors.quantity}
-      helperText={formErrors.quantity ?? " "}
-      fullWidth
-      variant="standard"
-    />
-  )}
-</Stack>
-
-        <TextField label="Description" variant="standard" fullWidth multiline sx={{marginBottom:5}} />
+        <TextField
+          label="Description"
+          variant="standard"
+          fullWidth
+          multiline
+          sx={{ marginBottom: 5 }}
+        />
       </FormGroup>
       <Stack direction="row" spacing={2} justifyContent="space-between">
         <Button

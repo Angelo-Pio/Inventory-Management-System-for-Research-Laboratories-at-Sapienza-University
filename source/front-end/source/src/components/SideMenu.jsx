@@ -10,8 +10,8 @@ import Typography from "@mui/material/Typography";
 import Logo from "./Logo";
 import MenuContentLabManager from "./MenuContentLabManager";
 import MenuContentAdmin from "./MenuContentAdmin";
-import MenuContentResearcher from "./MenuContentResearcher"
-import Logout from './Logout';
+import MenuContentResearcher from "./MenuContentResearcher";
+import Logout from "./Logout";
 
 const drawerWidth = 240;
 
@@ -81,7 +81,7 @@ export default function SideMenu() {
         ) : user.role === "labmanager" ? (
           <MenuContentLabManager />
         ) : (
-          <MenuContentResearcher/>
+          <MenuContentResearcher />
         )}
       </Box>
 
@@ -95,11 +95,6 @@ export default function SideMenu() {
           borderColor: "divider",
         }}
       >
-        {/* <Avatar
-          alt={`${user.name} ${user.surname}`}
-          src="/static/images/avatar/7.jpg"
-          sx={{ width: 36, height: 36 }}
-        /> */}
         <Box sx={{ mr: "auto" }}>
           <Typography
             variant="body2"
@@ -111,7 +106,7 @@ export default function SideMenu() {
             {user.email}
           </Typography>
         </Box>
-        <Logout/>
+        <Logout />
       </Stack>
     </Drawer>
   );

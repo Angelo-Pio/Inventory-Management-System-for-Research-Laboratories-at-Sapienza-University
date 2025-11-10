@@ -56,19 +56,16 @@ export default function LabManagerHome() {
   }, [departmentId]);
 
   useEffect(() => {
-    // console.log(requestsData);
     console.log(totalRestocked);
     console.log(mostRestocked);
   }, [requestsData, totalRestocked, mostRestocked]);
 
   const handleDownload = async () => {
-    // simple validation
     if (!startDate || !endDate) {
       alert("Please select both start and end dates.");
       return;
     }
 
-    // format dates how your backend expects them. Example: YYYY-MM-DD
     const startStr = startDate.format("YYYY-MM-DD[T]HH:mm:ss");
     const endStr = endDate.format("YYYY-MM-DD[T]HH:mm:ss");
     try {
@@ -77,12 +74,11 @@ export default function LabManagerHome() {
       const result = await downloadReport(user.departmentId, startStr, endStr);
 
       if (result.success) {
-        // you already trigger the download in downloadReport, optionally notify
       } else {
         alert(`Failed to generate report: ${result.error}`);
       }
     } catch (err) {
-      setIsLoading(false); // immediate fallback if something thrown
+      setIsLoading(false);
       console.error(err);
       alert("Unexpected error while downloading report.");
     }
@@ -91,12 +87,10 @@ export default function LabManagerHome() {
   return (
     <div className="flex flex-col items-center space-y-6 px-6 pb-10 mt-8">
       <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" } }}>
-        {/* cards */}
         <Typography component="h2" variant="h4" sx={{ mb: 2 }}>
           Overview
         </Typography>
 
-        {/* Stat Cards Grid */}
         <Box
           sx={{
             display: "grid",
@@ -176,8 +170,6 @@ export default function LabManagerHome() {
               New Report
             </Button>
           </Box>
-          {/* <SessionsChart />
-        <PageViewsBarChart /> */}
         </Box>
       </Box>
     </div>

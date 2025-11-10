@@ -32,7 +32,6 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { useDialogs } from "../hooks/useDialogs";
-// import useNotifications from '../hooks/useNotifications/useNotifications';
 import {
   deleteDepartment,
   getAllUsers,
@@ -57,34 +56,22 @@ export default function EmployeesPage(props) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  // const [users, setUsers] = useState([]);
 
   const dialogs = useDialogs();
-  // const notifications = useNotifications();
-
-// const isDepartmentUsed = (departments, users) => {
-//   return departments.map(dep => ({
-//     ...dep,
-//     used: users.some(user => user.departmentId === dep.id) // ✅ true if any user has this department
-//   }));
-// };
-
 
   const [paginationModel, setPaginationModel] = useState({
-    page: searchParams.get("page") ? Number(searchParams.get("page")) : 0, //get page number
-    pageSize: searchParams.get("pageSize") //get page size
+    page: searchParams.get("page") ? Number(searchParams.get("page")) : 0,
+    pageSize: searchParams.get("pageSize")
       ? Number(searchParams.get("pageSize"))
       : INITIAL_PAGE_SIZE,
   });
 
-  // If a filter query param exists, it attempts to JSON.parse its value and use that as the initial filter mode
   const [filterModel, setFilterModel] = useState(
     searchParams.get("filter")
       ? JSON.parse(searchParams.get("filter") ?? "")
       : { items: [] }
   );
 
-  //row state and row count
   const [rowsState, setRowsState] = useState({
     rows: [],
     rowCount: 0,
@@ -139,11 +126,8 @@ export default function EmployeesPage(props) {
           paginationModel,
           filterModel,
         }),
-        // getAllUsers(),
       ]);
 
-      // ✅ Set departments
-      // setUsers(usersRes.data);
       setRowsState({
         rows: departmentsRes.items,
         rowCount: departmentsRes.itemCount,
@@ -167,46 +151,6 @@ export default function EmployeesPage(props) {
   const handleCreateClick = useCallback(() => {
     navigate("new");
   }, [navigate]);
-
-  // const handleRowDelete = useCallback(
-  //   (department) => async () => {
-  //     console.log(users);
-  //     const isUsed = users.some(user => user.departmentId === department.id);
-
-  //     if (isUsed) {
-  //       const alert = await dialogs.confirm(
-  //       `Can not delete ${department.name} because it contains some employees`,
-  //       {
-  //         title: `Delete Error`,
-  //         severity: "error",
-  //         cancelText: "",
-  //         okText:"Okay"
-  //       }
-  //     );
-  //     }
-  //     else{
-  //     const confirmed = await dialogs.confirm(
-  //       `Do you wish to delete ${department.name}?`,
-  //       {
-  //         title: `Delete Department?`,
-  //         severity: "error",
-  //         okText: "Delete",
-  //         cancelText: "Cancel",
-  //       }
-  //     );
-
-  //     if (confirmed) {
-  //       setIsLoading(true);
-  //       try {
-  //         await deleteDepartment(department.id);
-  //         loadData();
-  //       } catch (deleteError) {}
-  //       setIsLoading(false);
-  //     }
-  //   }
-  //   },
-  //   [dialogs, loadData,users]
-  // );
 
   const initialState = useMemo(
     () => ({
@@ -283,8 +227,6 @@ export default function EmployeesPage(props) {
           );
         },
       },
-
-      
     ],
     []
   );

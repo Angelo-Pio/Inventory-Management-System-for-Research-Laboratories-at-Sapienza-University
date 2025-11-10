@@ -11,27 +11,28 @@ import ListItemText from "@mui/material/ListItemText";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import StorageIcon from "@mui/icons-material/Storage";
 import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
-import ConstructionIcon from '@mui/icons-material/Construction';
+import ConstructionIcon from "@mui/icons-material/Construction";
 
 const mainListItems = [
   { text: "Lab Users", icon: <PeopleRoundedIcon />, path: "/admin-dashboard" },
-  { text: "Departments", icon: <ConstructionIcon />, path: "/admin-dashboard/departments" },
+  {
+    text: "Departments",
+    icon: <ConstructionIcon />,
+    path: "/admin-dashboard/departments",
+  },
 ];
 
 export default function MenuContent() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Normalize trailing slashes for comparison
   const normalize = (p) => (p || "").replace(/\/+$/, "") || "/";
 
   const current = normalize(location.pathname);
 
   const isSelected = (path) => {
     const target = normalize(path);
-    // Home should match exactly the base path
     if (target === "/admin-dashboard") return current === target;
-    // For other items, we'll treat a prefix match as selected so deeper pages remain highlighted
     return current === target || current.startsWith(target + "/");
   };
 

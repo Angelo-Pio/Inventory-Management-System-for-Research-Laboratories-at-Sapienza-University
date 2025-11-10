@@ -34,25 +34,21 @@ export default function Logout() {
   };
 
 const handleLogout = async () => {
-    // close the menu immediately for better UX
     handleClose();
     setLogoutError(null);
     setLoggingOut(true);
 
     try {
-      const result = await logout(); // your provided function
+      const result = await logout(); 
       setLoggingOut(false);
 
       if (result?.success) {
-        // Option A: navigate to login route (recommended if you use react-router)
         if (navigate) {
           navigate('/login', { replace: true });
           return;
         }
-        // Option B: reload the page (simple fallback)
-        window.location.href = '/login'; // or window.location.reload();
+        window.location.href = '/login';
       } else {
-        // show an error message (you can replace this with a toast)
         setLogoutError(result?.error || 'Logout failed');
         console.error('Logout failed:', result);
       }
@@ -65,11 +61,10 @@ const handleLogout = async () => {
   
   return (
     <React.Fragment>
-      {/* Inlined MenuButton: Badge + IconButton */}
       <Badge
         color="error"
         variant="dot"
-        invisible /* no showBadge passed, so the badge is hidden */
+        invisible
         sx={{ [`& .${badgeClasses.badge}`]: { right: 2, top: 2 } }}
       >
         <IconButton

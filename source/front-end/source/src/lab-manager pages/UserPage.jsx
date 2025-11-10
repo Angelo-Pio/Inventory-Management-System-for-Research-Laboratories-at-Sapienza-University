@@ -32,7 +32,6 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { useDialogs } from "../hooks/useDialogs";
-// import useNotifications from '../hooks/useNotifications/useNotifications';
 import {
   deleteUser,
   getFilteredUsers,
@@ -65,23 +64,20 @@ export default function EmployeesPage(props) {
   };
 
   const dialogs = useDialogs();
-  // const notifications = useNotifications();
 
   const [paginationModel, setPaginationModel] = useState({
-    page: searchParams.get("page") ? Number(searchParams.get("page")) : 0, //get page number
-    pageSize: searchParams.get("pageSize") //get page size
+    page: searchParams.get("page") ? Number(searchParams.get("page")) : 0,
+    pageSize: searchParams.get("pageSize")
       ? Number(searchParams.get("pageSize"))
       : INITIAL_PAGE_SIZE,
   });
 
-  // If a filter query param exists, it attempts to JSON.parse its value and use that as the initial filter mode
   const [filterModel, setFilterModel] = useState(
     searchParams.get("filter")
       ? JSON.parse(searchParams.get("filter") ?? "")
       : { items: [] }
   );
 
-  //row state and row count
   const [rowsState, setRowsState] = useState({
     rows: [],
     rowCount: 0,
@@ -129,7 +125,6 @@ export default function EmployeesPage(props) {
     setIsLoading(true);
 
     try {
-      // ✅ Run both requests in parallel for best performance
       const [departmentsRes, usersRes] = await Promise.all([
         getAllDepartments(),
         getFilteredUsers({
@@ -140,15 +135,9 @@ export default function EmployeesPage(props) {
         }),
       ]);
 
-      // ✅ Set departments
       setDepartments(departmentsRes.data);
       console.log(usersRes);
-      
-      // if (user.role === "Admin") {
-      //   usersRes = usersRes
-      // }
 
-      // ✅ Set users
       setRowsState({
         rows: usersRes.items,
         rowCount: usersRes.itemCount,
@@ -156,7 +145,7 @@ export default function EmployeesPage(props) {
     } catch (error) {
       setError(error);
     } finally {
-      setIsLoading(false); // ✅ Only stops loading after BOTH requests complete
+      setIsLoading(false);
     }
   }, [paginationModel, filterModel, user.departmentId]);
 
@@ -250,7 +239,6 @@ export default function EmployeesPage(props) {
       });
     }
 
-    // ✅ Always add actions
     if (user.role === "admin") {
       baseColumns.push({
         field: "actions",
@@ -279,7 +267,7 @@ export default function EmployeesPage(props) {
                   key="delete-item"
                   icon={<DeleteIcon />}
                   label="Delete"
-                  onClick={() => handleRowDelete(row)} // ✅ make sure it's wrapped in a function
+                  onClick={() => handleRowDelete(row)}
                 />,
               ]
             : [];

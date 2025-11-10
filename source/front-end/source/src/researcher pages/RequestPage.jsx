@@ -38,7 +38,6 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { useDialogs } from "../hooks/useDialogs";
-// import useNotifications from '../hooks/useNotifications/useNotifications';
 import { deleteMaterial, getAllRequests } from "../services/labManagerServices";
 import PageContainer from "../components/PageContainer";
 import { getManyRequests } from "../services/researcherServices";
@@ -67,7 +66,6 @@ export default function RequestPage(props) {
   ]);
 
   const dialogs = useDialogs();
-  //Get materials
   useEffect(() => {
     const fetchMaterials = async () => {
       try {
@@ -83,20 +81,18 @@ export default function RequestPage(props) {
   }, []);
 
   const [paginationModel, setPaginationModel] = useState({
-    page: searchParams.get("page") ? Number(searchParams.get("page")) : 0, //get page number
-    pageSize: searchParams.get("pageSize") //get page size
+    page: searchParams.get("page") ? Number(searchParams.get("page")) : 0,
+    pageSize: searchParams.get("pageSize")
       ? Number(searchParams.get("pageSize"))
       : INITIAL_PAGE_SIZE,
   });
 
-  // If a filter query param exists, it attempts to JSON.parse its value and use that as the initial filter mode
   const [filterModel, setFilterModel] = useState(
     searchParams.get("filter")
       ? JSON.parse(searchParams.get("filter") ?? "")
       : { items: [] }
   );
 
-  //row state and row count
   const [rowsState, setRowsState] = useState({
     rows: [],
     rowCount: 0,
@@ -165,7 +161,7 @@ export default function RequestPage(props) {
       });
 
       console.log(completeListData);
-      
+
       setRowsState({
         rows: completeListData,
         rowCount: itemCount,
@@ -190,32 +186,6 @@ export default function RequestPage(props) {
   const handleCreateClick = useCallback(() => {
     navigate("new");
   }, [navigate]);
-
-  // const handleRowDelete = useCallback(
-  //   (material) => async () => {
-  //     console.log(material);
-
-  //     const confirmed = await dialogs.confirm(
-  //       `Do you wish to delete ${material.name}?`,
-  //       {
-  //         title: `Delete material?`,
-  //         severity: "error",
-  //         okText: "Delete",
-  //         cancelText: "Cancel",
-  //       }
-  //     );
-
-  //     if (confirmed) {
-  //       setIsLoading(true);
-  //       try {
-  //         await deleteMaterial(user.departmentId, material.id);
-  //         loadData();
-  //       } catch (deleteError) {}
-  //       setIsLoading(false);
-  //     }
-  //   },
-  //   [dialogs, loadData]
-  // );
 
   const initialState = useMemo(
     () => ({
@@ -280,7 +250,6 @@ export default function RequestPage(props) {
         width: 180,
         sortable: false,
         disableColumnMenu: true,
-      
       },
       {
         field: "requestStatus",
@@ -289,20 +258,6 @@ export default function RequestPage(props) {
         sortable: false,
         disableColumnMenu: true,
       },
-      // {
-      //   field: "actions",
-      //   type: "actions",
-      //   flex: 1,
-      //   align: "right",
-      //   getActions: ({ row }) => [
-      //     <GridActionsCellItem
-      //       key="delete-item"
-      //       icon={<DeleteIcon />}
-      //       label="Delete"
-      //       onClick={handleRowDelete(row)}
-      //     />,
-      //   ],
-      // },
     ],
     []
   );

@@ -36,7 +36,6 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { useDialogs } from "../hooks/useDialogs";
-// import useNotifications from '../hooks/useNotifications/useNotifications';
 import { deleteMaterial, getMany } from "../services/labManagerServices";
 import PageContainer from "../components/PageContainer";
 import Typography from "@mui/material/Typography";
@@ -60,23 +59,20 @@ export default function InventoryPage(props) {
   const { user } = useAuth();
 
   const dialogs = useDialogs();
-  // const notifications = useNotifications();
 
   const [paginationModel, setPaginationModel] = useState({
-    page: searchParams.get("page") ? Number(searchParams.get("page")) : 0, //get page number
-    pageSize: searchParams.get("pageSize") //get page size
+    page: searchParams.get("page") ? Number(searchParams.get("page")) : 0,
+    pageSize: searchParams.get("pageSize")
       ? Number(searchParams.get("pageSize"))
       : INITIAL_PAGE_SIZE,
   });
 
-  // If a filter query param exists, it attempts to JSON.parse its value and use that as the initial filter mode
   const [filterModel, setFilterModel] = useState(
     searchParams.get("filter")
       ? JSON.parse(searchParams.get("filter") ?? "")
       : { items: [] }
   );
 
-  //row state and row count
   const [rowsState, setRowsState] = useState({
     rows: [],
     rowCount: 0,
@@ -130,7 +126,7 @@ export default function InventoryPage(props) {
         paginationModel,
         filterModel,
       });
-      console.log("LISTDATA",listData);
+      console.log("LISTDATA", listData);
 
       setRowsState({
         rows: listData.items,
@@ -245,36 +241,11 @@ export default function InventoryPage(props) {
         align: "right",
         sortable: false,
         disableColumnMenu: true,
-        // use renderCell for full control and to return arbitrary JSX
         renderCell: (params) => {
           const row = params.row;
 
           if (row?.status === "Damaged") {
-            // Show simple tooltip + icon button for damaged items
             return (
-              // <Stack direction="row" spacing={1} justifyContent="space-between">
-              //   <Tooltip
-              //     title="1 unit of this material is damaged"
-              //     slotProps={{
-              //       tooltip: {
-              //         sx: {
-              //           backgroundColor: "red",
-              //           fontSize:"small"
-              //         },
-              //       },
-              //     }}
-              //     onClick={()=> navigate("/labmanager-dashboard/alerts")}
-              //   >
-
-              //     <PriorityHighIcon fontSize="large" color="error" />
-              //   </Tooltip>
-              //   <GridActionsCellItem
-              //     key="delete-item"
-              //     icon={<DeleteIcon />}
-              //     label="Delete"
-              //     onClick={handleRowDelete(row)}
-              //   />
-              // </Stack>
               <Tooltip
                 title="The material is damaged"
                 slotProps={{
@@ -292,16 +263,7 @@ export default function InventoryPage(props) {
             );
           }
 
-          // Default: use your GridActionsCellItem (keeps the previous behaviour)
-          return (
-            // <GridActionsCellItem
-            //   key="delete-item"
-            //   icon={<DeleteIcon />}
-            //   label="Delete"
-            //   onClick={handleRowDelete(row)}
-            // />
-            <></>
-          );
+          return <></>;
         },
       },
     ],
